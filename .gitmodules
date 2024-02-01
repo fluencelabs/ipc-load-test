@@ -1,0 +1,4 @@
+[submodule "ipc"]
+	path = ipc
+	url = https://github.com/fluencelabs/ipc
+	branch = fluence
