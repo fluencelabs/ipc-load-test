@@ -1,1 +1,12 @@
+.DS_Store
+.vscode
+
+debug/
+target/
+
+**/*.bk
+**/*.bak
+
 node_modules
+
+./randomx/pid.json
