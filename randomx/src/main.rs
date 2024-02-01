@@ -79,15 +79,15 @@ fn main() {
         }
     });
 
-    let workers: Vec<Worker>;
-    for i in 0..WORKER_THREADS {
+    let mut workers: Vec<Worker> = vec![];
+    for _ in 0..WORKER_THREADS {
         let (etx, erx): (Sender<pow::Event>, Receiver<pow::Event>) = unbounded();
         let (ptx, prx): (
             Sender<puzzle::PuzzleSolution>,
             Receiver<puzzle::PuzzleSolution>,
         ) = unbounded();
 
-        let thread = pow::randomx_instance(&erx, &ptx);
+        let thread = pow::randomx_instance(erx, ptx);
         workers.push(Worker {
             thread,
             rx: prx,
@@ -95,16 +95,44 @@ fn main() {
         });
     }
 
+    let send_event = |event: pow::Event| {
+        for worker in &workers {
+            worker.tx.send(event.clone()).unwrap();
+        }
+    };
+
     //main monitoring loop -- trying to preserve threads for randomx
     log::info!("entering main control loop.");
     loop {
         while let Ok(update) = updates_rx.try_recv() {
             println!("Received from JS: {:?}", update);
+            if let Some(difficulty) = update.get("difficulty") {
+                let difficulty = difficulty.as_u64().unwrap() as u32;
+                send_event(pow::Event::Difficulty(difficulty));
+            }
+
+            if let Some(unit_id) = update.get("unit_id") {
+                let unit_id = unit_id.as_str().unwrap();
+                send_event(pow::Event::UnitId(String::from(unit_id)));
+            }
+
+            if let Some(g_nonce) = update.get("g_nonce") {
+                let g_nonce = g_nonce.as_u64().unwrap();
+                send_event(pow::Event::GNonce(g_nonce));
+            }
+
+            if let Some(stop) = update.get("stop") {
+                if stop.as_bool().unwrap() {
+                    send_event(pow::Event::Stop);
+                }
+            }
         }
 
-        for worker in workers {
+        for worker in &workers {
             while let Ok(solution) = worker.rx.try_recv() {
                 log::info!("Received solution: {:?}", solution);
+                let json = serde_json::to_string(&solution).unwrap();
+                rust_to_js_pipe.write_all(json.as_bytes()).unwrap();
             }
         }
 

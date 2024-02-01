@@ -8,6 +8,7 @@ use crate::hashers;
 use crate::mocks;
 use crate::puzzle;
 
+#[derive(Clone)]
 pub enum Event {
     GNonce(u64),
     Difficulty(u32),
@@ -30,8 +31,8 @@ fn construct_hasher(g_nonce: &u64, unit_id: &str) -> Hasher {
 }
 
 pub fn randomx_instance(
-    events: &Receiver<Event>,
-    solutions: &Sender<puzzle::PuzzleSolution>,
+    events: Receiver<Event>,
+    solutions: Sender<puzzle::PuzzleSolution>,
 ) -> thread::JoinHandle<()> {
     return thread::spawn(move || {
         let mut g_nonce: u64 = 0;
@@ -71,7 +72,7 @@ pub fn randomx_instance(
             if out.leading_zeros() >= difficulty {
                 let solution = puzzle::PuzzleSolution::new(
                     g_nonce,
-                    unit_id.into_bytes(),
+                    unit_id.clone().into_bytes(),
                     nonce.to_vec(),
                     difficulty,
                 );
