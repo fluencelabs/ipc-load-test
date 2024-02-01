@@ -2,3 +2,7 @@
 	path = ipc
 	url = https://github.com/fluencelabs/ipc
 	branch = fluence
+[submodule "deal"]
+	path = deal
+	url = https://github.com/fluencelabs/deal
+	branch = main
