@@ -2,12 +2,12 @@
 #![feature(file_create_new)]
 use chrono::{Local, Utc};
 use crossbeam::channel::{unbounded, Receiver, Sender};
-use fluence_keypair::KeyPair;
 use log::*;
+use rust_randomx::{Context, Hasher};
 use serde_json::Value;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
-use std::sync::{Arc, LazyLock};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
@@ -50,7 +50,33 @@ fn val_to_u8vec(jval: &Value) -> Vec<u8> {
     hex::decode(jval.as_str().unwrap().trim_start_matches("0x")).unwrap()
 }
 
+fn str_to_u8vec(s: &str) -> Vec<u8> {
+    hex::decode(s.trim_start_matches("0x")).unwrap()
+}
+
+fn u8vec_to_str(v: &[u8]) -> String {
+    format!("0x{}", hex::encode(v))
+}
+
 fn main() {
+    let g_nonce =
+        str_to_u8vec("0x0101010101010101010101010101010101010101010101010101010101010101");
+    let unit_id =
+        str_to_u8vec("0x0202020202020202020202020202020202020202020202020202020202020202");
+    let mut context_raw = vec![];
+    context_raw.extend(g_nonce);
+    context_raw.extend(unit_id);
+    let context_hash = hashers::keccak_hasher(&context_raw);
+    println!("Keccak: {}", u8vec_to_str(&context_hash));
+    let context = Arc::new(Context::new(&context_hash, true));
+    let hasher = Hasher::new(context);
+    let nonce = str_to_u8vec("0x0303030303030303030303030303030303030303030303030303030303030303");
+
+    let hash = hasher.hash(&nonce);
+    println!("Hash: {}", u8vec_to_str(&hash.as_ref()));
+
+    return;
+
     // handle pid file
     pid_handler::rm_pid();
     pid_handler::write_pid();
