@@ -9,4 +9,4 @@ target/
 
 node_modules
 
-./randomx/pid.json
+**/pid.json

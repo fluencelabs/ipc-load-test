@@ -12,18 +12,15 @@ use std::thread;
 use std::time::Duration;
 
 mod hashers;
-mod mocks;
 mod pid_handler;
 mod pow;
 mod puzzle;
 
 const PID_PATH: &str = "./pid.json";
-const MAIN_LOOP_SLEEP: u32 = 6 * 1_000; // in millis
-const WORKER_THREADS: u32 = 8;
+const MAIN_LOOP_SLEEP: u32 = 500; // in millis
+const WORKER_THREADS: u32 = 2;
 const JS_TO_RUST_PIPE: &str = "/tmp/js_to_rust_pipe";
 const RUST_TO_JS_PIPE: &str = "/tmp/rust_to_js_pipe";
-
-static KEYPAIR: LazyLock<Arc<KeyPair>> = LazyLock::new(|| Arc::new(KeyPair::generate_ed25519()));
 
 fn setup_logging() {
     env_logger::Builder::new()
@@ -49,6 +46,10 @@ struct Worker {
     tx: Sender<pow::Event>,
 }
 
+fn val_to_u8vec(jval: &Value) -> Vec<u8> {
+    hex::decode(jval.as_str().unwrap().trim_start_matches("0x")).unwrap()
+}
+
 fn main() {
     // handle pid file
     pid_handler::rm_pid();
@@ -65,19 +66,20 @@ fn main() {
     let js_to_rust_pipe = OpenOptions::new().read(true).open(JS_TO_RUST_PIPE).unwrap();
     let mut rust_to_js_pipe = OpenOptions::new()
         .write(true)
+        .create(true)
         .open(RUST_TO_JS_PIPE)
         .unwrap();
     let reader = BufReader::new(js_to_rust_pipe);
     let (updates_tx, updates_rx): (Sender<Value>, Receiver<Value>) = unbounded();
 
-    let reader_thread = thread::spawn(move || {
+    let _reader_thread = thread::spawn(move || {
         for line in reader.lines() {
             let line = line.unwrap();
             let json: Value = serde_json::from_str(&line).expect("Failed to parse JSON");
-            log::info!("Received: {:?}", json);
             updates_tx.send(json).unwrap();
         }
     });
+    log::info!("communication is up.");
 
     let mut workers: Vec<Worker> = vec![];
     for _ in 0..WORKER_THREADS {
@@ -94,6 +96,7 @@ fn main() {
             tx: etx,
         });
     }
+    log::info!("workers are up.");
 
     let send_event = |event: pow::Event| {
         for worker in &workers {
@@ -105,20 +108,18 @@ fn main() {
     log::info!("entering main control loop.");
     loop {
         while let Ok(update) = updates_rx.try_recv() {
-            println!("Received from JS: {:?}", update);
+            log::info!("Received update: {:?}", update);
+
+            if let Some(g_nonce) = update.get("globalNonce") {
+                send_event(pow::Event::GNonce(val_to_u8vec(g_nonce)));
+            }
+
+            if let Some(unit_id) = update.get("unitId") {
+                send_event(pow::Event::UnitId(val_to_u8vec(unit_id)));
+            }
+
             if let Some(difficulty) = update.get("difficulty") {
-                let difficulty = difficulty.as_u64().unwrap() as u32;
-                send_event(pow::Event::Difficulty(difficulty));
-            }
-
-            if let Some(unit_id) = update.get("unit_id") {
-                let unit_id = unit_id.as_str().unwrap();
-                send_event(pow::Event::UnitId(String::from(unit_id)));
-            }
-
-            if let Some(g_nonce) = update.get("g_nonce") {
-                let g_nonce = g_nonce.as_u64().unwrap();
-                send_event(pow::Event::GNonce(g_nonce));
+                send_event(pow::Event::Difficulty(val_to_u8vec(difficulty)));
             }
 
             if let Some(stop) = update.get("stop") {
@@ -131,8 +132,9 @@ fn main() {
         for worker in &workers {
             while let Ok(solution) = worker.rx.try_recv() {
                 log::info!("Received solution: {:?}", solution);
+
                 let json = serde_json::to_string(&solution).unwrap();
-                rust_to_js_pipe.write_all(json.as_bytes()).unwrap();
+                rust_to_js_pipe.write_all((json + "\n").as_bytes()).unwrap();
             }
         }
 
@@ -160,6 +162,7 @@ fn main() {
     for worker in workers {
         worker.thread.join().unwrap();
     }
-    reader_thread.join().unwrap();
+    // TODO: stop reader thread gracefully
+    //_reader_thread.join().unwrap();
     log::info!("done and done. exiting main.");
 }

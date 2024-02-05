@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "run": "ts-node src/index.ts"
+    "register": "ts-node src/index.ts",
+    "send": "ts-node src/send.ts"
   },
   "dependencies": {
     "ethers": "6.7.1",

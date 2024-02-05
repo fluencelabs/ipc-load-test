@@ -1,18 +1,10 @@
 import { ethers } from "ethers";
 import { DealClient } from "@fluencelabs/deal-ts-clients";
 
-import { Communicate } from "./communicate.js";
+import { loadConfig, saveConfig } from "./config.js";
+import { delay } from "./utils.js";
 
 const DEFAULT_CONFIRMATIONS = 1;
-
-const TEST_RPC_URL = "http://127.0.0.1:8548";
-const PROVIDER_SK =
-  "0xdc65877f37e6ca4f7f3f4b083c276177c03bb70d2032c8e0ef4190f72670fabe";
-const PROVIDER_NAME = "TEST_PROVIDER";
-
-async function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 async function getDefaultOfferFixture(
   owner: string,
@@ -40,23 +32,10 @@ async function getDefaultOfferFixture(
   return offerFixture;
 }
 
-const communicate = new Communicate();
+const config = loadConfig("config.json");
 
-communicate.onSolution((solution: any) => {
-  console.log("Got solution: ", solution);
-});
-
-for (let i = 0; i < 10; i++) {
-  console.log("Setting difficulty and global nonce...");
-
-  communicate.setDifficulty("0x" + i.toString(16));
-  communicate.setGlobalNonce("0x" + i.toString(16));
-
-  await delay(60000);
-}
-
-const rpc = new ethers.JsonRpcProvider(TEST_RPC_URL);
-const signer = new ethers.Wallet(PROVIDER_SK, rpc);
+const rpc = new ethers.JsonRpcProvider(config.test_rpc_url);
+const signer = new ethers.Wallet(config.provider_sk, rpc);
 const client = new DealClient(signer, "local");
 
 console.log("Getting USDC token address...");
@@ -80,9 +59,9 @@ const offer = await getDefaultOfferFixture(
 );
 
 console.log("Setting provider info...");
-const setProviderInfoTx = await market.setProviderInfo(PROVIDER_NAME, {
+const setProviderInfoTx = await market.setProviderInfo(config.provider_name, {
   prefixes: "0x12345678",
-  hash: ethers.encodeBytes32String(`${PROVIDER_NAME}:${timestamp}`),
+  hash: ethers.encodeBytes32String(`${config.provider_name}:${timestamp}`),
 });
 await setProviderInfoTx.wait(DEFAULT_CONFIRMATIONS);
 
@@ -96,7 +75,6 @@ const registerMarketOfferTx = await market.registerMarketOffer(
 await registerMarketOfferTx.wait(DEFAULT_CONFIRMATIONS);
 
 const capacity = await client.getCapacity();
-const capacityAddress = await capacity.getAddress();
 const capacityMinDuration = await capacity.minDuration();
 
 for (const peer of offer.peers) {
@@ -140,7 +118,7 @@ console.log(
 const commitmentIds = capacityCommitmentCreatedEventsLast.map(
   (event) => event.args.commitmentId
 );
-let collateralToApproveCommitments = 0n;
+
 for (const commitmentId of commitmentIds) {
   const commitment = await capacity.getCommitment(commitmentId);
   const collateralToApproveCommitment =
@@ -152,28 +130,33 @@ for (const commitmentId of commitmentIds) {
     collateralToApproveCommitment,
     "..."
   );
-  collateralToApproveCommitments += collateralToApproveCommitment;
+  const depositCollateralTx = await capacity.depositCollateral(commitmentId, {
+    value: collateralToApproveCommitment,
+  });
+  await depositCollateralTx.wait(DEFAULT_CONFIRMATIONS);
+
+  console.info("Waiting for CC to activate...");
+  const filterActivatedCC = capacity.filters.CommitmentActivated();
+
+  console.info("Waiting for commitment activated event...");
+  for (let i = 0; i < 10000; i++) {
+    const capacityCommitmentActivatedEvents = await capacity.queryFilter(
+      filterActivatedCC,
+      blockNumber
+    );
+
+    if (capacityCommitmentActivatedEvents.length > 0) {
+      console.info("Got commitment activated event...");
+      break;
+    } else {
+      console.info("No commitment activated event...");
+    }
+
+    await delay(1000);
+  }
 }
-console.info(
-  "Sending approve of FLT for all commitments for value:",
-  collateralToApproveCommitments,
-  "..."
-);
 
-const fltContract = await client.getFLT();
-const collateralToApproveCommitmentsTx = await fltContract.approve(
-  capacityAddress,
-  collateralToApproveCommitments
-);
-await collateralToApproveCommitmentsTx.wait(DEFAULT_CONFIRMATIONS);
+console.info("Updating config...");
+saveConfig("config.json", { ...config, unit_id: offer.peers[0]?.unitIds[0] });
 
-console.log("Get global nonce...");
-const globalNonce = await capacity.getGlobalNonce();
-
-console.log("Get difficulty...");
-const difficulty = await capacity.difficulty();
-
-console.log("Global nonce: ", globalNonce);
-console.log("Peer PeerID: ", offer.peers[0]?.peerId);
-console.log("Peer UnitID: ", offer.peers[0]?.unitIds[0]);
-console.log("Difficulty: ", difficulty);
+console.info("Unit ID: ", offer.peers[0]?.unitIds[0]);

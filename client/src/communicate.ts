@@ -1,33 +1,50 @@
 import * as fs from "fs";
-import * as readline from "readline";
+import type { BytesLike } from "ethers";
 
 const rustToJsPipe: string = "/tmp/rust_to_js_pipe";
 const jsToRustPipe: string = "/tmp/js_to_rust_pipe";
 
+export interface Params {
+  difficulty?: BytesLike | undefined;
+  globalNonce?: BytesLike | undefined;
+  unitId?: BytesLike | undefined;
+}
+
+export interface Solution {
+  ch: BytesLike;
+  g_nonce: BytesLike;
+  unit_id: BytesLike;
+  nonce: BytesLike;
+  hash: BytesLike;
+}
+
 export class Communicate {
   private readonly rustToJsStream: fs.ReadStream;
   private readonly jsToRustStream: fs.WriteStream;
+  private buffer: string = "";
 
   constructor() {
-    this.rustToJsStream = fs.createReadStream(rustToJsPipe).setEncoding("utf8");
-
     this.jsToRustStream = fs.createWriteStream(jsToRustPipe);
+    this.rustToJsStream = fs.createReadStream(rustToJsPipe).setEncoding("utf8");
   }
 
-  setDifficulty(difficulty: string) {
-    this.jsToRustStream.write(JSON.stringify({ difficulty }) + "\n");
-  }
-
-  setGlobalNonce(globalNonce: string) {
-    this.jsToRustStream.write(JSON.stringify({ globalNonce }) + "\n");
+  updateParams(params: Params) {
+    this.jsToRustStream.write(JSON.stringify(params) + "\n");
   }
 
   onSolution(callback: (solution: any) => void) {
-    readline
-      .createInterface({ input: this.rustToJsStream })
-      .on("line", (line: string) => {
-        const json: any = JSON.parse(line);
-        callback(json);
-      });
+    this.rustToJsStream.on("data", (data: string) => {
+      this.buffer += data;
+      const last = this.buffer.lastIndexOf("\n");
+      if (last !== -1) {
+        const lines = this.buffer.slice(0, last).split("\n");
+        this.buffer = this.buffer.slice(last + 1);
+        for (const line of lines) {
+          if (line.length > 0) {
+            callback(JSON.parse(line));
+          }
+        }
+      }
+    });
   }
 }
