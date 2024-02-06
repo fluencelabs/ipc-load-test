@@ -1,19 +1,16 @@
-#![feature(lazy_cell)]
-#![feature(file_create_new)]
 use chrono::{Local, Utc};
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use log::*;
-use rust_randomx::{Context, Hasher};
 use serde_json::Value;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
-use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
 mod hashers;
 mod pid_handler;
 mod pow;
+mod request;
 mod puzzle;
 
 const PID_PATH: &str = "./pid.json";
@@ -40,12 +37,6 @@ fn setup_logging() {
         .init();
 }
 
-struct Worker {
-    thread: thread::JoinHandle<()>,
-    rx: Receiver<puzzle::PuzzleSolution>,
-    tx: Sender<pow::Event>,
-}
-
 fn val_to_u8vec(jval: &Value) -> Vec<u8> {
     hex::decode(jval.as_str().unwrap().trim_start_matches("0x")).unwrap()
 }
@@ -59,23 +50,21 @@ fn u8vec_to_str(v: &[u8]) -> String {
 }
 
 fn main() {
-    let g_nonce =
-        str_to_u8vec("0x0101010101010101010101010101010101010101010101010101010101010101");
-    let unit_id =
-        str_to_u8vec("0x0202020202020202020202020202020202020202020202020202020202020202");
-    let mut context_raw = vec![];
-    context_raw.extend(g_nonce);
-    context_raw.extend(unit_id);
-    let context_hash = hashers::keccak_hasher(&context_raw);
-    println!("Keccak: {}", u8vec_to_str(&context_hash));
-    let context = Arc::new(Context::new(&context_hash, true));
-    let hasher = Hasher::new(context);
-    let nonce = str_to_u8vec("0x0303030303030303030303030303030303030303030303030303030303030303");
+    // let g_nonce =
+    //     str_to_u8vec("0x0101010101010101010101010101010101010101010101010101010101010101");
+    // let unit_id =
+    //     str_to_u8vec("0x0202020202020202020202020202020202020202020202020202020202020202");
+    // let mut context_raw = vec![];
+    // context_raw.extend(g_nonce);
+    // context_raw.extend(unit_id);
+    // let context_hash = hashers::keccak_hasher(&context_raw);
+    // println!("Keccak: {}", u8vec_to_str(&context_hash));
+    // let context = Arc::new(Context::new(&context_hash, true));
+    // let hasher = Hasher::new(context);
+    // let nonce = str_to_u8vec("0x0303030303030303030303030303030303030303030303030303030303030303");
 
-    let hash = hasher.hash(&nonce);
-    println!("Hash: {}", u8vec_to_str(&hash.as_ref()));
-
-    return;
+    // let hash = hasher.hash(&nonce);
+    // println!("Hash: {}", u8vec_to_str(&hash.as_ref()));
 
     // handle pid file
     pid_handler::rm_pid();
@@ -96,71 +85,27 @@ fn main() {
         .open(RUST_TO_JS_PIPE)
         .unwrap();
     let reader = BufReader::new(js_to_rust_pipe);
-    let (updates_tx, updates_rx): (Sender<Value>, Receiver<Value>) = unbounded();
+    let (requests_tx, requests_rx): (Sender<request::Request>, Receiver<request::Request>) = unbounded();
 
     let _reader_thread = thread::spawn(move || {
         for line in reader.lines() {
             let line = line.unwrap();
-            let json: Value = serde_json::from_str(&line).expect("Failed to parse JSON");
-            updates_tx.send(json).unwrap();
+            let req: request::Request = serde_json::from_str(&line).expect("Failed to parse Request");
+            requests_tx.send(req).unwrap();
         }
     });
     log::info!("communication is up.");
 
-    let mut workers: Vec<Worker> = vec![];
-    for _ in 0..WORKER_THREADS {
-        let (etx, erx): (Sender<pow::Event>, Receiver<pow::Event>) = unbounded();
-        let (ptx, prx): (
-            Sender<puzzle::PuzzleSolution>,
-            Receiver<puzzle::PuzzleSolution>,
-        ) = unbounded();
-
-        let thread = pow::randomx_instance(erx, ptx);
-        workers.push(Worker {
-            thread,
-            rx: prx,
-            tx: etx,
-        });
-    }
-    log::info!("workers are up.");
-
-    let send_event = |event: pow::Event| {
-        for worker in &workers {
-            worker.tx.send(event.clone()).unwrap();
-        }
-    };
-
-    //main monitoring loop -- trying to preserve threads for randomx
     log::info!("entering main control loop.");
     loop {
-        while let Ok(update) = updates_rx.try_recv() {
-            log::info!("Received update: {:?}", update);
-
-            if let Some(g_nonce) = update.get("globalNonce") {
-                send_event(pow::Event::GNonce(val_to_u8vec(g_nonce)));
-            }
-
-            if let Some(unit_id) = update.get("unitId") {
-                send_event(pow::Event::UnitId(val_to_u8vec(unit_id)));
-            }
-
-            if let Some(difficulty) = update.get("difficulty") {
-                send_event(pow::Event::Difficulty(val_to_u8vec(difficulty)));
-            }
-
-            if let Some(stop) = update.get("stop") {
-                if stop.as_bool().unwrap() {
-                    send_event(pow::Event::Stop);
-                }
-            }
-        }
-
-        for worker in &workers {
-            while let Ok(solution) = worker.rx.try_recv() {
-                log::info!("Received solution: {:?}", solution);
-
-                let json = serde_json::to_string(&solution).unwrap();
-                rust_to_js_pipe.write_all((json + "\n").as_bytes()).unwrap();
+        while let Ok(req) = requests_rx.try_recv() {
+            log::info!("received request: {:?}", req);
+            let solutions = pow::randomx_gen(&req.globalNonce, &req.unitId, req.n);   
+            log::info!("solutions: {:?}", solutions);
+            for sol in solutions {
+                let sol_str = serde_json::to_string(&sol).unwrap();
+                rust_to_js_pipe.write_all(sol_str.as_bytes()).unwrap();
+                rust_to_js_pipe.write_all(b"\n").unwrap();
             }
         }
 
@@ -184,11 +129,7 @@ fn main() {
         thread::sleep(Duration::from_millis(100));
     }
     log::info!("done with interrupt catcher.");
-    // finally join
-    for worker in workers {
-        worker.thread.join().unwrap();
-    }
     // TODO: stop reader thread gracefully
-    //_reader_thread.join().unwrap();
+    _reader_thread.join().unwrap();
     log::info!("done and done. exiting main.");
 }

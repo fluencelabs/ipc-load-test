@@ -18,34 +18,24 @@ const capacity = await client.getCapacity();
 let globalNonce = await capacity.getGlobalNonce();
 const difficulty = await capacity.difficulty();
 
-const params: Params = {
-  unitId: config.unit_id,
-  globalNonce: globalNonce,
-  difficulty: difficulty,
-};
-console.info("Initial params: ", params);
+console.info("Initial difficulty: ", difficulty);
+console.info("Initial global nonce: ", globalNonce);
 
-communicate.updateParams(params);
+// const difficultyUpdated = capacity.getEvent("DifficultyUpdated");
+// capacity.on(difficultyUpdated, (difficulty: string) => {});
 
-const difficultyUpdated = capacity.getEvent("DifficultyUpdated");
-capacity.on(difficultyUpdated, (difficulty: string) => {
-  communicate.updateParams({ difficulty });
-});
-
-let proofSubmitted = 0;
 communicate.onSolution(async (solution: Solution) => {
-  if (proofSubmitted === 0) {
-    proofSubmitted++;
-    console.log("Got solution: ", solution);
-    await capacity.submitProof(
-      solution.unit_id,
-      solution.g_nonce,
-      solution.nonce,
-      solution.hash
-    );
-    console.log("Submitted proof");
-  }
+  console.log("Got solution: ", solution);
+  await capacity.submitProof(
+    solution.unit_id,
+    solution.g_nonce,
+    solution.nonce,
+    solution.hash
+  );
+  console.log("Submitted proof");
 });
+
+communicate.request({ globalNonce, unitId: config.unit_id!, n: 1 });
 
 console.log("Waiting for solution...");
 
@@ -53,7 +43,7 @@ for (let i = 0; i < 10000; i++) {
   const globalNonceNew = await capacity.getGlobalNonce();
   if (globalNonceNew !== globalNonce) {
     globalNonce = globalNonceNew;
-    communicate.updateParams({ globalNonce });
+    communicate.request({ globalNonce, unitId: config.unit_id!, n: 1 });
     console.log("Updated global nonce: ", globalNonce);
   } else {
     console.log("No new global nonce");

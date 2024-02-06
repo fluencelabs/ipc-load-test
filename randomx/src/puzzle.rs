@@ -1,14 +1,7 @@
-use serde::{Deserialize, Serialize, Serializer};
-
-#[derive(Deserialize, Serialize, Debug, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum PuzzleType {
-    ZEROS,
-    // COMP,
-}
+use serde::{Serialize, Serializer};
 
 #[derive(Serialize, Debug, Clone)]
-pub struct PuzzleSolution {
+pub struct Solution {
     #[serde(serialize_with = "as_hex")]
     pub ch: Vec<u8>,
     #[serde(serialize_with = "as_hex")]
@@ -29,7 +22,7 @@ where
     serializer.serialize_str(&hex)
 }
 
-impl PuzzleSolution {
+impl Solution {
     pub fn new(
         ch: Vec<u8>,
         g_nonce: Vec<u8>,
@@ -37,7 +30,7 @@ impl PuzzleSolution {
         nonce: Vec<u8>,
         hash: Vec<u8>,
     ) -> Self {
-        PuzzleSolution {
+        Solution {
             ch,
             g_nonce,
             unit_id,

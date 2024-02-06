@@ -4,10 +4,10 @@ import type { BytesLike } from "ethers";
 const rustToJsPipe: string = "/tmp/rust_to_js_pipe";
 const jsToRustPipe: string = "/tmp/js_to_rust_pipe";
 
-export interface Params {
-  difficulty?: BytesLike | undefined;
-  globalNonce?: BytesLike | undefined;
-  unitId?: BytesLike | undefined;
+export interface Request {
+  globalNonce: BytesLike;
+  unitId: BytesLike;
+  n: number;
 }
 
 export interface Solution {
@@ -28,11 +28,11 @@ export class Communicate {
     this.rustToJsStream = fs.createReadStream(rustToJsPipe).setEncoding("utf8");
   }
 
-  updateParams(params: Params) {
-    this.jsToRustStream.write(JSON.stringify(params) + "\n");
+  request(req: Request) {
+    this.jsToRustStream.write(JSON.stringify(req) + "\n");
   }
 
-  onSolution(callback: (solution: any) => void) {
+  onSolution(callback: (solution: Solution) => void) {
     this.rustToJsStream.on("data", (data: string) => {
       this.buffer += data;
       const last = this.buffer.lastIndexOf("\n");
