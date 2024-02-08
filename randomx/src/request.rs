@@ -6,7 +6,6 @@ pub struct Request {
     pub globalNonce: Vec<u8>,
     #[serde(deserialize_with = "from_hex")]
     pub unitId: Vec<u8>,
-    pub n: u32,
 }
 
 fn from_hex<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>

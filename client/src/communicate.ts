@@ -7,7 +7,6 @@ const jsToRustPipe: string = "/tmp/js_to_rust_pipe";
 export interface Request {
   globalNonce: BytesLike;
   unitId: BytesLike;
-  n: number;
 }
 
 export interface Solution {

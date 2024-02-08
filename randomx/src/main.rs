@@ -14,8 +14,7 @@ mod request;
 mod puzzle;
 
 const PID_PATH: &str = "./pid.json";
-const MAIN_LOOP_SLEEP: u32 = 500; // in millis
-const WORKER_THREADS: u32 = 2;
+// const MAIN_LOOP_SLEEP: u32 = 5; // in millis
 const JS_TO_RUST_PIPE: &str = "/tmp/js_to_rust_pipe";
 const RUST_TO_JS_PIPE: &str = "/tmp/rust_to_js_pipe";
 
@@ -37,17 +36,17 @@ fn setup_logging() {
         .init();
 }
 
-fn val_to_u8vec(jval: &Value) -> Vec<u8> {
-    hex::decode(jval.as_str().unwrap().trim_start_matches("0x")).unwrap()
-}
+// fn val_to_u8vec(jval: &Value) -> Vec<u8> {
+//     hex::decode(jval.as_str().unwrap().trim_start_matches("0x")).unwrap()
+// }
 
-fn str_to_u8vec(s: &str) -> Vec<u8> {
-    hex::decode(s.trim_start_matches("0x")).unwrap()
-}
+// fn str_to_u8vec(s: &str) -> Vec<u8> {
+//     hex::decode(s.trim_start_matches("0x")).unwrap()
+// }
 
-fn u8vec_to_str(v: &[u8]) -> String {
-    format!("0x{}", hex::encode(v))
-}
+// fn u8vec_to_str(v: &[u8]) -> String {
+//     format!("0x{}", hex::encode(v))
+// }
 
 fn main() {
     // let g_nonce =
@@ -97,15 +96,23 @@ fn main() {
     log::info!("communication is up.");
 
     log::info!("entering main control loop.");
+    let mut solver: Option<pow::Solver> = None;
+    let mut solutions_sent: u64 = 0;
     loop {
         while let Ok(req) = requests_rx.try_recv() {
             log::info!("received request: {:?}", req);
-            let solutions = pow::randomx_gen(&req.globalNonce, &req.unitId, req.n);   
-            log::info!("solutions: {:?}", solutions);
-            for sol in solutions {
-                let sol_str = serde_json::to_string(&sol).unwrap();
-                rust_to_js_pipe.write_all(sol_str.as_bytes()).unwrap();
-                rust_to_js_pipe.write_all(b"\n").unwrap();
+            let new_solver = pow::construct_solver(&req.globalNonce, &req.unitId);   
+            solver = Some(new_solver);
+        }
+
+        if let Some(solver) = &mut solver {
+            let solution = solver.next().unwrap();
+            let solution_str = serde_json::to_string(&solution).unwrap();
+            rust_to_js_pipe.write_all(solution_str.as_bytes()).unwrap();
+            rust_to_js_pipe.write_all(b"\n").unwrap();
+            solutions_sent += 1;
+            if solutions_sent % 100 == 0 {
+                log::info!("sent {} solutions.", solutions_sent);
             }
         }
 
@@ -114,7 +121,7 @@ fn main() {
             break;
         }
 
-        thread::sleep(Duration::from_millis(MAIN_LOOP_SLEEP as u64));
+        // thread::sleep(Duration::from_millis(MAIN_LOOP_SLEEP as u64));
     }
 
     // teardown -- might be blocking for SIGTERM
