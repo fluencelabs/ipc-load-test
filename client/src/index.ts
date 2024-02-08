@@ -119,41 +119,43 @@ const commitmentIds = capacityCommitmentCreatedEventsLast.map(
   (event) => event.args.commitmentId
 );
 
+let totalCollateral = BigInt(0);
 for (const commitmentId of commitmentIds) {
   const commitment = await capacity.getCommitment(commitmentId);
   const collateralToApproveCommitment =
     commitment.collateralPerUnit * commitment.unitCount;
   console.log(
-    "Collateral for commitmentId: ",
+    "Collateral for commitmentId:",
     commitmentId,
-    " = ",
-    collateralToApproveCommitment,
-    "..."
+    "=",
+    collateralToApproveCommitment
   );
-  const depositCollateralTx = await capacity.depositCollateral(commitmentId, {
-    value: collateralToApproveCommitment,
-  });
-  await depositCollateralTx.wait(DEFAULT_CONFIRMATIONS);
+  totalCollateral += collateralToApproveCommitment;
+}
 
-  console.info("Waiting for CC to activate...");
-  const filterActivatedCC = capacity.filters.CommitmentActivated();
+console.log("Depositing collateral", totalCollateral, "...");
+capacity.depositCollateral
+const depositCollateralTx = await capacity.depositCollateral(commitmentIds, {
+  value: totalCollateral,
+});
+await depositCollateralTx.wait(DEFAULT_CONFIRMATIONS);
 
-  console.info("Waiting for commitment activated event...");
-  for (let i = 0; i < 10000; i++) {
-    const capacityCommitmentActivatedEvents = await capacity.queryFilter(
-      filterActivatedCC,
-      blockNumber
-    );
+const filterActivatedCC = capacity.filters.CommitmentActivated();
+console.info("Waiting for commitment activated event...");
+for (let i = 0; i < 10000; i++) {
+  const capacityCommitmentActivatedEvents = await capacity.queryFilter(
+    filterActivatedCC,
+    blockNumber
+  );
 
-    if (capacityCommitmentActivatedEvents.length > 0) {
-      console.info("Got commitment activated event...");
-      break;
-    } else {
-      console.info("No commitment activated event...");
-    }
-
-    await delay(1000);
+  if (capacityCommitmentActivatedEvents.length > 0) {
+    console.info("Got commitment activated event...");
+    break;
+  } else {
+    console.info("No commitment activated event...");
   }
+
+  await delay(1000);
 }
 
 console.info("Updating config...");

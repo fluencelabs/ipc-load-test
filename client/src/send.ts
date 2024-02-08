@@ -44,18 +44,18 @@ communicate.onSolution(async (solution: Solution) => {
   }
   await queue.add(async () => {
     const end = summary.startTimer();
-    try {
+    // try {
+      console.log("Submitting proof: ", solution);
       await capacity.submitProof(
         solution.unit_id,
-        solution.g_nonce,
         solution.nonce,
         solution.hash
       );
-    } catch (e) {
-      console.error("Failed to submit proof: ", e);
-    } finally {
+    // } catch (e) {
+    //   console.error("Failed to submit proof: ", e);
+    // } finally {
       end();
-    }
+    // }
   });
 });
 
