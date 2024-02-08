@@ -125,9 +125,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.4.0"
+version = "2.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4682ae6287fcf752ecaabbfcc7b6f9b72aa33933dc23a554d853aea8eea8635"
+checksum = "ed570934406eb16438a4e976b1b4500774099c13b8cb96eec99f620f05090ddf"
 
 [[package]]
 name = "blake2b_simd"
@@ -1142,7 +1142,7 @@ version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2eb04e9c688eff1c89d72b407f168cf79bb9e867a9d3323ed6c01519eb9cc053"
 dependencies = [
- "bitflags 2.4.0",
+ "bitflags 2.4.2",
  "cfg-if",
  "libc",
 ]
@@ -1193,7 +1193,7 @@ version = "0.10.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bac25ee399abb46215765b1cb35bc0212377e58a061560d8b29b024fd0430e7c"
 dependencies = [
- "bitflags 2.4.0",
+ "bitflags 2.4.2",
  "cfg-if",
  "foreign-types",
  "libc",
@@ -1410,7 +1410,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "randomx-wrapper"
+name = "randomx-prover"
 version = "0.1.0"
 dependencies = [
  "blake3",
@@ -1421,12 +1421,24 @@ dependencies = [
  "fluence-keypair",
  "hex",
  "log",
+ "randomx-rust-wrapper",
  "reqwest",
- "rust-randomx",
  "serde",
  "serde_json",
  "signal-hook",
  "tiny-keccak",
+]
+
+[[package]]
+name = "randomx-rust-wrapper"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a17aa4b6487021219637febf828be87c9565419c9dd796beb1f885491a098e6f"
+dependencies = [
+ "bitflags 2.4.2",
+ "cmake",
+ "libc",
+ "thiserror",
 ]
 
 [[package]]
@@ -1520,17 +1532,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-randomx"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b5a9d47d2503ee920d112078ddd3c27b22b7ddae9b3b5c9f746c8c1722303c6"
-dependencies = [
- "cmake",
- "num_cpus",
- "rand 0.8.5",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1551,7 +1552,7 @@ version = "0.38.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "747c788e9ce8e92b12cd485c49ddf90723550b654b32508f979b71a7b1ecda4f"
 dependencies = [
- "bitflags 2.4.0",
+ "bitflags 2.4.2",
  "errno",
  "libc",
  "linux-raw-sys",

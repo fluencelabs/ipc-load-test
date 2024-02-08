@@ -1,5 +1,5 @@
 [package]
-name = "randomx-wrapper"
+name = "randomx-prover"
 version = "0.1.0"
 edition = "2021"
 
@@ -18,4 +18,4 @@ blake3 = "1.4.1"
 tiny-keccak = { version = "2.0.2", features = ["keccak", "sha3"] }
 hex = "0.4.3"
 fluence-keypair = "0.10.3"
-rust-randomx = "0.7.2"
+randomx-rust-wrapper = "0.1.2"

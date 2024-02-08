@@ -1,6 +1,5 @@
 use chrono::Utc;
-use rust_randomx::{Context, Hasher};
-use std::sync::Arc;
+use randomx_rust_wrapper::{Cache, Dataset, RandomXFlags, RandomXVM};
 
 use crate::hashers;
 use crate::puzzle;
@@ -14,34 +13,39 @@ pub fn get_nonce() -> [u8; 32] {
     nonce
 }
 
-pub fn construct_solver(g_nonce: &[u8], unit_id: &[u8]) -> Solver {
-    let mut context_raw = vec![];
-    context_raw.extend(g_nonce);
-    context_raw.extend(unit_id);
-    let context_hash = hashers::keccak_hasher(&context_raw);
-    let context = Arc::new(Context::new(&context_hash, true));
-
-    return Solver {
-        ch: context_hash.to_vec(),
-        g_nonce: g_nonce.to_vec(),
-        unit_id: unit_id.to_vec(),
-        hasher: Hasher::new(context),
-    };
-}
-
-pub struct Solver {
+pub struct Solver<'a> {
     ch: Vec<u8>,
     g_nonce: Vec<u8>,
     unit_id: Vec<u8>,
-    hasher: Hasher,
+    vm: RandomXVM<'a, Dataset>,
 }
 
-impl Iterator for Solver {
+impl Solver<'_> {
+    pub fn construct(g_nonce: &[u8], unit_id: &[u8]) -> Self {
+        let mut context_raw = vec![];
+        context_raw.extend(g_nonce);
+        context_raw.extend(unit_id);
+        let context_hash = hashers::keccak_hasher(&context_raw);
+        let flags = RandomXFlags::default();
+        let cache = Cache::new(flags, &context_hash).unwrap();
+        let dataset = Dataset::new(&cache, false).unwrap();
+        let vm = RandomXVM::fast(flags, &dataset).unwrap();
+
+        return Solver {
+            ch: context_hash.to_vec(),
+            g_nonce: g_nonce.to_vec(),
+            unit_id: unit_id.to_vec(),
+            vm,
+        };
+    }
+}
+
+impl Iterator for Solver<'_> {
     type Item = puzzle::Solution;
 
     fn next(&mut self) -> Option<Self::Item> {
         let nonce = get_nonce();
-        let hash = self.hasher.hash(&nonce);
+        let hash = self.vm.calculate_hash(&nonce);
         Some(puzzle::Solution::new(
             self.ch.clone(),
             self.g_nonce.clone(),

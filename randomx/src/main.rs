@@ -101,7 +101,7 @@ fn main() {
     loop {
         while let Ok(req) = requests_rx.try_recv() {
             log::info!("received request: {:?}", req);
-            let new_solver = pow::construct_solver(&req.globalNonce, &req.unitId);   
+            let new_solver = pow::Solver::construct(&req.globalNonce, &req.unitId);   
             solver = Some(new_solver);
         }
 
