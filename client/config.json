@@ -1,6 +1,25 @@
 {
-  "provider_sk": "0x8D956EE72C38697E06F3287B09845EDA604C3C46087371F31FC1457AECC7C115",
-  "provider_name": "TEST_PROVIDER",
   "test_rpc_url": "http://127.0.0.1:8545",
-  "unit_id": "0x756e69744964303a313730373339393737370000000000000000000000000000"
+  "default_sk": "0x8BCA6949FE72BF4E83B833A322E34C44E217F215F77FBA2B8FB155E62B556C87",
+  "providers": [
+    {
+      "name": "PROV1",
+      "peers": [
+        {
+          "cu_count": 2
+        },
+        {
+          "cu_count": 1
+        }
+      ]
+    },
+    {
+      "name": "PROV2",
+      "peers": [
+        {
+          "cu_count": 1
+        }
+      ]
+    }
+  ]
 }
