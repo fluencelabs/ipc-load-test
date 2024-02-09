@@ -27,9 +27,14 @@ console.info("Initial difficulty: ", difficulty);
 console.info("Initial global nonce: ", globalNonce);
 
 const registry = new prom.Registry();
-const summary = new prom.Summary({
-  name: "proofs",
+const submitted = new prom.Summary({
+  name: "proofs_submitted",
   help: "Proofs summary",
+  registers: [registry],
+});
+const errors = new prom.Counter({
+  name: "errors",
+  help: "Errors occured",
   registers: [registry],
 });
 
@@ -43,19 +48,21 @@ communicate.onSolution(async (solution: Solution) => {
     return;
   }
   await queue.add(async () => {
-    const end = summary.startTimer();
-    // try {
+    const end = submitted.startTimer();
+    try {
       console.log("Submitting proof: ", solution);
       await capacity.submitProof(
         solution.unit_id,
         solution.nonce,
         solution.hash
       );
-    // } catch (e) {
-    //   console.error("Failed to submit proof: ", e);
-    // } finally {
+    } catch (e) {
+      errors.inc();
+      console.error("Failed to submit proof: ", e);
+      await delay(5000);
+    } finally {
       end();
-    // }
+    }
   });
 });
 
