@@ -52,7 +52,7 @@ async function registerProvider(
   config: Config,
   provider: ProviderConfig,
 ) {
-  console.log("Registering provider: ", provider.name, "...")
+  console.log("Registering provider:", provider.name, "...")
 
   const sk = (provider.sk || config.default_sk)!;
   const rpc = new ethers.JsonRpcProvider(config.test_rpc_url);
@@ -104,9 +104,9 @@ async function registerProvider(
   for (const peer of offer.peers) {
     // bytes32 peerId, uint256 duration, address delegator, uint256 rewardDelegationRate
     console.log(
-      "Create commitment for peer: ",
+      "Create commitment for peer:",
       peer.peerId,
-      " with duration: ",
+      "with duration:",
       capacityMinDuration,
       "..."
     );

@@ -1,7 +1,7 @@
 use chrono::{Local, Utc};
 use crossbeam::channel::{unbounded, Receiver, Sender};
 use log::*;
-use serde_json::Value;
+use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{BufRead, BufReader, Write};
 use std::thread;
@@ -96,16 +96,19 @@ fn main() {
     log::info!("communication is up.");
 
     log::info!("entering main control loop.");
-    let mut solver: Option<pow::Solver> = None;
+    let mut solvers: Vec<pow::Solver> = Vec::new();
     let mut solutions_sent: u64 = 0;
     loop {
         while let Ok(req) = requests_rx.try_recv() {
             log::info!("received request: {:?}", req);
-            let new_solver = pow::construct_solver(&req.globalNonce, &req.unitId);   
-            solver = Some(new_solver);
+            solvers.clear();
+            for unit_id in req.CUIds.iter() {
+                let new_solver = pow::construct_solver(&req.globalNonce, unit_id);
+                solvers.push(new_solver);
+            }
         }
 
-        if let Some(solver) = &mut solver {
+        for solver in solvers.iter_mut() {
             let solution = solver.next().unwrap();
             let solution_str = serde_json::to_string(&solution).unwrap();
             rust_to_js_pipe.write_all(solution_str.as_bytes()).unwrap();
