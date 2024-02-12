@@ -55,7 +55,7 @@ async function registerProvider(
   console.log("Registering provider:", provider.name, "...")
 
   const sk = (provider.sk || config.default_sk)!;
-  const rpc = new ethers.JsonRpcProvider(config.test_rpc_url);
+  const rpc = new ethers.JsonRpcProvider(config.test_rpc_url, undefined, { batchMaxCount: 1 });
   const signer = new ethers.Wallet(sk, rpc);
   const client = new DealClient(signer, "local");
 
