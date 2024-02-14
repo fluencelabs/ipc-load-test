@@ -7,6 +7,7 @@ import { Communicate, type Solution } from "./communicate.js";
 import { loadConfig, type ProviderConfig } from "./config.js";
 import { delay } from "./utils.js";
 
+const DEFAULT_CONFIRMATIONS = 1;
 const CONCURRENCY_SUBMITS = 1;
 const BUFFER_PROOFS = 10;
 
@@ -62,20 +63,20 @@ class Provider {
         "cu_id": solution.unit_id.toString(),
       });
       try {
-        console.log("Submitting", solution);
-        await this.capacity.submitProof(
+        // console.log("Submitting", solution);
+        const submitProofTx = await this.capacity.submitProof(
           solution.unit_id,
           solution.nonce,
           solution.hash
         );
+        await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
         end({ "status": "success" });
-        console.log(
-          "Submitted proof for provider",
-          this.config.name,
-          "cu",
-          solution.unit_id
-        );
-        await delay(5000);
+        // console.log(
+        //   "Submitted proof for provider",
+        //   this.config.name,
+        //   "cu",
+        //   solution.unit_id
+        // );
       } catch (e) {
         end({ "status": "error" });
         console.error(
@@ -86,7 +87,6 @@ class Provider {
           ":",
           e
         );
-        await delay(5000);
       }
     });
   }
@@ -133,7 +133,6 @@ const communicate = new Communicate();
 
 communicate.onSolution(async (solution: Solution) => {
   const provider = providers.find((provider) => provider.hasCU(solution.unit_id));
-  solution.hash = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
   if (provider) {
     provider.submitProof(solution);
   } else {

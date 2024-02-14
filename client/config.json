@@ -6,10 +6,32 @@
       "name": "PROV1",
       "peers": [
         {
-          "cu_count": 1,
-          "cu_ids": [
-            "0x50524f56313a70303a75303a3137303737333439363100000000000000000000"
-          ]
+          "cu_count": 1
+        },
+        {
+          "cu_count": 1
+        },
+        {
+          "cu_count": 1
+        }
+      ]
+    },
+    {
+      "name": "PROV2",
+      "peers": [
+        {
+          "cu_count": 2
+        },
+        {
+          "cu_count": 2
+        }
+      ]
+    },
+    {
+      "name": "PROV3",
+      "peers": [
+        {
+          "cu_count": 3
         }
       ]
     }
