@@ -4,66 +4,61 @@ import PQueue from "p-queue";
 import { DealClient, type ICapacityInterface as Capacity } from "@fluencelabs/deal-ts-clients";
 
 import { Communicate, type Solution } from "./communicate.js";
-import { loadConfig, type ProviderConfig } from "./config.js";
-import { delay } from "./utils.js";
+import { loadConfig, type PeerConfig } from "./config.js";
 
 const DEFAULT_CONFIRMATIONS = 1;
-const CONCURRENCY_SUBMITS = 1;
 const BUFFER_PROOFS = 10;
 
-const registry = new prom.Registry();
-const proofs = new prom.Summary({
-  name: "proofs",
-  help: "Proofs summary",
-  registers: [registry],
-  labelNames: ["provider", "cu_id", "status"],
-});
-
-class Provider {
-  private readonly config: ProviderConfig;
+class Peer {
+  private readonly config: PeerConfig;
   private readonly capacity: Capacity;
-  private readonly cu_ids: Map<BytesLike, PQueue>;
 
-  constructor(config: ProviderConfig, capacity: Capacity) {
+  private readonly queue: PQueue;
+
+  private readonly summary: prom.Summary;
+  private readonly defaultLabels: { [key: string]: string };
+
+  constructor(
+    config: PeerConfig,
+    capacity: Capacity,
+    summary: prom.Summary,
+    defultLabels: { [key: string]: string } = {}
+  ) {
     this.config = config;
     this.capacity = capacity;
-    this.cu_ids = new Map(
-      config.peers
-        .flatMap((peer) => peer.cu_ids)
-        .map((cu_id) => [cu_id, new PQueue({ concurrency: CONCURRENCY_SUBMITS })])
-    );
+
+    this.queue = new PQueue({ concurrency: 1 });
+
+    this.summary = summary;
+    this.defaultLabels = defultLabels;
   }
 
   clear() {
-    for (const queue of this.cu_ids.values()) {
-      queue.clear();
-    }
-  }
-
-  getCapacity(): Capacity {
-    return this.capacity;
+    this.queue.clear();
   }
 
   hasCU(cu_id: BytesLike): Boolean {
-    return this.cu_ids.has(cu_id);
+    return this.config.cu_ids.includes(cu_id);
   }
 
-  async submitProof(
-    solution: Solution
-  ) {
-    const queue = this.cu_ids.get(solution.unit_id)!;
+  async submitProof(solution: Solution) {
+    if (!this.hasCU(solution.unit_id)) {
+      throw new Error("Peer does not have CU ID: " + solution.unit_id);
+    }
 
-    if (queue.size >= BUFFER_PROOFS) {
+    if (this.queue.size >= BUFFER_PROOFS) {
       return;
     }
 
-    queue.add(async () => {
-      const end = proofs.startTimer({
-        "provider": this.config.name,
+    this.queue.add(async () => {
+      const labels = {
+        ...this.defaultLabels,
+        "peer": this.config.owner_sk,
         "cu_id": solution.unit_id.toString(),
-      });
+      }
+
+      const end = this.summary.startTimer(labels);
       try {
-        // console.log("Submitting", solution);
         const submitProofTx = await this.capacity.submitProof(
           solution.unit_id,
           solution.nonce,
@@ -71,22 +66,19 @@ class Provider {
         );
         await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
         end({ "status": "success" });
-        // console.log(
-        //   "Submitted proof for provider",
-        //   this.config.name,
-        //   "cu",
-        //   solution.unit_id
-        // );
-      } catch (e) {
-        end({ "status": "error" });
-        console.error(
-          "Error submitting proof for provider",
-          this.config.name,
-          "cu",
-          solution.unit_id,
-          ":",
-          e
-        );
+      } catch (e: any) {
+        const data = e?.info?.error?.data;
+        const msg = data ? Buffer.from(data, 'hex').toString() : "No message";
+        let status = "error";
+        if (msg.includes("not valid")) {
+          status = "invalid";
+        } else if (msg.includes("not started")) {
+          status = "not_started";
+        } else {
+          console.log("Error submitting proof", solution, ":", e);
+        }
+
+        end({ "status": status });
       }
     });
   }
@@ -94,36 +86,39 @@ class Provider {
 
 const config = loadConfig("config.json");
 
-if (config.providers.length === 0) {
-  throw new Error("No providers configured");
-}
-
 const allCUIds = config.providers.flatMap((provider) =>
   provider.peers.flatMap((peer) => peer.cu_ids)
 );
 
 if (allCUIds.length === 0) {
-  throw new Error("No CU IDs configured");
+  throw new Error("No CUs configured");
 }
 
-const rpc = new ethers.JsonRpcProvider(config.test_rpc_url, undefined, { batchMaxCount: 1 });
+const registry = new prom.Registry();
+const proofs = new prom.Summary({
+  name: "proofs",
+  help: "Proofs summary",
+  registers: [registry],
+  labelNames: ["provider", "peer", "cu_id", "status"],
+});
 
-const providers: Provider[] = [];
+const rpc = new ethers.JsonRpcProvider(config.test_rpc_url);
+
+const peers: Peer[] = [];
 for (const provider of config.providers) {
-  const sk = (config.default_sk || provider.sk)!;
-  const signer = new ethers.Wallet(sk, rpc);
-  const client = new DealClient(signer, "local");
-  const capacity = await client.getCapacity();
-  providers.push(new Provider(provider, capacity));
+  for (const peer of provider.peers) {
+    const signer = new ethers.Wallet(peer.owner_sk, rpc);
+    const client = new DealClient(signer, "local");
+    const capacity = await client.getCapacity();
+    peers.push(new Peer(peer, capacity, proofs, { "provider": provider.name, "peer": peer.owner_sk }));
+  }
 }
 
-// Get some capacity
-const capacity = providers[0]!.getCapacity();
+const client = new DealClient(rpc, "local");
+const core = await client.getCore();
+const capacity = await client.getCapacity();
 
-// const difficultyUpdated = capacity.getEvent("DifficultyUpdated");
-// capacity.on(difficultyUpdated, (difficulty: string) => {});
-
-let globalNonce = await capacity.getGlobalNonce();
+const globalNonce = await capacity.getGlobalNonce();
 const difficulty = await capacity.difficulty();
 
 console.info("Initial difficulty: ", difficulty);
@@ -132,9 +127,9 @@ console.info("Initial global nonce: ", globalNonce);
 const communicate = new Communicate();
 
 communicate.onSolution(async (solution: Solution) => {
-  const provider = providers.find((provider) => provider.hasCU(solution.unit_id));
-  if (provider) {
-    provider.submitProof(solution);
+  const peer = peers.find((p) => p.hasCU(solution.unit_id));
+  if (peer) {
+    peer.submitProof(solution);
   } else {
     throw new Error("No provider for CU ID: " + solution.unit_id);
   }
@@ -144,30 +139,43 @@ communicate.request({ globalNonce, CUIds: allCUIds });
 
 console.log("Waiting for solution...");
 
-for (let i = 0; i < 10000; i++) {
-  const globalNonceNew = await capacity.getGlobalNonce();
-  if (globalNonceNew !== globalNonce) {
-    globalNonce = globalNonceNew;
-    communicate.request({ globalNonce, CUIds: allCUIds });
-    for (const provider of providers) {
-      provider.clear();
-    }
-    console.log("Updated global nonce: ", globalNonce);
-  }
-
-  await delay(2000);
-
+async function logStats() {
   const sum = await proofs.get();
   const counts = sum.values.filter((v) => v.metricName === "proofs_count");
   for (const provider of config.providers) {
-    const cu_ids = provider.peers.flatMap((peer) => peer.cu_ids);
     const provider_counts = counts.filter((c) => c.labels.provider === provider.name);
     console.log("Provider", provider.name);
-    for (const cu_id of cu_ids) {
-      const cu_counts = provider_counts.filter((c) => c.labels.cu_id === cu_id);
-      const success = cu_counts.find((c) => c.labels.status === "success")?.value || 0;
-      const error = cu_counts.find((c) => c.labels.status === "error")?.value || 0;
-      console.log("\tCU", cu_id, "\tS", success, "\tE", error, "\tT", success + error);
+    for (const peer of provider.peers) {
+      const peer_counts = provider_counts.filter((c) => c.labels.peer === peer.owner_sk);
+      console.log("\tPeer", peer.owner_sk);
+      for (const cu_id of peer.cu_ids) {
+        const cu_counts = peer_counts.filter((c) => c.labels.cu_id === cu_id);
+        const count_status = (s: string) => cu_counts.find((c) => c.labels.status === s)?.value || 0;
+        const total = cu_counts.reduce((acc, c) => acc + c.value, 0);
+        const success = count_status("success");
+        const error = count_status("error");
+        const invalid = count_status("invalid");
+        const not_started = count_status("not_started");
+        console.log("\t\tCU", cu_id, "\tS", success, "\tI", invalid, "\tNS", not_started, "\tE", error, "\tT", total);
+      }
     }
   }
 }
+
+let epoch = await core.currentEpoch();
+rpc.on("block", async (_) => {
+  const curEpoch = await core.currentEpoch();
+  if (curEpoch > epoch) {
+    epoch = curEpoch;
+
+    console.log("Epoch", epoch);
+    await logStats();
+
+    const globalNonce = await capacity.getGlobalNonce();
+    communicate.request({ globalNonce, CUIds: allCUIds });
+    for (const peer of peers) {
+      peer.clear();
+    }
+    console.log("Updated global nonce: ", globalNonce);
+  }
+});

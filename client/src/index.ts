@@ -9,7 +9,6 @@ const DEFAULT_CONFIRMATIONS = 1;
 // NOTE: Modifies provider config in place
 async function setupOffer(
   provider: ProviderConfig,
-  address: string,
   paymentToken: string,
   timestamp: number
 ) {
@@ -26,12 +25,13 @@ async function setupOffer(
   });
 
   const peers = provider.peers.map((peer, pid) => {
+    const addr = new ethers.Wallet(peer.owner_sk).address;
     return {
       peerId: ethers.encodeBytes32String(
         `${provider.name}:p${pid}:${timestamp}`
       ),
       unitIds: peer.cu_ids,
-      owner: address,
+      owner: addr,
     };
   });
 
@@ -54,9 +54,8 @@ async function registerProvider(
 ) {
   console.log("Registering provider:", provider.name, "...")
 
-  const sk = (provider.sk || config.default_sk)!;
   const rpc = new ethers.JsonRpcProvider(config.test_rpc_url, undefined, { batchMaxCount: 1 });
-  const signer = new ethers.Wallet(sk, rpc);
+  const signer = new ethers.Wallet(provider.sk, rpc);
   const client = new DealClient(signer, "local");
 
   console.log("Getting USDC token address...");
@@ -77,7 +76,6 @@ async function registerProvider(
 
   const offer = await setupOffer(
     provider,
-    signerAddress,
     paymentTokenAddress,
     timestamp
   );

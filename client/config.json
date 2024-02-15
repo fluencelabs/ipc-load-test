@@ -1,37 +1,35 @@
 {
   "test_rpc_url": "http://127.0.0.1:8545",
-  "default_sk": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
   "providers": [
     {
-      "name": "PROV1",
+      "name": "PV1",
+      "sk": "0xb45c7e506a8a471dc406b1f82ae73c867aae1dd67f4495a6dc1a89cc3025d812",
       "peers": [
         {
-          "cu_count": 1
+          "owner_sk": "0xf5baf6cc4be9fe0b97700d57cce6e5bc9db41a47522b84c85becfa1c5be80377",
+          "cu_count": 1,
+          "cu_ids": []
         },
         {
-          "cu_count": 1
-        },
-        {
-          "cu_count": 1
+          "owner_sk": "0x87def18a3c85762b6f7ef20483d440136db92747166d124aa1d1ecd4d5a21ff6",
+          "cu_count": 2,
+          "cu_ids": []
         }
       ]
     },
     {
-      "name": "PROV2",
+      "name": "PV2",
+      "sk": "0xed689cea6b932421a0e2f44354ebeec0c9f1c54e98ed6b285980e9a368830f5f",
       "peers": [
         {
-          "cu_count": 2
+          "owner_sk": "0xe26893f0e1fbf474529760fe24b69699a9e3c7a03d0d5e2b56016a491c2cc5fb",
+          "cu_count": 1,
+          "cu_ids": []
         },
         {
-          "cu_count": 2
-        }
-      ]
-    },
-    {
-      "name": "PROV3",
-      "peers": [
-        {
-          "cu_count": 3
+          "owner_sk": "0xae411390a125fda52e4d19d1bb95a8e9796c7995abbce471ed7704cf50bd58fb",
+          "cu_count": 1,
+          "cu_ids": []
         }
       ]
     }

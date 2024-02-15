@@ -3,18 +3,18 @@ import type { BytesLike } from "ethers";
 
 export interface PeerConfig {
   cu_count: number;
+  owner_sk: string;
   cu_ids: BytesLike[];
 };
 
 export interface ProviderConfig {
   name: string;
-  sk: string | undefined;
+  sk: string;
   peers: PeerConfig[];
 };
 
 export interface Config {
   test_rpc_url: string;
-  default_sk: string | undefined;
   providers: ProviderConfig[];
 };
 
@@ -24,21 +24,23 @@ export const loadConfig = (filePath: string): Config => {
     const config = JSON.parse(rawData);
 
     config.providers = config.providers || [];
-    config.providers.forEach((provider: ProviderConfig) => {
+    config.providers.forEach((provider: ProviderConfig, idx: number) => {
+      provider.name = provider.name || `PROV${idx}`;
       provider.peers = provider.peers || [];
-      provider.peers.forEach((peer: PeerConfig) => {
+
+      if (!provider.sk) {
+        throw new Error(`Provider ${provider.name} does not have a secret key`);
+      }
+
+      provider.peers.forEach((peer: PeerConfig, idx: number) => {
+        if (!peer.owner_sk) {
+          throw new Error(`Peer ${idx} of ${provider.name} does not have an owner`);
+        }
+
+        peer.cu_count = peer.cu_count || 0;
         peer.cu_ids = peer.cu_ids || [];
       });
     });
-
-    const isDefaultSkSet = config.default_sk !== undefined;
-    const areAllProviderSkSet = config.providers.every(
-      (provider: ProviderConfig) => provider.sk !== undefined
-    );
-
-    if (!isDefaultSkSet && !areAllProviderSkSet) {
-      throw new Error('Either default_sk must be set, or all provider sk must be set.');
-    }
 
     return config;
   } catch (error) {
