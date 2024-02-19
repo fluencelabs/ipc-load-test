@@ -6,3 +6,6 @@
 	path = deal
 	url = https://github.com/fluencelabs/deal
 	branch = main
+[submodule "ccp"]
+	path = ccp
+	url = https://github.com/fluencelabs/capacity-commitment-prover.git
