@@ -9,6 +9,7 @@
   "dependencies": {
     "@fluencelabs/deal-ts-clients": "file:../deal/ts-client",
     "ethers": "6.7.1",
+    "json-rpc-2.0": "^1.7.0",
     "p-queue": "^8.0.1"
   },
   "devDependencies": {

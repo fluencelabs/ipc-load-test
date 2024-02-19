@@ -1,7 +1,10 @@
 import { ethers, type BytesLike } from "ethers";
 import * as prom from "prom-client";
 import PQueue from "p-queue";
-import { DealClient, type ICapacityInterface as Capacity } from "@fluencelabs/deal-ts-clients";
+import {
+  DealClient,
+  type ICapacityInterface as Capacity,
+} from "@fluencelabs/deal-ts-clients";
 
 import { Communicate, type Solution } from "./communicate.js";
 import { loadConfig, type PeerConfig } from "./config.js";
@@ -42,8 +45,8 @@ class Peer {
   }
 
   async submitProof(solution: Solution) {
-    if (!this.hasCU(solution.unit_id)) {
-      throw new Error("Peer does not have CU ID: " + solution.unit_id);
+    if (!this.hasCU(solution.cu_id)) {
+      throw new Error("Peer does not have CU ID: " + solution.cu_id);
     }
 
     if (this.queue.size >= BUFFER_PROOFS) {
@@ -53,22 +56,22 @@ class Peer {
     this.queue.add(async () => {
       const labels = {
         ...this.defaultLabels,
-        "peer": this.config.owner_sk,
-        "cu_id": solution.unit_id.toString(),
-      }
+        peer: this.config.owner_sk,
+        cu_id: solution.cu_id.toString(),
+      };
 
       const end = this.summary.startTimer(labels);
       try {
         const submitProofTx = await this.capacity.submitProof(
-          solution.unit_id,
-          solution.nonce,
-          solution.hash
+          solution.cu_id,
+          solution.local_nonce,
+          "FIXME"
         );
         await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
-        end({ "status": "success" });
+        end({ status: "success" });
       } catch (e: any) {
         const data = e?.info?.error?.data;
-        const msg = data ? Buffer.from(data, 'hex').toString() : "No message";
+        const msg = data ? Buffer.from(data, "hex").toString() : "No message";
         let status = "error";
         if (msg.includes("not valid")) {
           status = "invalid";
@@ -78,7 +81,7 @@ class Peer {
           console.log("Error submitting proof", solution, ":", e);
         }
 
-        end({ "status": status });
+        end({ status: status });
       }
     });
   }
@@ -93,6 +96,14 @@ const allCUIds = config.providers.flatMap((provider) =>
 if (allCUIds.length === 0) {
   throw new Error("No CUs configured");
 }
+
+const cu_allocation = allCUIds.reduce(
+  (acc, cu_id, idx) => {
+    acc[10 + idx] = cu_id;
+    return acc;
+  },
+  {} as Record<number, BytesLike>
+);
 
 const registry = new prom.Registry();
 const proofs = new prom.Summary({
@@ -110,7 +121,12 @@ for (const provider of config.providers) {
     const signer = new ethers.Wallet(peer.owner_sk, rpc);
     const client = new DealClient(signer, "local");
     const capacity = await client.getCapacity();
-    peers.push(new Peer(peer, capacity, proofs, { "provider": provider.name, "peer": peer.owner_sk }));
+    peers.push(
+      new Peer(peer, capacity, proofs, {
+        provider: provider.name,
+        peer: peer.owner_sk,
+      })
+    );
   }
 }
 
@@ -118,45 +134,69 @@ const client = new DealClient(rpc, "local");
 const core = await client.getCore();
 const capacity = await client.getCapacity();
 
-const globalNonce = await capacity.getGlobalNonce();
+const global_nonce = await capacity.getGlobalNonce();
 const difficulty = await capacity.difficulty();
 
 console.info("Initial difficulty: ", difficulty);
-console.info("Initial global nonce: ", globalNonce);
+console.info("Initial global nonce: ", global_nonce);
 
-const communicate = new Communicate();
+const communicate = new Communicate("http://127.0.0.1:9383");
 
-communicate.onSolution(async (solution: Solution) => {
-  const peer = peers.find((p) => p.hasCU(solution.unit_id));
+console.log("Requesting parameters...");
+
+await communicate.request({
+  global_nonce,
+  difficulty,
+  cu_allocation,
+});
+
+console.log("Waiting for solution...");
+
+communicate.on("solution", async (solution: Solution) => {
+  const peer = peers.find((p) => p.hasCU(solution.cu_id));
   if (peer) {
     peer.submitProof(solution);
   } else {
-    throw new Error("No provider for CU ID: " + solution.unit_id);
+    throw new Error("No provider for CU ID: " + solution.cu_id);
   }
 });
-
-communicate.request({ globalNonce, CUIds: allCUIds });
-
-console.log("Waiting for solution...");
 
 async function logStats() {
   const sum = await proofs.get();
   const counts = sum.values.filter((v) => v.metricName === "proofs_count");
   for (const provider of config.providers) {
-    const provider_counts = counts.filter((c) => c.labels.provider === provider.name);
+    const provider_counts = counts.filter(
+      (c) => c.labels.provider === provider.name
+    );
     console.log("Provider", provider.name);
     for (const peer of provider.peers) {
-      const peer_counts = provider_counts.filter((c) => c.labels.peer === peer.owner_sk);
+      const peer_counts = provider_counts.filter(
+        (c) => c.labels.peer === peer.owner_sk
+      );
       console.log("\tPeer", peer.owner_sk);
       for (const cu_id of peer.cu_ids) {
         const cu_counts = peer_counts.filter((c) => c.labels.cu_id === cu_id);
-        const count_status = (s: string) => cu_counts.find((c) => c.labels.status === s)?.value || 0;
+        const count_status = (s: string) =>
+          cu_counts.find((c) => c.labels.status === s)?.value || 0;
         const total = cu_counts.reduce((acc, c) => acc + c.value, 0);
         const success = count_status("success");
         const error = count_status("error");
         const invalid = count_status("invalid");
         const not_started = count_status("not_started");
-        console.log("\t\tCU", cu_id, "\tS", success, "\tI", invalid, "\tNS", not_started, "\tE", error, "\tT", total);
+        console.log(
+          "\t\tCU",
+          cu_id,
+          "\tS",
+          success,
+          "\tI",
+          invalid,
+          "\tNS",
+          not_started,
+          "\tE",
+          error,
+          "\tT",
+          total
+        );
       }
     }
   }
@@ -171,11 +211,12 @@ rpc.on("block", async (_) => {
     console.log("Epoch", epoch);
     await logStats();
 
-    const globalNonce = await capacity.getGlobalNonce();
-    communicate.request({ globalNonce, CUIds: allCUIds });
+    const global_nonce = await capacity.getGlobalNonce();
+    const difficulty = await capacity.difficulty();
+    communicate.request({ global_nonce, difficulty, cu_allocation });
     for (const peer of peers) {
       peer.clear();
     }
-    console.log("Updated global nonce: ", globalNonce);
+    console.log("Updated global nonce: ", global_nonce);
   }
 });

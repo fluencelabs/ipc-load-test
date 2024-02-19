@@ -1,49 +1,89 @@
-import * as fs from "fs";
-import type { BytesLike } from "ethers";
+import { EventEmitter } from "events";
 
-const rustToJsPipe: string = "/tmp/rust_to_js_pipe";
-const jsToRustPipe: string = "/tmp/js_to_rust_pipe";
+import type { BytesLike } from "ethers";
+import { JSONRPCClient, type JSONRPCResponse } from "json-rpc-2.0";
+
+import { arrToHex } from "./utils.js";
 
 export interface Request {
-  globalNonce: BytesLike;
-  CUIds: BytesLike[];
+  global_nonce: BytesLike;
+  difficulty: BytesLike;
+  cu_allocation: Record<number, BytesLike>;
+}
+
+export interface SolutionId {
+  global_nonce: BytesLike;
+  difficulty: BytesLike;
+  idx: number;
 }
 
 export interface Solution {
-  ch: BytesLike;
-  g_nonce: BytesLike;
-  unit_id: BytesLike;
-  nonce: BytesLike;
-  hash: BytesLike;
+  id: SolutionId;
+  local_nonce: BytesLike;
+  cu_id: BytesLike;
 }
 
-export class Communicate {
-  private readonly rustToJsStream: fs.ReadStream;
-  private readonly jsToRustStream: fs.WriteStream;
-  private buffer: string = "";
+export class Communicate extends EventEmitter {
+  private readonly client: JSONRPCClient;
 
-  constructor() {
-    this.jsToRustStream = fs.createWriteStream(jsToRustPipe);
-    this.rustToJsStream = fs.createReadStream(rustToJsPipe).setEncoding("utf8");
-  }
+  private proof_id = 0;
+  private polling = false;
+  private readonly interval: number;
 
-  request(req: Request) {
-    this.jsToRustStream.write(JSON.stringify(req) + "\n");
-  }
+  constructor(url: string, interval: number = 1000) {
+    super();
 
-  onSolution(callback: (solution: Solution) => void) {
-    this.rustToJsStream.on("data", (data: string) => {
-      this.buffer += data;
-      const last = this.buffer.lastIndexOf("\n");
-      if (last !== -1) {
-        const lines = this.buffer.slice(0, last).split("\n");
-        this.buffer = this.buffer.slice(last + 1);
-        for (const line of lines) {
-          if (line.length > 0) {
-            callback(JSON.parse(line));
-          }
-        }
+    const client: JSONRPCClient = new JSONRPCClient(async (jsonRPCRequest) => {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(jsonRPCRequest),
+      });
+      if (response.status === 200) {
+        const json = await response.json();
+        client.receive(json as JSONRPCResponse);
+      } else if (jsonRPCRequest.id !== undefined) {
+        return Promise.reject(new Error(response.statusText));
       }
     });
+
+    this.client = client;
+    this.interval = interval;
+  }
+
+  async request(req: Request) {
+    await this.client.request("ccp_on_active_commitment", req);
+  }
+
+  private poll() {
+    setTimeout(async () => {
+      const response = await this.client.request("ccp_get_proofs_after", {
+        proof_idx: this.proof_id,
+      });
+
+      for (const solution of response) {
+        solution.id.global_nonce = arrToHex(solution.id.global_nonce);
+        solution.id.difficulty = arrToHex(solution.id.difficulty);
+        solution.local_nonce = arrToHex(solution.local_nonce);
+        solution.cu_id = arrToHex(solution.cu_id);
+      }
+
+      for (const solution of response as Solution[]) {
+        this.emit("solution", solution);
+      }
+
+      this.poll();
+    }, this.interval);
+  }
+
+  override on(event: "solution", listener: (solution: Solution) => void): this {
+    if (!this.polling) {
+      this.poll();
+      this.polling = true;
+    }
+
+    return super.on(event, listener);
   }
 }
