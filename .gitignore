@@ -10,3 +10,6 @@ target/
 node_modules
 
 **/pid.json
+
+ccp_persistent/
+ccp_proofs/
