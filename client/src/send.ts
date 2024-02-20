@@ -81,6 +81,8 @@ class Peer {
           status = "invalid";
         } else if (msg?.includes("not started")) {
           status = "not_started";
+        } else if (msg?.includes("not active")) {
+          status = "not_active";
         } else {
           console.error("Error from `submitProof` for", solution, ":", e);
         }
@@ -186,6 +188,11 @@ rpc.on("block", async (_) => {
   }
 });
 
+// Dump metrics every minute
+setInterval(async () => {
+  await metrics.dump("metrics.json");
+}, 60000);
+
 async function logStats() {
   const time = new Date().toISOString();
   console.log("Time: ", time);
@@ -204,6 +211,7 @@ async function logStats() {
         const error = count_status("error");
         const invalid = count_status("invalid");
         const not_started = count_status("not_started");
+        const not_active = count_status("not_active");
         console.log(
           "\t\tCU",
           cu_id,
@@ -213,6 +221,8 @@ async function logStats() {
           invalid,
           "\tNS",
           not_started,
+          "\tNA",
+          not_active,
           "\tE",
           error,
           "\tT",

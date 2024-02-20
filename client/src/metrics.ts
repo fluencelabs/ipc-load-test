@@ -1,3 +1,4 @@
+import { readFile, writeFile, stat } from "fs/promises";
 import { performance } from "perf_hooks";
 
 export interface MetricValue {
@@ -48,5 +49,13 @@ export class Metrics {
 
   filter(labels: Record<string, string>): MetricsValues {
     return new MetricsValues(this.storage).filter(labels);
+  }
+
+  async dump(file: string) {
+    try {
+      await writeFile(file, JSON.stringify(this.storage));
+    } catch (e) {
+      console.error("Failed to dump metrics:", e);
+    }
   }
 }
