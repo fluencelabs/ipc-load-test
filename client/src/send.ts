@@ -65,7 +65,7 @@ class Peer {
         const submitProofTx = await this.capacity.submitProof(
           solution.cu_id,
           solution.local_nonce,
-          "FIXME"
+          solution.result_hash
         );
         await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
         end({ status: "success" });
@@ -161,6 +161,25 @@ communicate.on("solution", async (solution: Solution) => {
   }
 });
 
+let epoch = await core.currentEpoch();
+rpc.on("block", async (_) => {
+  const curEpoch = await core.currentEpoch();
+  if (curEpoch > epoch) {
+    epoch = curEpoch;
+
+    console.log("Epoch: ", epoch);
+
+    const global_nonce = await capacity.getGlobalNonce();
+    const difficulty = await capacity.difficulty();
+    communicate.request({ global_nonce, difficulty, cu_allocation });
+    for (const peer of peers) {
+      peer.clear();
+    }
+
+    console.log("Updated global nonce: ", global_nonce);
+  }
+});
+
 async function logStats() {
   const sum = await proofs.get();
   const counts = sum.values.filter((v) => v.metricName === "proofs_count");
@@ -202,21 +221,4 @@ async function logStats() {
   }
 }
 
-let epoch = await core.currentEpoch();
-rpc.on("block", async (_) => {
-  const curEpoch = await core.currentEpoch();
-  if (curEpoch > epoch) {
-    epoch = curEpoch;
-
-    console.log("Epoch", epoch);
-    await logStats();
-
-    const global_nonce = await capacity.getGlobalNonce();
-    const difficulty = await capacity.difficulty();
-    communicate.request({ global_nonce, difficulty, cu_allocation });
-    for (const peer of peers) {
-      peer.clear();
-    }
-    console.log("Updated global nonce: ", global_nonce);
-  }
-});
+setInterval(logStats, 10000);
