@@ -6,6 +6,7 @@ import PQueue from "p-queue";
 
 import { arrToHex } from "./utils.js";
 
+// Request to CCP
 export interface Request {
   global_nonce: BytesLike;
   difficulty: BytesLike;
@@ -18,6 +19,7 @@ export interface SolutionId {
   idx: number;
 }
 
+// Solution from CCP
 export interface Solution {
   id: SolutionId;
   local_nonce: BytesLike;
@@ -32,6 +34,7 @@ export class Communicate extends EventEmitter {
   private polling = false;
   private readonly interval: number;
 
+  // concurrency: 1 so that we don't poll and request at the same time
   private readonly requests = new PQueue({ concurrency: 1 });
 
   constructor(url: string, interval: number = 1000) {
@@ -61,22 +64,25 @@ export class Communicate extends EventEmitter {
     this.requests.add(
       async () => {
         try {
+          // CCP resets id on change of active commitment
           this.proof_id = 0;
           await this.client.request("ccp_on_active_commitment", req);
         } catch (e) {
           console.error("Error from `ccp_on_active_commitment`: ", e);
         }
       },
-      { priority: 1 }
+      { priority: 1 } // Request has higher priority
     );
   }
 
-  private async update(limit: number) {
+  // Returns number of solutions received
+  private async update(limit: number): Promise<number> {
     const response = await this.client.request("ccp_get_proofs_after", {
       proof_idx: this.proof_id,
       limit: limit,
     });
 
+    // CCP returns byte arrays
     for (const solution of response) {
       solution.id.global_nonce = arrToHex(solution.id.global_nonce);
       solution.id.difficulty = arrToHex(solution.id.difficulty);
@@ -112,7 +118,7 @@ export class Communicate extends EventEmitter {
 
           this.poll();
         },
-        { priority: 0 }
+        { priority: 0 } // Poll has lower priority
       );
     }, this.interval);
   }

@@ -1,8 +1,12 @@
 import { ethers } from "ethers";
 import { DealClient } from "@fluencelabs/deal-ts-clients";
 
-import { loadConfig, saveConfig, type Config, type ProviderConfig } from "./config.js";
-// import { delay } from "./utils.js";
+import {
+  loadConfig,
+  saveConfig,
+  type Config,
+  type ProviderConfig,
+} from "./config.js";
 
 const DEFAULT_CONFIRMATIONS = 1;
 
@@ -48,13 +52,12 @@ async function setupOffer(
   };
 }
 
-async function registerProvider(
-  config: Config,
-  provider: ProviderConfig,
-) {
-  console.log("Registering provider:", provider.name, "...")
+async function registerProvider(config: Config, provider: ProviderConfig) {
+  console.log("Registering provider:", provider.name, "...");
 
-  const rpc = new ethers.JsonRpcProvider(config.test_rpc_url, undefined, { batchMaxCount: 1 });
+  const rpc = new ethers.JsonRpcProvider(config.test_rpc_url, undefined, {
+    batchMaxCount: 1,
+  });
   const signer = new ethers.Wallet(provider.sk, rpc);
   const client = new DealClient(signer, "local");
 
@@ -74,11 +77,7 @@ async function registerProvider(
 
   console.log("Timestamp:", timestamp, "Block number:", blockNumber, "...");
 
-  const offer = await setupOffer(
-    provider,
-    paymentTokenAddress,
-    timestamp
-  );
+  const offer = await setupOffer(provider, paymentTokenAddress, timestamp);
 
   console.log("Setting provider info...");
   const setProviderInfoTx = await market.setProviderInfo(provider.name, {
@@ -156,29 +155,32 @@ async function registerProvider(
   }
 
   console.log("Depositing collateral", totalCollateral, "...");
-  capacity.depositCollateral
+  capacity.depositCollateral;
   const depositCollateralTx = await capacity.depositCollateral(commitmentIds, {
     value: totalCollateral,
   });
   await depositCollateralTx.wait(DEFAULT_CONFIRMATIONS);
 
-  // const filterActivatedCC = capacity.filters.CommitmentActivated();
-  // console.info("Waiting for commitment activated event...");
-  // for (let i = 0; i < 10000; i++) {
-  //   const capacityCommitmentActivatedEvents = await capacity.queryFilter(
-  //     filterActivatedCC,
-  //     blockNumber
-  //   );
+  // FIXME: Wait for commitment activated event
+  /*
+  const filterActivatedCC = capacity.filters.CommitmentActivated();
+  console.info("Waiting for commitment activated event...");
+  for (let i = 0; i < 10000; i++) {
+    const capacityCommitmentActivatedEvents = await capacity.queryFilter(
+      filterActivatedCC,
+      blockNumber
+    );
 
-  //   if (capacityCommitmentActivatedEvents.length > 0) {
-  //     console.info("Got commitment activated event...");
-  //     break;
-  //   } else {
-  //     console.info("No commitment activated event...");
-  //   }
+    if (capacityCommitmentActivatedEvents.length > 0) {
+      console.info("Got commitment activated event...");
+      break;
+    } else {
+      console.info("No commitment activated event...");
+    }
 
-  //   await delay(1000);
-  // }
+    await delay(1000);
+  }
+  */
 }
 
 const config = loadConfig("config.json");

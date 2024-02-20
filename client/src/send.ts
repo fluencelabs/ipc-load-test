@@ -15,11 +15,13 @@ const BUFFER_PROOFS = 32;
 
 const MAX_DIFFICULTY = "0x00" + "ff".repeat(31);
 
+// Peer sends proofs for CUs
 class Peer {
   private readonly config: PeerConfig;
   private readonly capacity: Capacity;
 
-  private readonly queue: PQueue;
+  // concurrency: 1 so that we don't submit many proofs at the same time
+  private readonly queue: PQueue = new PQueue({ concurrency: 1 });
 
   private readonly summary: prom.Summary;
   private readonly defaultLabels: { [key: string]: string };
@@ -32,9 +34,6 @@ class Peer {
   ) {
     this.config = config;
     this.capacity = capacity;
-
-    this.queue = new PQueue({ concurrency: 1 });
-
     this.summary = summary;
     this.defaultLabels = defultLabels;
   }
@@ -52,6 +51,7 @@ class Peer {
       throw new Error("Peer does not have CU ID: " + solution.cu_id);
     }
 
+    // Drop excess proofs
     if (this.queue.size >= BUFFER_PROOFS) {
       return;
     }
@@ -73,6 +73,7 @@ class Peer {
         await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
         end({ status: "success" });
       } catch (e: any) {
+        // Classify error
         const data = e?.info?.error?.data;
         const msg = data ? Buffer.from(data, "hex").toString() : undefined;
         let status = "error";
