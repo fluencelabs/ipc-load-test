@@ -57,11 +57,15 @@ export class Communicate extends EventEmitter {
     this.interval = interval;
   }
 
-  async request(req: Request) {
-    await this.requests.add(
+  request(req: Request) {
+    this.requests.add(
       async () => {
-        this.proof_id = 0;
-        await this.client.request("ccp_on_active_commitment", req);
+        try {
+          this.proof_id = 0;
+          await this.client.request("ccp_on_active_commitment", req);
+        } catch (e) {
+          console.error("Error from `ccp_on_active_commitment`: ", e);
+        }
       },
       { priority: 1 }
     );
@@ -92,14 +96,18 @@ export class Communicate extends EventEmitter {
 
   private poll() {
     setTimeout(async () => {
-      await this.requests.add(
+      this.requests.add(
         async () => {
           const limit = 10;
-          for (let i = 0; i < 10; i++) {
-            const count = await this.update(limit);
-            if (count < limit) {
-              break;
+          try {
+            for (let i = 0; i < 10; i++) {
+              const count = await this.update(limit);
+              if (count < limit) {
+                break;
+              }
             }
+          } catch (e) {
+            console.error("Error from `ccp_get_proofs_after`: ", e);
           }
 
           this.poll();

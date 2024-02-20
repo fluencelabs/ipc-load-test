@@ -44,7 +44,7 @@ class Peer {
     return this.config.cu_ids.includes(cu_id);
   }
 
-  async submitProof(solution: Solution) {
+  submitProof(solution: Solution) {
     if (!this.hasCU(solution.cu_id)) {
       throw new Error("Peer does not have CU ID: " + solution.cu_id);
     }
@@ -78,7 +78,7 @@ class Peer {
         } else if (msg.includes("not started")) {
           status = "not_started";
         } else {
-          console.log("Error submitting proof", solution, ":", e);
+          console.error("Error from `submitProof` for", solution, ":", e);
         }
 
         end({ status: status });
@@ -167,16 +167,19 @@ rpc.on("block", async (_) => {
   if (curEpoch > epoch) {
     epoch = curEpoch;
 
-    console.log("Epoch: ", epoch);
-
     const global_nonce = await capacity.getGlobalNonce();
     const difficulty = await capacity.difficulty();
+
+    console.log("Epoch: ", epoch);
+    console.log("Difficulty: ", difficulty);
+    console.log("Global nonce: ", global_nonce);
+    console.log("Requesting parameters...");
+
     communicate.request({ global_nonce, difficulty, cu_allocation });
+
     for (const peer of peers) {
       peer.clear();
     }
-
-    console.log("Updated global nonce: ", global_nonce);
   }
 });
 
