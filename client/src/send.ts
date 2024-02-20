@@ -1,5 +1,4 @@
 import { ethers, type BytesLike } from "ethers";
-import * as prom from "prom-client";
 import PQueue from "p-queue";
 import {
   DealClient,
@@ -8,6 +7,7 @@ import {
 
 import { Communicate, type Solution } from "./communicate.js";
 import { loadConfig, type PeerConfig } from "./config.js";
+import { Metrics } from "./metrics.js";
 import { hexMin } from "./utils.js";
 
 const DEFAULT_CONFIRMATIONS = 1;
@@ -23,18 +23,18 @@ class Peer {
   // concurrency: 1 so that we don't submit many proofs at the same time
   private readonly queue: PQueue = new PQueue({ concurrency: 1 });
 
-  private readonly summary: prom.Summary;
+  private readonly metrics: Metrics;
   private readonly defaultLabels: { [key: string]: string };
 
   constructor(
     config: PeerConfig,
     capacity: Capacity,
-    summary: prom.Summary,
+    metrics: Metrics,
     defultLabels: { [key: string]: string } = {}
   ) {
     this.config = config;
     this.capacity = capacity;
-    this.summary = summary;
+    this.metrics = metrics;
     this.defaultLabels = defultLabels;
   }
 
@@ -63,7 +63,7 @@ class Peer {
         cu_id: solution.cu_id.toString(),
       };
 
-      const end = this.summary.startTimer(labels);
+      const end = this.metrics.start(labels);
       try {
         const submitProofTx = await this.capacity.submitProof(
           solution.cu_id,
@@ -109,14 +109,7 @@ const cu_allocation = allCUIds.reduce(
   {} as Record<number, BytesLike>
 );
 
-const registry = new prom.Registry();
-const proofs = new prom.Summary({
-  name: "proofs",
-  help: "Proofs summary",
-  registers: [registry],
-  labelNames: ["provider", "peer", "cu_id", "status"],
-});
-
+const metrics = new Metrics();
 const rpc = new ethers.JsonRpcProvider(config.test_rpc_url);
 
 const peers: Peer[] = [];
@@ -126,7 +119,7 @@ for (const provider of config.providers) {
     const client = new DealClient(signer, "local");
     const capacity = await client.getCapacity();
     peers.push(
-      new Peer(peer, capacity, proofs, {
+      new Peer(peer, capacity, metrics, {
         provider: provider.name,
         peer: peer.owner_sk,
       })
@@ -196,23 +189,17 @@ rpc.on("block", async (_) => {
 async function logStats() {
   const time = new Date().toISOString();
   console.log("Time: ", time);
-  const sum = await proofs.get();
-  const counts = sum.values.filter((v) => v.metricName === "proofs_count");
   for (const provider of config.providers) {
-    const provider_counts = counts.filter(
-      (c) => c.labels.provider === provider.name
-    );
     console.log("Provider", provider.name);
+    const providerMetrics = metrics.filter({ provider: provider.name });
     for (const peer of provider.peers) {
-      const peer_counts = provider_counts.filter(
-        (c) => c.labels.peer === peer.owner_sk
-      );
       console.log("\tPeer", peer.owner_sk);
+      const peerMetrics = providerMetrics.filter({ peer: peer.owner_sk });
       for (const cu_id of peer.cu_ids) {
-        const cu_counts = peer_counts.filter((c) => c.labels.cu_id === cu_id);
+        const cuMetrics = peerMetrics.filter({ cu_id: cu_id.toString() });
         const count_status = (s: string) =>
-          cu_counts.find((c) => c.labels.status === s)?.value || 0;
-        const total = cu_counts.reduce((acc, c) => acc + c.value, 0);
+          cuMetrics.filter({ status: s }).count();
+        const total = cuMetrics.count();
         const success = count_status("success");
         const error = count_status("error");
         const invalid = count_status("invalid");
