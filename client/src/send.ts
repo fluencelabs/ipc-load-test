@@ -193,6 +193,8 @@ rpc.on("block", async (_) => {
 });
 
 async function logStats() {
+  const time = new Date().toISOString();
+  console.log("Time: ", time);
   const sum = await proofs.get();
   const counts = sum.values.filter((v) => v.metricName === "proofs_count");
   for (const provider of config.providers) {
