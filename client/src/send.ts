@@ -8,9 +8,12 @@ import {
 
 import { Communicate, type Solution } from "./communicate.js";
 import { loadConfig, type PeerConfig } from "./config.js";
+import { hexMin } from "./utils.js";
 
 const DEFAULT_CONFIRMATIONS = 1;
-const BUFFER_PROOFS = 10;
+const BUFFER_PROOFS = 32;
+
+const MAX_DIFFICULTY = "0x00" + "ff".repeat(31);
 
 class Peer {
   private readonly config: PeerConfig;
@@ -71,11 +74,11 @@ class Peer {
         end({ status: "success" });
       } catch (e: any) {
         const data = e?.info?.error?.data;
-        const msg = data ? Buffer.from(data, "hex").toString() : "No message";
+        const msg = data ? Buffer.from(data, "hex").toString() : undefined;
         let status = "error";
-        if (msg.includes("not valid")) {
+        if (msg?.includes("not valid")) {
           status = "invalid";
-        } else if (msg.includes("not started")) {
+        } else if (msg?.includes("not started")) {
           status = "not_started";
         } else {
           console.error("Error from `submitProof` for", solution, ":", e);
@@ -135,7 +138,8 @@ const core = await client.getCore();
 const capacity = await client.getCapacity();
 
 const global_nonce = await capacity.getGlobalNonce();
-const difficulty = await capacity.difficulty();
+const _difficulty = await capacity.difficulty();
+const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 
 console.info("Initial difficulty: ", difficulty);
 console.info("Initial global nonce: ", global_nonce);
@@ -144,7 +148,7 @@ const communicate = new Communicate("http://127.0.0.1:9383");
 
 console.log("Requesting parameters...");
 
-await communicate.request({
+communicate.request({
   global_nonce,
   difficulty,
   cu_allocation,
@@ -157,7 +161,7 @@ communicate.on("solution", async (solution: Solution) => {
   if (peer) {
     peer.submitProof(solution);
   } else {
-    throw new Error("No provider for CU ID: " + solution.cu_id);
+    throw new Error("No peer for CU ID: " + solution.cu_id);
   }
 });
 
@@ -168,14 +172,19 @@ rpc.on("block", async (_) => {
     epoch = curEpoch;
 
     const global_nonce = await capacity.getGlobalNonce();
-    const difficulty = await capacity.difficulty();
+    const _difficulty = await capacity.difficulty();
+    const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 
     console.log("Epoch: ", epoch);
     console.log("Difficulty: ", difficulty);
     console.log("Global nonce: ", global_nonce);
     console.log("Requesting parameters...");
 
-    communicate.request({ global_nonce, difficulty, cu_allocation });
+    communicate.request({
+      global_nonce,
+      difficulty,
+      cu_allocation,
+    });
 
     for (const peer of peers) {
       peer.clear();
