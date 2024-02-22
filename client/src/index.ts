@@ -7,8 +7,11 @@ import {
   type Config,
   type ProviderConfig,
 } from "./config.js";
-
-const DEFAULT_CONFIRMATIONS = 1;
+import {
+  DEFAULT_CONFIRMATIONS,
+  CONFIG_FILE,
+  DEFAULT_ETH_API_URL,
+} from "./const.js";
 
 // NOTE: Modifies provider config in place
 async function setupOffer(
@@ -55,9 +58,7 @@ async function setupOffer(
 async function registerProvider(config: Config, provider: ProviderConfig) {
   console.log("Registering provider:", provider.name, "...");
 
-  const rpc = new ethers.JsonRpcProvider(config.test_rpc_url, undefined, {
-    batchMaxCount: 1,
-  });
+  const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
   const signer = new ethers.Wallet(provider.sk, rpc);
   const client = new DealClient(signer, "local");
 
@@ -183,11 +184,11 @@ async function registerProvider(config: Config, provider: ProviderConfig) {
   */
 }
 
-const config = loadConfig("config.json");
+const config = loadConfig(CONFIG_FILE);
 
 for (const provider of config.providers) {
   await registerProvider(config, provider);
 }
 
 console.info("Updating config...");
-saveConfig("config.json", config);
+saveConfig(CONFIG_FILE, config);

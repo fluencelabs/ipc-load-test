@@ -5,18 +5,17 @@ export interface PeerConfig {
   cu_count: number;
   owner_sk: string;
   cu_ids: BytesLike[];
-};
+}
 
 export interface ProviderConfig {
   name: string;
   sk: string;
   peers: PeerConfig[];
-};
+}
 
 export interface Config {
-  test_rpc_url: string;
   providers: ProviderConfig[];
-};
+}
 
 export const loadConfig = (filePath: string): Config => {
   try {
@@ -34,7 +33,9 @@ export const loadConfig = (filePath: string): Config => {
 
       provider.peers.forEach((peer: PeerConfig, idx: number) => {
         if (!peer.owner_sk) {
-          throw new Error(`Peer ${idx} of ${provider.name} does not have an owner`);
+          throw new Error(
+            `Peer ${idx} of ${provider.name} does not have an owner`
+          );
         }
 
         peer.cu_count = peer.cu_count || 0;

@@ -10,10 +10,15 @@ import { loadConfig, type PeerConfig } from "./config.js";
 import { Metrics } from "./metrics.js";
 import { hexMin } from "./utils.js";
 
-const DEFAULT_CONFIRMATIONS = 1;
-const BUFFER_PROOFS = 32;
-
-const MAX_DIFFICULTY = "0x00" + "ff".repeat(31);
+import {
+  CCP_RPC_URL,
+  DEFAULT_CONFIRMATIONS,
+  MAX_DIFFICULTY,
+  BUFFER_PROOFS,
+  CONFIG_FILE,
+  METRICS_FILE,
+  DEFAULT_ETH_API_URL,
+} from "./const.js";
 
 // Peer sends proofs for CUs
 class Peer {
@@ -36,6 +41,14 @@ class Peer {
     this.capacity = capacity;
     this.metrics = metrics;
     this.defaultLabels = defultLabels;
+
+    this.queue.on("idle", () => {
+      console.warn(
+        "Queue for peer",
+        this.config.owner_sk,
+        "is idle, if it happens mid-epoch, lower the difficulty"
+      );
+    });
   }
 
   clear() {
@@ -93,7 +106,7 @@ class Peer {
   }
 }
 
-const config = loadConfig("config.json");
+const config = loadConfig(CONFIG_FILE);
 
 const allCUIds = config.providers.flatMap((provider) =>
   provider.peers.flatMap((peer) => peer.cu_ids)
@@ -112,7 +125,7 @@ const cu_allocation = allCUIds.reduce(
 );
 
 const metrics = new Metrics();
-const rpc = new ethers.JsonRpcProvider(config.test_rpc_url);
+const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
 
 const peers: Peer[] = [];
 for (const provider of config.providers) {
@@ -140,7 +153,7 @@ const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 console.info("Initial difficulty: ", difficulty);
 console.info("Initial global nonce: ", global_nonce);
 
-const communicate = new Communicate("http://127.0.0.1:9383");
+const communicate = new Communicate(CCP_RPC_URL);
 
 console.log("Requesting parameters...");
 
@@ -190,7 +203,7 @@ rpc.on("block", async (_) => {
 
 // Dump metrics every minute
 setInterval(async () => {
-  await metrics.dump("metrics.json");
+  await metrics.dump(METRICS_FILE);
 }, 60000);
 
 async function logStats() {
@@ -233,4 +246,4 @@ async function logStats() {
   }
 }
 
-setInterval(logStats, 10000);
+setInterval(logStats, 30000);
