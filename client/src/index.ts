@@ -1,12 +1,7 @@
 import { ethers } from "ethers";
 import { DealClient } from "@fluencelabs/deal-ts-clients";
 
-import {
-  loadConfig,
-  saveConfig,
-  type Config,
-  type ProviderConfig,
-} from "./config.js";
+import { loadConfig, saveConfig, type ProviderConfig } from "./config.js";
 import {
   DEFAULT_CONFIRMATIONS,
   CONFIG_FILE,
@@ -55,7 +50,7 @@ async function setupOffer(
   };
 }
 
-async function registerProvider(config: Config, provider: ProviderConfig) {
+async function registerProvider(provider: ProviderConfig) {
   console.log("Registering provider:", provider.name, "...");
 
   const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
@@ -187,7 +182,7 @@ async function registerProvider(config: Config, provider: ProviderConfig) {
 const config = loadConfig(CONFIG_FILE);
 
 for (const provider of config.providers) {
-  await registerProvider(config, provider);
+  await registerProvider(provider);
 }
 
 console.info("Updating config...");

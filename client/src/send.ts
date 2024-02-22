@@ -23,10 +23,7 @@ import {
 // Peer sends proofs for CUs
 class Peer {
   private readonly config: PeerConfig;
-  private readonly signer: ethers.Wallet;
-
-  private capacity: Capacity | undefined;
-  private nonce: number | undefined;
+  private readonly capacity: Capacity;
 
   // concurrency: 1 so that we don't submit many proofs at the same time
   private readonly queue: PQueue = new PQueue({ concurrency: 1 });
@@ -38,12 +35,12 @@ class Peer {
 
   constructor(
     config: PeerConfig,
-    rpc: ethers.JsonRpcProvider,
+    capacity: Capacity,
     metrics: Metrics,
     defultLabels: { [key: string]: string } = {}
   ) {
     this.config = config;
-    this.signer = new ethers.Wallet(this.config.owner_sk, rpc);
+    this.capacity = capacity;
     this.metrics = metrics;
     this.defaultLabels = defultLabels;
   }
@@ -54,10 +51,6 @@ class Peer {
       // But should not happen mid-epoch, otherwise lower difficulty for CCP
       console.warn("WARNING: Queue for peer", this.config.owner_sk, "is empty");
     });
-
-    this.nonce = await this.signer.getNonce();
-    const client = new DealClient(this.signer, "local");
-    this.capacity = await client.getCapacity();
   }
 
   clear() {
@@ -93,21 +86,16 @@ class Peer {
 
       const end = this.metrics.start(labels);
       try {
-        const submitProofTx =
-          await this.capacity.submitProof.populateTransaction(
-            solution.cu_id,
-            solution.local_nonce,
-            solution.result_hash
-          );
-        submitProofTx.nonce = this.nonce;
-        await this.signer.sendTransaction(submitProofTx);
-        this.nonce = this.nonce! + 1;
-        // We should not wait confirmations?
-        // await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
+        const submitProofTx = await this.capacity.submitProof(
+          solution.cu_id,
+          solution.local_nonce,
+          solution.result_hash
+        );
+        // We should wait confirmations
+        await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
+
         end({ status: "success" });
       } catch (e: any) {
-        this.nonce = await this.signer.getNonce();
-
         // Classify error
         const data = e?.info?.error?.data;
         const msg = data ? Buffer.from(data, "hex").toString() : undefined;
@@ -148,12 +136,17 @@ const cu_allocation = allCUIds.reduce(
 );
 
 const metrics = new Metrics();
-const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
+const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL, undefined, {
+  batchMaxCount: 1,
+});
 
 const peers: Peer[] = [];
 for (const provider of config.providers) {
   for (const config of provider.peers) {
-    const peer = new Peer(config, rpc, metrics, {
+    const signer = new ethers.Wallet(config.owner_sk, rpc);
+    const client = new DealClient(signer, "local");
+    const capacity = await client.getCapacity();
+    const peer = new Peer(config, capacity, metrics, {
       provider: provider.name,
       peer: config.owner_sk,
     });
