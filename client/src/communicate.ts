@@ -60,13 +60,13 @@ export class Communicate extends EventEmitter {
     this.interval = interval;
   }
 
-  request(req: Request) {
-    this.requests.add(
+  request(req: Request): Promise<void> {
+    return this.requests.add(
       async () => {
         try {
+          await this.client.request("ccp_on_active_commitment", req);
           // CCP resets id on change of active commitment
           this.proof_id = 0;
-          await this.client.request("ccp_on_active_commitment", req);
         } catch (e) {
           console.error("Error from `ccp_on_active_commitment`: ", e);
         }
@@ -94,8 +94,10 @@ export class Communicate extends EventEmitter {
     const solutions = response as Solution[];
     for (const solution of solutions) {
       this.emit("solution", solution);
-      this.proof_id = Math.max(this.proof_id, solution.id.idx);
+      // this.proof_id = Math.max(this.proof_id, solution.id.idx);
     }
+
+    this.proof_id += solutions.length;
 
     return solutions.length;
   }

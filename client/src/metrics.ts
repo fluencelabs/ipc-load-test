@@ -1,4 +1,4 @@
-import { readFile, writeFile, stat } from "fs/promises";
+import { writeFile } from "fs/promises";
 import { performance } from "perf_hooks";
 
 export interface MetricValue {

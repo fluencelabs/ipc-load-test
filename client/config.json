@@ -2,11 +2,11 @@
   "providers": [
     {
       "name": "PV1",
-      "sk": "0x07d42c5d1857da401c3cc1bddc4a750c3d08d1ca78b91738d23629f1bec2f5a9",
+      "sk": "0xc2c89e9e0e8236f919daf31872bd185ea4ab4aebb5daf3ca48fe967e918a6133",
       "peers": [
         {
-          "owner_sk": "0x9c2fc54d7cedc37ca2f8f6d26ef28a49982d4fdb23c23e2ceb74db1545ec0d14",
-          "cu_count": 2,
+          "owner_sk": "0x49acc015bc19b9beaae8fd4ec061bb9a8b2625b0448c65c15062cf8dd0b41e62",
+          "cu_count": 1,
           "cu_ids": []
         }
       ]

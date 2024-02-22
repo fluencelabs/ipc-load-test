@@ -23,35 +23,45 @@ import {
 // Peer sends proofs for CUs
 class Peer {
   private readonly config: PeerConfig;
-  private readonly capacity: Capacity;
+  private readonly signer: ethers.Wallet;
+
+  private capacity: Capacity | undefined;
+  private nonce: number | undefined;
 
   // concurrency: 1 so that we don't submit many proofs at the same time
   private readonly queue: PQueue = new PQueue({ concurrency: 1 });
+
+  private not_started = false;
 
   private readonly metrics: Metrics;
   private readonly defaultLabels: { [key: string]: string };
 
   constructor(
     config: PeerConfig,
-    capacity: Capacity,
+    rpc: ethers.JsonRpcProvider,
     metrics: Metrics,
     defultLabels: { [key: string]: string } = {}
   ) {
     this.config = config;
-    this.capacity = capacity;
+    this.signer = new ethers.Wallet(this.config.owner_sk, rpc);
     this.metrics = metrics;
     this.defaultLabels = defultLabels;
+  }
 
+  async init() {
     this.queue.on("idle", () => {
-      console.warn(
-        "Queue for peer",
-        this.config.owner_sk,
-        "is idle, if it happens mid-epoch, lower the difficulty"
-      );
+      // This could happen in the first epoch or at the beginning of a new epoch
+      // But should not happen mid-epoch, otherwise lower difficulty for CCP
+      console.warn("WARNING: Queue for peer", this.config.owner_sk, "is empty");
     });
+
+    this.nonce = await this.signer.getNonce();
+    const client = new DealClient(this.signer, "local");
+    this.capacity = await client.getCapacity();
   }
 
   clear() {
+    this.not_started = false;
     this.queue.clear();
   }
 
@@ -62,6 +72,11 @@ class Peer {
   submitProof(solution: Solution) {
     if (!this.hasCU(solution.cu_id)) {
       throw new Error("Peer does not have CU ID: " + solution.cu_id);
+    }
+
+    // Don't submit more proofs in this epoch
+    if (this.not_started) {
+      return;
     }
 
     // Drop excess proofs
@@ -78,14 +93,21 @@ class Peer {
 
       const end = this.metrics.start(labels);
       try {
-        const submitProofTx = await this.capacity.submitProof(
-          solution.cu_id,
-          solution.local_nonce,
-          solution.result_hash
-        );
-        await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
+        const submitProofTx =
+          await this.capacity.submitProof.populateTransaction(
+            solution.cu_id,
+            solution.local_nonce,
+            solution.result_hash
+          );
+        submitProofTx.nonce = this.nonce;
+        await this.signer.sendTransaction(submitProofTx);
+        this.nonce = this.nonce! + 1;
+        // We should not wait confirmations?
+        // await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
         end({ status: "success" });
       } catch (e: any) {
+        this.nonce = await this.signer.getNonce();
+
         // Classify error
         const data = e?.info?.error?.data;
         const msg = data ? Buffer.from(data, "hex").toString() : undefined;
@@ -93,6 +115,7 @@ class Peer {
         if (msg?.includes("not valid")) {
           status = "invalid";
         } else if (msg?.includes("not started")) {
+          this.not_started = true;
           status = "not_started";
         } else if (msg?.includes("not active")) {
           status = "not_active";
@@ -129,16 +152,13 @@ const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
 
 const peers: Peer[] = [];
 for (const provider of config.providers) {
-  for (const peer of provider.peers) {
-    const signer = new ethers.Wallet(peer.owner_sk, rpc);
-    const client = new DealClient(signer, "local");
-    const capacity = await client.getCapacity();
-    peers.push(
-      new Peer(peer, capacity, metrics, {
-        provider: provider.name,
-        peer: peer.owner_sk,
-      })
-    );
+  for (const config of provider.peers) {
+    const peer = new Peer(config, rpc, metrics, {
+      provider: provider.name,
+      peer: config.owner_sk,
+    });
+    await peer.init();
+    peers.push(peer);
   }
 }
 
@@ -206,9 +226,14 @@ setInterval(async () => {
   await metrics.dump(METRICS_FILE);
 }, 60000);
 
+const start = new Date().getTime();
 async function logStats() {
-  const time = new Date().toISOString();
-  console.log("Time: ", time);
+  const now = new Date().getTime();
+  console.log("Passed: ", (now - start) / 1000, "s");
+  console.log(
+    "Success requests:",
+    metrics.filter({ status: "success" }).count()
+  );
   for (const provider of config.providers) {
     console.log("Provider", provider.name);
     const providerMetrics = metrics.filter({ provider: provider.name });
