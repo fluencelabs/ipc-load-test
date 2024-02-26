@@ -77,10 +77,11 @@ export class Communicate extends EventEmitter {
 
   // Returns number of solutions received
   private async update(limit: number): Promise<number> {
-    const response = await this.client.request("ccp_get_proofs_after", {
+    const body = {
       proof_idx: this.proof_id,
       limit: limit,
-    });
+    };
+    const response = await this.client.request("ccp_get_proofs_after", body);
 
     // CCP returns byte arrays
     for (const solution of response) {

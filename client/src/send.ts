@@ -159,7 +159,7 @@ const client = new DealClient(rpc, "local");
 const core = await client.getCore();
 const capacity = await client.getCapacity();
 
-const global_nonce = await capacity.getGlobalNonce();
+let global_nonce = await capacity.getGlobalNonce();
 const _difficulty = await capacity.difficulty();
 const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 
@@ -193,20 +193,26 @@ rpc.on("block", async (_) => {
   if (curEpoch > epoch) {
     epoch = curEpoch;
 
-    const global_nonce = await capacity.getGlobalNonce();
+    const _global_nonce = await capacity.getGlobalNonce();
     const _difficulty = await capacity.difficulty();
     const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 
     console.log("Epoch: ", epoch);
     console.log("Difficulty: ", difficulty);
-    console.log("Global nonce: ", global_nonce);
-    console.log("Requesting parameters...");
+    console.log("Global nonce: ", _global_nonce);
 
-    communicate.request({
-      global_nonce,
-      difficulty,
-      cu_allocation,
-    });
+    if (_global_nonce !== global_nonce) {
+      global_nonce = _global_nonce;
+      console.log("Global nonce changed, requesting parameters...");
+
+      communicate.request({
+        global_nonce,
+        difficulty,
+        cu_allocation,
+      });
+    } else {
+      console.log("Global nonce did not change");
+    }
 
     for (const peer of peers) {
       peer.clear();
