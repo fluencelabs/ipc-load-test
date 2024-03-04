@@ -1,10 +1,9 @@
 {
-    "name": "Deal Client",
+    "name": "ipc-load-test",
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "register": "tsx src/index.ts",
-        "send": "tsx src/send.ts"
+        "run": "tsx src/index.ts"
     },
     "dependencies": {
         "@fluencelabs/deal-ts-clients": "file:../deal/ts-client",
