@@ -1,189 +1,239 @@
-import { ethers } from "ethers";
+import { ethers, type BytesLike } from "ethers";
 import { DealClient } from "@fluencelabs/deal-ts-clients";
 
-import { loadConfig, saveConfig, type ProviderConfig } from "./config.js";
+import { type ProviderConfig, type Config } from "./config.js";
 import {
-  DEFAULT_CONFIRMATIONS,
-  CONFIG_FILE,
+  METRICS_FILE,
+  CCP_RPC_URL,
+  MAX_DIFFICULTY,
+  PROVIDERS_NUM,
   DEFAULT_ETH_API_URL,
+  PRIVATE_KEY,
+  DEFAULT_CONFIRMATIONS,
+  ETH_API_URL,
 } from "./const.js";
+import { registerProvider } from "./register.js";
+import { Communicate, type Solution } from "./communicate.js";
+import { Peer } from "./peer.js";
+import { Metrics } from "./metrics.js";
+import { hexMin } from "./utils.js";
 
-// NOTE: Modifies provider config in place
-async function setupOffer(
-  provider: ProviderConfig,
-  paymentToken: string,
-  timestamp: number
-) {
-  // Setup cu_ids for each peer.
-  provider.peers.forEach((peer, pid) => {
-    peer.cu_ids = [];
-    for (let i = 0; i < peer.cu_count; i++) {
-      peer.cu_ids.push(
-        ethers.encodeBytes32String(
-          `${provider.name}:p${pid}:u${i}:${timestamp}`
-        )
-      );
-    }
+const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
+const signer = new ethers.Wallet(PRIVATE_KEY, rpc);
+
+const config: Config = { providers: [] };
+
+for (let i = 0; i < PROVIDERS_NUM; i++) {
+  const name = `PV${i}`;
+
+  console.log(`Preparing ${name}...`);
+
+  const providerW = ethers.Wallet.createRandom();
+  const peerW = ethers.Wallet.createRandom();
+
+  console.log("Transfering funds to provider wallet...");
+  const providerTx = await signer.sendTransaction({
+    to: providerW.address,
+    value: ethers.parseEther("40"),
   });
+  await providerTx.wait(DEFAULT_CONFIRMATIONS);
 
-  const peers = provider.peers.map((peer, pid) => {
-    const addr = new ethers.Wallet(peer.owner_sk).address;
-    return {
-      peerId: ethers.encodeBytes32String(
-        `${provider.name}:p${pid}:${timestamp}`
-      ),
-      unitIds: peer.cu_ids,
-      owner: addr,
-    };
+  console.log("Transfering funds to peer wallet...");
+  const peerTx = await signer.sendTransaction({
+    to: peerW.address,
+    value: ethers.parseEther("40"),
   });
+  await peerTx.wait(DEFAULT_CONFIRMATIONS);
 
-  return {
-    minPricePerWorkerEpoch: ethers.parseEther("0.01"),
-    paymentToken: paymentToken,
-    effectors: [
+  const providerConfig: ProviderConfig = {
+    name,
+    sk: providerW.privateKey,
+    peers: [
       {
-        prefixes: "0x12345678",
-        hash: ethers.encodeBytes32String("TestEffectorHash"),
+        cu_count: 1,
+        owner_sk: peerW.privateKey,
+        cu_ids: [], // Will be filled on registration
       },
     ],
-    peers,
   };
+
+  config.providers.push(providerConfig);
 }
 
-async function registerProvider(provider: ProviderConfig) {
-  console.log("Registering provider:", provider.name, "...");
+const providers = config.providers;
 
-  const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
-  const signer = new ethers.Wallet(provider.sk, rpc);
-  const client = new DealClient(signer, "local");
+for (const provider of providers) {
+  const provW = new ethers.Wallet(provider.sk, rpc);
+  const peerW = new ethers.Wallet(provider.peers[0]!.owner_sk, rpc);
 
-  console.log("Getting USDC token address...");
-  const paymentToken = await client.getUSDC();
-  const paymentTokenAddress = await paymentToken.getAddress();
+  const provBalance = await rpc.getBalance(provW.address);
+  const peerBalance = await rpc.getBalance(peerW.address);
+  console.log("Provider:", provider.name);
+  console.log("Provider balance:", ethers.formatEther(provBalance));
+  console.log("Peer balance:", ethers.formatEther(peerBalance));
 
-  console.log("Getting market contract...");
-  const market = await client.getMarket();
-
-  console.log("Getting signer address...");
-  const signerAddress = await signer.getAddress();
-
-  console.log("Getting block number and timestamp...");
-  const blockNumber = await rpc.getBlockNumber();
-  const timestamp = (await rpc.getBlock(blockNumber))!.timestamp;
-
-  console.log("Timestamp:", timestamp, "Block number:", blockNumber, "...");
-
-  const offer = await setupOffer(provider, paymentTokenAddress, timestamp);
-
-  console.log("Setting provider info...");
-  const setProviderInfoTx = await market.setProviderInfo(provider.name, {
-    prefixes: "0x12345678",
-    hash: ethers.encodeBytes32String(`${provider.name}:${timestamp}`),
-  });
-  await setProviderInfoTx.wait(DEFAULT_CONFIRMATIONS);
-
-  console.log("Registering market offer...");
-  const registerMarketOfferTx = await market.registerMarketOffer(
-    offer.minPricePerWorkerEpoch,
-    offer.paymentToken,
-    offer.effectors,
-    offer.peers
-  );
-  await registerMarketOfferTx.wait(DEFAULT_CONFIRMATIONS);
-
-  const capacity = await client.getCapacity();
-  const capacityMinDuration = await capacity.minDuration();
-
-  for (const peer of offer.peers) {
-    // bytes32 peerId, uint256 duration, address delegator, uint256 rewardDelegationRate
-    console.log(
-      "Create commitment for peer:",
-      peer.peerId,
-      "with duration:",
-      capacityMinDuration,
-      "..."
-    );
-
-    const createCommitmentTx = await capacity.createCommitment(
-      peer.peerId,
-      capacityMinDuration,
-      signerAddress,
-      1
-    );
-    await createCommitmentTx.wait(DEFAULT_CONFIRMATIONS);
+  if (
+    provBalance < ethers.parseEther("20") ||
+    peerBalance < ethers.parseEther("20")
+  ) {
+    throw new Error("Insufficient funds for provider or peer");
   }
+}
 
-  console.log("Get capacity commitment created events...");
-  // Fetch created commitmentIds from chain.
-  const filterCreatedCC = capacity.filters.CommitmentCreated;
+console.log("Prepared all providers:", JSON.stringify(config));
 
-  const capacityCommitmentCreatedEvents = await capacity.queryFilter(
-    filterCreatedCC,
-    blockNumber
-  );
-  const capacityCommitmentCreatedEventsLast = capacityCommitmentCreatedEvents
-    .reverse()
-    .slice(0, offer.peers.length);
-  console.log(
-    "Got",
-    capacityCommitmentCreatedEventsLast.length,
-    "capacity commitment created events for",
-    offer.peers.length,
-    "peers..."
-  );
+await Promise.all(providers.map((provider) => registerProvider(rpc, provider)));
 
-  const commitmentIds = capacityCommitmentCreatedEventsLast.map(
-    (event) => event.args.commitmentId
-  );
+console.log("Registered all providers...");
 
-  let totalCollateral = BigInt(0);
-  for (const commitmentId of commitmentIds) {
-    const commitment = await capacity.getCommitment(commitmentId);
-    const collateralToApproveCommitment =
-      commitment.collateralPerUnit * commitment.unitCount;
-    console.log(
-      "Collateral for commitmentId:",
-      commitmentId,
-      "=",
-      collateralToApproveCommitment
-    );
-    totalCollateral += collateralToApproveCommitment;
+const allCUIds = providers.flatMap((provider) =>
+  provider.peers.flatMap((peer) => peer.cu_ids)
+);
+
+const cu_allocation = allCUIds.reduce(
+  (acc, cu_id, idx) => {
+    acc[10 + idx] = cu_id;
+    return acc;
+  },
+  {} as Record<number, BytesLike>
+);
+
+const metrics = new Metrics();
+
+const peers: Peer[] = [];
+for (const provider of providers) {
+  for (const config of provider.peers) {
+    const url = ETH_API_URL(peers.length + 1);
+    const peerRpc = new ethers.JsonRpcProvider(url);
+    const signer = new ethers.Wallet(config.owner_sk, peerRpc);
+    const client = new DealClient(signer, "local");
+    const capacity = await client.getCapacity();
+    const peer = new Peer(config, capacity, metrics, {
+      provider: provider.name,
+      peer: config.owner_sk,
+    });
+    await peer.init();
+    peers.push(peer);
   }
+}
 
-  console.log("Depositing collateral", totalCollateral, "...");
-  capacity.depositCollateral;
-  const depositCollateralTx = await capacity.depositCollateral(commitmentIds, {
-    value: totalCollateral,
-  });
-  await depositCollateralTx.wait(DEFAULT_CONFIRMATIONS);
+const client = new DealClient(rpc, "local");
+const core = await client.getCore();
+const capacity = await client.getCapacity();
 
-  // FIXME: Wait for commitment activated event
-  /*
-  const filterActivatedCC = capacity.filters.CommitmentActivated();
-  console.info("Waiting for commitment activated event...");
-  for (let i = 0; i < 10000; i++) {
-    const capacityCommitmentActivatedEvents = await capacity.queryFilter(
-      filterActivatedCC,
-      blockNumber
-    );
+let global_nonce = await capacity.getGlobalNonce();
+const _difficulty = await capacity.difficulty();
+const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 
-    if (capacityCommitmentActivatedEvents.length > 0) {
-      console.info("Got commitment activated event...");
-      break;
+console.info("Initial difficulty: ", difficulty);
+console.info("Initial global nonce: ", global_nonce);
+
+const communicate = new Communicate(CCP_RPC_URL);
+
+console.log("Requesting parameters...");
+
+communicate.request({
+  global_nonce,
+  difficulty,
+  cu_allocation,
+});
+
+console.log("Waiting for solution...");
+
+communicate.on("solution", async (solution: Solution) => {
+  const peer = peers.find((p) => p.hasCU(solution.cu_id));
+  if (peer) {
+    peer.submitProof(solution);
+  } else {
+    throw new Error("No peer for CU ID: " + solution.cu_id);
+  }
+});
+
+let epoch = await core.currentEpoch();
+rpc.on("block", async (_) => {
+  const curEpoch = await core.currentEpoch();
+  if (curEpoch > epoch) {
+    epoch = curEpoch;
+
+    const _global_nonce = await capacity.getGlobalNonce();
+    const _difficulty = await capacity.difficulty();
+    const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
+
+    console.log("Epoch: ", epoch);
+    console.log("Difficulty: ", difficulty);
+    console.log("Global nonce: ", _global_nonce);
+
+    if (_global_nonce !== global_nonce) {
+      global_nonce = _global_nonce;
+      console.log("Global nonce changed, requesting parameters...");
+
+      communicate.request({
+        global_nonce,
+        difficulty,
+        cu_allocation,
+      });
     } else {
-      console.info("No commitment activated event...");
+      console.log("Global nonce did not change");
     }
 
-    await delay(1000);
+    for (const peer of peers) {
+      peer.clear();
+    }
   }
-  */
+});
+
+// Dump metrics every minute
+setInterval(async () => {
+  await metrics.dump(METRICS_FILE);
+}, 60000);
+
+const start = new Date().getTime();
+async function logStats() {
+  const now = new Date().getTime();
+  console.log("Passed: ", (now - start) / 1000, "s");
+  console.log(
+    "Success requests:",
+    metrics.filter({ status: "success" }).count()
+  );
+  for (const provider of providers) {
+    console.log("Provider", provider.name);
+    const providerMetrics = metrics.filter({ provider: provider.name });
+    for (const peer of provider.peers) {
+      const p = peers.find((p) => p.is(peer.owner_sk));
+      console.log("\tPeer", peer.owner_sk, "\tProofs:", p!.proofs());
+      const peerMetrics = providerMetrics.filter({ peer: peer.owner_sk });
+      for (const cu_id of peer.cu_ids) {
+        const cuMetrics = peerMetrics.filter({ cu_id: cu_id.toString() });
+        const count_status = (s: string) =>
+          cuMetrics.filter({ status: s }).count();
+        const total = cuMetrics.count();
+        const success = count_status("success");
+        const confirmed = count_status("confirmed");
+        const error = count_status("error");
+        const invalid = count_status("invalid");
+        const not_started = count_status("not_started");
+        const not_active = count_status("not_active");
+        console.log(
+          "\t\tCU",
+          cu_id,
+          "\tS",
+          success,
+          "\tC",
+          confirmed,
+          "\tI",
+          invalid,
+          "\tNS",
+          not_started,
+          "\tNA",
+          not_active,
+          "\tE",
+          error,
+          "\tT",
+          total
+        );
+      }
+    }
+  }
 }
 
-const config = loadConfig(CONFIG_FILE);
-
-for (const provider of config.providers) {
-  await registerProvider(provider);
-}
-
-console.info("Updating config...");
-saveConfig(CONFIG_FILE, config);
+setInterval(logStats, 30000);
