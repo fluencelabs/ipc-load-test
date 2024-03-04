@@ -18,6 +18,7 @@ import {
   CONFIG_FILE,
   METRICS_FILE,
   DEFAULT_ETH_API_URL,
+  ETH_API_URL,
 } from "./const.js";
 
 // Peer sends proofs for CUs
@@ -26,7 +27,11 @@ class Peer {
   private readonly capacity: Capacity;
 
   // concurrency: 1 so that we don't submit many proofs at the same time
-  private readonly queue: PQueue = new PQueue({ concurrency: 1 });
+  private readonly queue: PQueue = new PQueue({
+    concurrency: 1,
+    timeout: 60000, // 60s
+    throwOnTimeout: true,
+  });
 
   private not_started = false;
 
@@ -62,6 +67,14 @@ class Peer {
     return this.config.cu_ids.includes(cu_id);
   }
 
+  is(id: string) {
+    return this.config.owner_sk === id;
+  }
+
+  proofs(): number {
+    return this.queue.size + this.queue.pending;
+  }
+
   submitProof(solution: Solution) {
     if (!this.hasCU(solution.cu_id)) {
       throw new Error("Peer does not have CU ID: " + solution.cu_id);
@@ -77,43 +90,52 @@ class Peer {
       return;
     }
 
-    this.queue.add(async () => {
-      const labels = {
-        ...this.defaultLabels,
-        peer: this.config.owner_sk,
-        cu_id: solution.cu_id.toString(),
-      };
+    this.queue
+      .add(async () => {
+        const labels = {
+          ...this.defaultLabels,
+          peer: this.config.owner_sk,
+          cu_id: solution.cu_id.toString(),
+        };
 
-      const end = this.metrics.start(labels);
-      try {
-        const submitProofTx = await this.capacity.submitProof(
-          solution.cu_id,
-          solution.local_nonce,
-          solution.result_hash
-        );
-        // We should wait confirmations
-        await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
+        const end = this.metrics.start(labels);
+        try {
+          const submitProofTx = await this.capacity.submitProof(
+            solution.cu_id,
+            solution.local_nonce,
+            solution.result_hash
+          );
+          end({ status: "success" });
+          // We should wait confirmations
+          await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
+          end({ status: "confirmed" });
+        } catch (e: any) {
+          // Classify error
+          const data = e?.info?.error?.data;
+          const msg = data ? Buffer.from(data, "hex").toString() : undefined;
+          let status = "error";
+          if (msg?.includes("not valid")) {
+            status = "invalid";
+          } else if (msg?.includes("not started")) {
+            this.not_started = true;
+            status = "not_started";
+          } else if (msg?.includes("not active")) {
+            status = "not_active";
+          } else {
+            console.error("Error from `submitProof` for", solution, ":", e);
+          }
 
-        end({ status: "success" });
-      } catch (e: any) {
-        // Classify error
-        const data = e?.info?.error?.data;
-        const msg = data ? Buffer.from(data, "hex").toString() : undefined;
-        let status = "error";
-        if (msg?.includes("not valid")) {
-          status = "invalid";
-        } else if (msg?.includes("not started")) {
-          this.not_started = true;
-          status = "not_started";
-        } else if (msg?.includes("not active")) {
-          status = "not_active";
-        } else {
-          console.error("Error from `submitProof` for", solution, ":", e);
+          end({ status: status });
         }
-
-        end({ status: status });
-      }
-    });
+      })
+      .catch((e) => {
+        console.error(
+          "Error submitting (probably timeout) for",
+          this.config.owner_sk,
+          ":",
+          e.message
+        );
+      });
   }
 }
 
@@ -136,13 +158,12 @@ const cu_allocation = allCUIds.reduce(
 );
 
 const metrics = new Metrics();
-const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL, undefined, {
-  batchMaxCount: 1,
-});
 
 const peers: Peer[] = [];
 for (const provider of config.providers) {
   for (const config of provider.peers) {
+    const url = ETH_API_URL(peers.length + 1);
+    const rpc = new ethers.JsonRpcProvider(url);
     const signer = new ethers.Wallet(config.owner_sk, rpc);
     const client = new DealClient(signer, "local");
     const capacity = await client.getCapacity();
@@ -155,6 +176,7 @@ for (const provider of config.providers) {
   }
 }
 
+const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
 const client = new DealClient(rpc, "local");
 const core = await client.getCore();
 const capacity = await client.getCapacity();
@@ -166,7 +188,7 @@ const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 console.info("Initial difficulty: ", difficulty);
 console.info("Initial global nonce: ", global_nonce);
 
-const communicate = new Communicate(CCP_RPC_URL);
+const communicate = new Communicate(CCP_RPC_URL, 5000);
 
 console.log("Requesting parameters...");
 
@@ -237,7 +259,8 @@ async function logStats() {
     console.log("Provider", provider.name);
     const providerMetrics = metrics.filter({ provider: provider.name });
     for (const peer of provider.peers) {
-      console.log("\tPeer", peer.owner_sk);
+      const p = peers.find((p) => p.is(peer.owner_sk));
+      console.log("\tPeer", peer.owner_sk, "\tProofs:", p!.proofs());
       const peerMetrics = providerMetrics.filter({ peer: peer.owner_sk });
       for (const cu_id of peer.cu_ids) {
         const cuMetrics = peerMetrics.filter({ cu_id: cu_id.toString() });
@@ -245,6 +268,7 @@ async function logStats() {
           cuMetrics.filter({ status: s }).count();
         const total = cuMetrics.count();
         const success = count_status("success");
+        const confirmed = count_status("confirmed");
         const error = count_status("error");
         const invalid = count_status("invalid");
         const not_started = count_status("not_started");
@@ -254,6 +278,8 @@ async function logStats() {
           cu_id,
           "\tS",
           success,
+          "\tC",
+          confirmed,
           "\tI",
           invalid,
           "\tNS",

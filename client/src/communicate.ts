@@ -107,9 +107,9 @@ export class Communicate extends EventEmitter {
     setTimeout(async () => {
       this.requests.add(
         async () => {
-          const limit = 10;
+          const limit = 50;
           try {
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 2; i++) {
               const count = await this.update(limit);
               if (count < limit) {
                 break;
