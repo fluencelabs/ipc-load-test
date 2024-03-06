@@ -1,5 +1,13 @@
 export const METRICS_FILE = "metrics.json";
 
+function envGet(key: string): string {
+  const value = process.env[key];
+  if (value === undefined) {
+    throw new Error(`Environment variable ${key} is not set`);
+  }
+  return value;
+}
+
 export const DEFAULT_CONFIRMATIONS = 1;
 const IPC_NODES_COUNT = 7;
 export const ETH_API_URL = (n: number) =>
@@ -11,5 +19,4 @@ export const BUFFER_PROOFS = 32;
 export const MAX_DIFFICULTY = "0x00" + "ff".repeat(31);
 
 export const PROVIDERS_NUM = 4;
-export const PRIVATE_KEY =
-  "0x18356A8CEA9552795D13E6FF797FF5F88D7BC79FB4926A55D6B2341B2858400B";
+export const PRIVATE_KEY = envGet("PRIVATE_KEY");

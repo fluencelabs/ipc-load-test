@@ -92,62 +92,37 @@ make build-ts-client
 
 NOTE: This will update contracts addresses in ts-client from deployment info.
 
-### Generate additional wallets
-
-To work further, some wallets with eth will be needed. The following script will generate `n` addresses and transfer `50eth` to each from `PRIVATE_KEY`:
-
-```bash
-./gen_keys.sh $PRIVATE_KEY <n>
-```
-
-### Update client config
-
-Populate each `providers[i].sk` and `providers[i].peers.owner_sk` in `client/config.json` with secret keys of wallets obtained from the previous step. Modify config according to your needs: add or delete providers, peers, CUs.
-
-### Register providers
-
-This will register providers defined in `client/config.json`, create market offers and capacity commitments for them.
-
-```bash
-cd client
-npm i
-npm run register
-```
-
 ### Run prover
 
-Make directories for capacity commitment prover:
+Make directory for capacity commitment prover state (path to it is specified in `ccp_config.toml`):
 
 ```bash
-mkdir ./ccp_proofs
-mkdir ./ccp_persistent
+mkdir ./ccp_state
 ```
 
 Run prover:
 
 ```bash
 cd ccp
-RUST_LOG=trace cargo run --release -p ccp-main -- \
-                         --bind-address 127.0.0.1:9383 \
-                         --threads-per-physical-core 3 \
-                         --dir-to-store-proofs ../ccp_proofs \
-                         --dir-to-store-persistent-state ../ccp_persistent \
-                         --utility-core-id 8 \
-                         --tokio-core-id 8
+CCP_LOG=trace cargo run --release -p ccp-main ../ccp_config.toml
 ```
 
-### Run client
+### Run test
 
-This will start script that:
-
-- Listens to chain events and updates `globalNonce`
-- Requests proof solutions from prover through JSON RPC on `127.0.0.1:9383`
-- On solution, submits it to the network
-- **Prints proof submit statistics**
+Ensure that `PRIVATE_KEY` is still set as an environment variable, then run:
 
 ```bash
 cd client
-npm run send
+npm i
+npm run run
 ```
 
-NOTE: This uses config populated by `npm run register`.
+This will start script that:
+
+- Creates wallets for providers and peers and adds funds to them
+- Registers providers each with one peer and one CU
+- Listens to chain events and updates `globalNonce` in prover through JSON RPC
+- Requests proof solutions from prover through JSON RPC
+- On solution, submits it to the network
+- Prints proof submit statistics
+- Collects proof submit statistics and dumps them to `client/metrics.json` file each minute
