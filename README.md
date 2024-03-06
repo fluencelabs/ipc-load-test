@@ -107,6 +107,12 @@ cd ccp
 CCP_LOG=trace cargo run --release -p ccp-main ../ccp_config.toml
 ```
 
+NOTE: If you rerun the test, it is better to clean CCP state:
+
+```bash
+rm -rf ./ccp_state
+```
+
 ### Run test
 
 Ensure that `PRIVATE_KEY` is still set as an environment variable, then run:
