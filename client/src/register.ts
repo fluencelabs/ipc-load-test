@@ -43,6 +43,8 @@ async function setupOffer(
       },
     ],
     peers,
+    minProtocolVersion: 1,
+    maxProtocolVersion: 1,
   };
 }
 
@@ -94,7 +96,9 @@ export async function registerProvider(
     offer.minPricePerWorkerEpoch,
     offer.paymentToken,
     offer.effectors,
-    offer.peers
+    offer.peers,
+    offer.minProtocolVersion,
+    offer.maxProtocolVersion
   );
   await registerMarketOfferTx.wait(DEFAULT_CONFIRMATIONS);
 

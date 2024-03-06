@@ -1,7 +1,11 @@
 import { EventEmitter } from "events";
 
 import type { BytesLike } from "ethers";
-import { JSONRPCClient, type JSONRPCResponse } from "json-rpc-2.0";
+import {
+  JSONRPCClient,
+  type JSONRPCResponse,
+  JSONRPCErrorException,
+} from "json-rpc-2.0";
 import PQueue from "p-queue";
 
 import { arrToHex } from "./utils.js";
@@ -116,7 +120,13 @@ export class Communicate extends EventEmitter {
               }
             }
           } catch (e) {
-            console.error("Error from `ccp_get_proofs_after`: ", e);
+            // Ignore code 1 (on_active_commitment in progress)
+            if (e instanceof JSONRPCErrorException && e.code !== 1) {
+              console.error(
+                "Error from `ccp_get_proofs_after`: ",
+                JSON.stringify(e)
+              );
+            }
           }
 
           this.poll();

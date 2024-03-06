@@ -128,7 +128,7 @@ const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
 console.info("Initial difficulty: ", difficulty);
 console.info("Initial global nonce: ", global_nonce);
 
-const communicate = new Communicate(CCP_RPC_URL);
+const communicate = new Communicate(CCP_RPC_URL, 5000);
 
 console.log("Requesting parameters...");
 

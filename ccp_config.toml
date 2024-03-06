@@ -3,14 +3,14 @@ host = "127.0.0.1"
 port = "9393"
 utility-thread-ids = [1, 2]
 
-[optimizations]
-large-pages = true
-hard-aes = true
-jit = true
-secure = true
-argon2 = "default"
-msr-enabled = true
-threads-per-core = 2
+# [optimizations]
+# large-pages = true
+# hard-aes = true
+# jit = true
+# secure = true
+# argon2 = "default"
+# msr-enabled = true
+# threads-per-core = 2
 
 [logs]
 report-hashrate = true
