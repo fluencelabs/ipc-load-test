@@ -6,7 +6,8 @@ import { type Solution } from "./communicate.js";
 import { type PeerConfig } from "./config.js";
 import { Metrics } from "./metrics.js";
 
-import { DEFAULT_CONFIRMATIONS, BUFFER_PROOFS } from "./const.js";
+import { BUFFER_PROOFS } from "./const.js";
+import { submitProof } from "./submit.js";
 
 // Peer sends proofs for CUs
 export class Peer {
@@ -85,34 +86,15 @@ export class Peer {
           cu_id: solution.cu_id.toString(),
         };
 
-        const end = this.metrics.start(labels);
-        try {
-          const submitProofTx = await this.capacity.submitProof(
-            solution.cu_id,
-            solution.local_nonce,
-            solution.result_hash
-          );
-          end({ status: "success" });
-          // We should wait confirmations
-          await submitProofTx.wait(DEFAULT_CONFIRMATIONS);
-          end({ status: "confirmed" });
-        } catch (e: any) {
-          // Classify error
-          const data = e?.info?.error?.data;
-          const msg = data ? Buffer.from(data, "hex").toString() : undefined;
-          let status = "error";
-          if (msg?.includes("not valid")) {
-            status = "invalid";
-          } else if (msg?.includes("not started")) {
-            this.not_started = true;
-            status = "not_started";
-          } else if (msg?.includes("not active")) {
-            status = "not_active";
-          } else {
-            console.error("Error from `submitProof` for", solution, ":", e);
-          }
+        const status = await submitProof(
+          this.capacity,
+          solution,
+          this.metrics,
+          labels
+        );
 
-          end({ status: status });
+        if (status === "not_started") {
+          this.not_started = true;
         }
       })
       .catch((e) => {

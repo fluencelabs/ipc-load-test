@@ -82,7 +82,19 @@ for (const provider of providers) {
 
 console.log("Prepared all providers:", JSON.stringify(config));
 
-await Promise.all(providers.map((provider) => registerProvider(rpc, provider)));
+for (let attempt = 0; attempt < 10; attempt++) {
+  console.log("Attempt to register providers:", attempt);
+  try {
+    await Promise.race([
+      Promise.all(providers.map((provider) => registerProvider(rpc, provider))),
+      new Promise<void>((_, reject) => setTimeout(() => reject(), 60000)),
+    ]);
+  } catch (e) {
+    console.error("Failed to register providers", e);
+    continue;
+  }
+  break;
+}
 
 console.log("Registered all providers...");
 
