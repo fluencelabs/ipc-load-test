@@ -17,7 +17,7 @@ export class Peer {
   // concurrency: 1 so that we don't submit many proofs at the same time
   private readonly queue: PQueue = new PQueue({
     concurrency: 1,
-    timeout: 60000, // 60s
+    timeout: 120000, // 120s
     throwOnTimeout: true,
   });
 

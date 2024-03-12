@@ -21,6 +21,10 @@ import { hexMin } from "./utils.js";
 const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
 const signer = new ethers.Wallet(PRIVATE_KEY, rpc);
 
+rpc.on("error", (e) => {
+  console.log("WARNING: RPC error:", e);
+});
+
 const config: Config = { providers: [] };
 
 for (let i = 0; i < PROVIDERS_NUM; i++) {
@@ -117,6 +121,9 @@ for (const provider of providers) {
   for (const config of provider.peers) {
     const url = ETH_API_URL(peers.length + 1);
     const peerRpc = new ethers.JsonRpcProvider(url);
+    peerRpc.on("error", (e) => {
+      console.log("WARNING: Peer", config.owner_sk, "RPC error:", e);
+    });
     const signer = new ethers.Wallet(config.owner_sk, peerRpc);
     const client = new DealClient(signer, "local");
     const capacity = await client.getCapacity();
@@ -249,3 +256,11 @@ async function logStats() {
 }
 
 setInterval(logStats, 30000);
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.log("WARNING: Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.log("WARNING: Uncaught Exception:", err);
+});

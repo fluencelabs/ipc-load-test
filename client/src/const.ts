@@ -16,7 +16,7 @@ export const DEFAULT_ETH_API_URL = ETH_API_URL(0);
 
 export const CCP_RPC_URL = "http://127.0.0.1:9393";
 export const BUFFER_PROOFS = 32;
-export const MAX_DIFFICULTY = "0x00" + "ff".repeat(31);
+export const MAX_DIFFICULTY = "0x08" + "ff".repeat(31);
 
 export const PROVIDERS_NUM = 42;
 export const PRIVATE_KEY = envGet("PRIVATE_KEY");
