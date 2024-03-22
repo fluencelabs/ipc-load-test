@@ -1,8 +1,11 @@
 import { writeFile } from "fs/promises";
 import { performance } from "perf_hooks";
 
+export type LabelValue = string | number;
+export type Labels = Record<string, LabelValue>;
+
 export interface MetricValue {
-  labels: Record<string, string>;
+  labels: Labels;
   start: number;
   duration: number;
 }
@@ -14,7 +17,7 @@ export class MetricsValues {
     this.values = values;
   }
 
-  filter(labels: Record<string, string>): MetricsValues {
+  filter(labels: Labels): MetricsValues {
     return new MetricsValues(
       this.values.filter((value) => {
         for (const key in labels) {
@@ -30,14 +33,18 @@ export class MetricsValues {
   count() {
     return this.values.length;
   }
+
+  map<T>(f: (_: MetricValue) => T): T[] {
+    return this.values.map(f);
+  }
 }
 
 export class Metrics {
   private storage: MetricValue[] = [];
 
-  start(labels: Record<string, string>) {
+  start(labels: Labels) {
     const now = performance.now();
-    return (additional: Record<string, string> = {}) => {
+    return (additional: Labels = {}) => {
       const end = performance.now();
       this.storage.push({
         labels: { ...labels, ...additional },
@@ -47,7 +54,7 @@ export class Metrics {
     };
   }
 
-  filter(labels: Record<string, string>): MetricsValues {
+  filter(labels: Labels): MetricsValues {
     return new MetricsValues(this.storage).filter(labels);
   }
 

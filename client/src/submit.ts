@@ -3,8 +3,16 @@ import { ethers } from "ethers";
 import { type ICapacityInterface as Capacity } from "@fluencelabs/deal-ts-clients";
 
 import type { Solution } from "./communicate.js";
-import { Metrics } from "./metrics.js";
+import { Metrics, type Labels } from "./metrics.js";
 import { DEFAULT_CONFIRMATIONS } from "./const.js";
+
+function solutionToProof(solution: Solution) {
+  return {
+    unitId: solution.cu_id,
+    localUnitNonce: solution.local_nonce,
+    resultHash: solution.result_hash,
+  };
+}
 
 export type ProofStatus =
   | "success"
@@ -15,21 +23,18 @@ export type ProofStatus =
 
 export async function submitProof(
   capacity: Capacity,
-  solution: Solution,
+  solutions: Solution[],
   metrics: Metrics,
-  labels: Record<string, string>
+  labels: Labels
 ): Promise<ProofStatus> {
+  const proofs = solutions.map(solutionToProof);
   const end = metrics.start(labels);
 
   let receipt: ethers.TransactionResponse | undefined = undefined;
   let status: ProofStatus = "error";
   for (let at = 0; at < 10; at++) {
     try {
-      receipt = await capacity.submitProof(
-        solution.cu_id,
-        solution.local_nonce,
-        solution.result_hash
-      );
+      receipt = await capacity.submitProofs(proofs);
 
       status = "success";
     } catch (e: any) {
@@ -57,7 +62,7 @@ export async function submitProof(
         status = "not_active";
       } else {
         status = "error";
-        console.error("Error from `submitProof` for", solution, ":", e);
+        console.error("Error from `submitProof` for", solutions, ":", e);
       }
     }
 

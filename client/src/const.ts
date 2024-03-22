@@ -1,5 +1,3 @@
-export const METRICS_FILE = "metrics.json";
-
 function envGet(key: string): string {
   const value = process.env[key];
   if (value === undefined) {
@@ -8,15 +6,27 @@ function envGet(key: string): string {
   return value;
 }
 
-export const DEFAULT_CONFIRMATIONS = 1;
+/**
+ * Test parameters
+ */
+export const PRIVATE_KEY = envGet("PRIVATE_KEY");
 const IPC_NODES_COUNT = 21;
+export const PROVIDERS_NUM = 16;
+export const BATCH_SIZE = 4;
+export const BUFFER_BATCHES = 32;
+export const MAX_DIFFICULTY = "0x8f" + "ff".repeat(31);
+export const DEFAULT_CONFIRMATIONS = 1;
+
+/**
+ * API URLS
+ */
 export const ETH_API_URL = (n: number) =>
   `http://127.0.0.1:85${45 + (n % IPC_NODES_COUNT)}`;
 export const DEFAULT_ETH_API_URL = ETH_API_URL(0);
-
 export const CCP_RPC_URL = "http://127.0.0.1:9393";
-export const BUFFER_PROOFS = 32;
-export const MAX_DIFFICULTY = "0x08" + "ff".repeat(31);
 
-export const PROVIDERS_NUM = 42;
-export const PRIVATE_KEY = envGet("PRIVATE_KEY");
+/**
+ * PATHS
+ */
+export const PROVIDERS_PATH = "providers.json";
+export const METRICS_PATH = "metrics.json";
