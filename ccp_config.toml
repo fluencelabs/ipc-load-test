@@ -17,4 +17,4 @@ report-hashrate = true
 log-level = "warn"
 
 [state]
-path = "../ccp_state"
+path = "ccp_state"
