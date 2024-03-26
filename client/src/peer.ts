@@ -87,8 +87,9 @@ export class Peer {
       return;
     }
 
+    this.batch.push(solution);
+
     if (this.batch.length < BATCH_SIZE) {
-      this.batch.push(solution);
       return;
     }
 

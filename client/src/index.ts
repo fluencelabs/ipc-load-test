@@ -187,9 +187,11 @@ communicate.request({
 
 console.log("Waiting for solution...");
 
+let proofsCount = 0;
 communicate.on("solution", async (solution: Solution) => {
   const peer = peers.find((p) => p.hasCU(solution.cu_id));
   if (peer) {
+    proofsCount += 1;
     peer.submitSolution(solution);
   } else {
     throw new Error("No peer for CU ID: " + solution.cu_id);
@@ -234,14 +236,20 @@ setInterval(async () => {
   await metrics.dump(METRICS_PATH);
 }, 60000);
 
+let prevProofsCount = proofsCount;
 const start = new Date().getTime();
 async function logStats() {
   const now = new Date().getTime();
   console.log("Passed: ", (now - start) / 1000, "s");
+
   console.log(
     "Success requests:",
     metrics.filter({ status: "success" }).count()
   );
+
+  console.log("Proofs since last log:", proofsCount - prevProofsCount);
+  prevProofsCount = proofsCount;
+
   for (const provider of providers) {
     console.log("Provider", provider.name);
     const providerMetrics = metrics.filter({ provider: provider.name });
@@ -260,13 +268,13 @@ async function logStats() {
         const cuMetrics = peerMetrics.filter({ cu_id: cu_id.toString() });
         const count_status_requests = (s: string) =>
           cuMetrics.filter({ status: s }).count();
-        const total = cuMetrics.count();
         const success = count_status_requests("success");
         const confirmed = count_status_requests("confirmed");
         const error = count_status_requests("error");
         const invalid = count_status_requests("invalid");
         const not_started = count_status_requests("not_started");
         const not_active = count_status_requests("not_active");
+        const total = success + error + invalid + not_started + not_active;
         console.log(
           "\t\tCU",
           cu_id,
