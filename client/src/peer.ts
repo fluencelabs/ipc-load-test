@@ -72,7 +72,7 @@ export class Peer {
     return this.config.cu_ids.includes(cu_id);
   }
 
-  submitSolution(solution: Solution) {
+  submitSolution(solution: Solution, gnonce: BytesLike) {
     if (!this.hasCU(solution.cu_id)) {
       throw new Error("Peer does not have CU ID: " + solution.cu_id);
     }
@@ -115,6 +115,19 @@ export class Peer {
 
         if (status === "not_started") {
           this.not_started = true;
+        }
+
+        if (status === "invalid") {
+          console.log(
+            "WARNING: invalid proofs:",
+            batch,
+            ", for peer:",
+            this.config.owner_sk,
+            ", for CU:",
+            this.config.cu_ids,
+            ", current gnonce:",
+            gnonce
+          );
         }
       })
       .catch((e) => {

@@ -102,22 +102,25 @@ export async function registerProvider(
   );
   await registerMarketOfferTx.wait(DEFAULT_CONFIRMATIONS);
 
-  const capacity = await client.getCapacity();
-  const capacityMinDuration = await capacity.minDuration();
+  const core = await client.getCore();
+  const vestingDuration = await core.vestingPeriodDuration();
+  const vestingCount = await core.vestingPeriodCount();
+  const LONG_TERM_DURATION = vestingDuration * vestingCount + 1n;
 
+  const capacity = await client.getCapacity();
   for (const peer of offer.peers) {
     console.log(
       prefix,
       "Create commitment for peer:",
       peer.peerId,
       "with duration:",
-      capacityMinDuration,
+      LONG_TERM_DURATION,
       "..."
     );
 
     const createCommitmentTx = await capacity.createCommitment(
       peer.peerId,
-      capacityMinDuration,
+      LONG_TERM_DURATION,
       signerAddress,
       1
     );

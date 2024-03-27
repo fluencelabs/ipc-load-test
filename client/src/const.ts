@@ -12,9 +12,9 @@ function envGet(key: string): string {
 export const PRIVATE_KEY = envGet("PRIVATE_KEY");
 const IPC_NODES_COUNT = 21;
 export const PROVIDERS_NUM = 16;
-export const BATCH_SIZE = 4;
-export const BUFFER_BATCHES = 32;
-export const MAX_DIFFICULTY = "0x8f" + "ff".repeat(31);
+export const BATCH_SIZE = 1;
+export const BUFFER_BATCHES = 8;
+export const MAX_DIFFICULTY = "0x008f" + "ff".repeat(30);
 export const DEFAULT_CONFIRMATIONS = 1;
 
 /**

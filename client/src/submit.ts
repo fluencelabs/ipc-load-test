@@ -5,6 +5,7 @@ import { type ICapacityInterface as Capacity } from "@fluencelabs/deal-ts-client
 import type { Solution } from "./communicate.js";
 import { Metrics, type Labels } from "./metrics.js";
 import { DEFAULT_CONFIRMATIONS } from "./const.js";
+import { assert } from "console";
 
 function solutionToProof(solution: Solution) {
   return {
@@ -27,6 +28,8 @@ export async function submitProof(
   metrics: Metrics,
   labels: Labels
 ): Promise<ProofStatus> {
+  assert(solutions.length == 1, "Only one solution is supported");
+
   const proofs = solutions.map(solutionToProof);
   const end = metrics.start(labels);
 
@@ -34,7 +37,12 @@ export async function submitProof(
   let status: ProofStatus = "error";
   for (let at = 0; at < 10; at++) {
     try {
-      receipt = await capacity.submitProofs(proofs);
+      //  receipt = await capacity.submitProofs(proofs);
+      receipt = await capacity.submitProof(
+        proofs[0]?.unitId,
+        proofs[0]?.localUnitNonce,
+        proofs[0]?.resultHash
+      );
 
       status = "success";
     } catch (e: any) {
@@ -60,6 +68,15 @@ export async function submitProof(
         status = "not_started";
       } else if (msg?.includes("not active")) {
         status = "not_active";
+      } else if (data.startsWith("2c7d30ee")) {
+        status = "invalid";
+        const gnonce = data.slice(4 * 2, 4 * 2 + 32 * 2);
+        const gunitnonce = data.slice(4 * 2 + 32 * 2, 4 * 2 + 32 * 4);
+        const lnonce = data.slice(4 * 2 + 32 * 4, 4 * 2 + 32 * 6);
+        const result = data.slice(4 * 2 + 32 * 6);
+        console.log(
+          `WARNING: Invalid proof result: gnonce = ${gnonce}, gunitnonce = ${gunitnonce}, lnonce = ${lnonce}, result = ${result}`
+        );
       } else {
         status = "error";
         console.error("Error from `submitProof` for", solutions, ":", e);

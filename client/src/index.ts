@@ -42,11 +42,11 @@ const signer = new ethers.Wallet(PRIVATE_KEY, rpc);
 const client = new DealClient(rpc, "local");
 const core = await client.getCore();
 let epoch = await core.currentEpoch();
+const chainDifficulty = await core.difficulty();
 const capacity = await client.getCapacity();
 
-let global_nonce = await capacity.getGlobalNonce();
-const _difficulty = await capacity.difficulty();
-const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
+let globalNonce = await capacity.getGlobalNonce();
+const difficulty = hexMin(chainDifficulty, MAX_DIFFICULTY);
 
 let config: Config = { providers: [] };
 
@@ -175,12 +175,12 @@ const cu_allocation = allCUIds.reduce(
 const communicate = new Communicate(CCP_RPC_URL, 5000);
 
 console.info("Initial difficulty: ", difficulty);
-console.info("Initial global nonce: ", global_nonce);
+console.info("Initial global nonce: ", globalNonce);
 
 console.log("Requesting parameters...");
 
 communicate.request({
-  global_nonce,
+  global_nonce: globalNonce,
   difficulty,
   cu_allocation,
 });
@@ -192,7 +192,7 @@ communicate.on("solution", async (solution: Solution) => {
   const peer = peers.find((p) => p.hasCU(solution.cu_id));
   if (peer) {
     proofsCount += 1;
-    peer.submitSolution(solution);
+    peer.submitSolution(solution, globalNonce);
   } else {
     throw new Error("No peer for CU ID: " + solution.cu_id);
   }
@@ -203,20 +203,20 @@ rpc.on("block", async (_) => {
   if (curEpoch > epoch) {
     epoch = curEpoch;
 
-    const _global_nonce = await capacity.getGlobalNonce();
-    const _difficulty = await capacity.difficulty();
-    const difficulty = hexMin(_difficulty, MAX_DIFFICULTY);
+    const chainGlobalNonce = await capacity.getGlobalNonce();
+    const chainDifficulty = await core.difficulty();
+    const difficulty = hexMin(chainDifficulty, MAX_DIFFICULTY);
 
     console.log("Epoch: ", epoch);
     console.log("Difficulty: ", difficulty);
-    console.log("Global nonce: ", _global_nonce);
+    console.log("Global nonce: ", chainGlobalNonce);
 
-    if (_global_nonce !== global_nonce) {
-      global_nonce = _global_nonce;
+    if (chainGlobalNonce !== globalNonce) {
+      globalNonce = chainGlobalNonce;
       console.log("Global nonce changed, requesting parameters...");
 
       communicate.request({
-        global_nonce,
+        global_nonce: globalNonce,
         difficulty,
         cu_allocation,
       });
