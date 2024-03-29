@@ -53,7 +53,9 @@ let config: Config = { providers: [] };
 try {
   config = readConfig(PROVIDERS_PATH);
 } catch (e) {
-  console.log(`Failed to read ${PROVIDERS_PATH}:`, e);
+  if (e instanceof Error) {
+    console.log(`Failed to read ${PROVIDERS_PATH}:`, e.message);
+  }
   console.log("Will initialize new providers...");
 
   for (let i = 0; i < PROVIDERS_NUM; i++) {
@@ -151,10 +153,12 @@ for (const provider of providers) {
     const signer = new ethers.Wallet(config.owner_sk, peerRpc);
     const client = new DealClient(signer, "local");
     const capacity = await client.getCapacity();
-    const peer = new Peer(config, capacity, metrics, {
+    const core = await client.getCore();
+    const defLabels = {
       provider: provider.name,
       peer: config.owner_sk,
-    });
+    };
+    const peer = new Peer(config, capacity, core, peerRpc, metrics, defLabels);
     await peer.init(Number(epoch));
     peers.push(peer);
   }
@@ -166,7 +170,7 @@ const allCUIds = providers.flatMap((provider) =>
 
 const cu_allocation = allCUIds.reduce(
   (acc, cu_id, idx) => {
-    acc[10 + idx] = cu_id;
+    acc[4 + idx] = cu_id;
     return acc;
   },
   {} as Record<number, BytesLike>
@@ -238,7 +242,7 @@ setInterval(async () => {
 
 let prevProofsCount = proofsCount;
 const start = new Date().getTime();
-async function logStats() {
+function logStats() {
   const now = new Date().getTime();
   console.log("Passed: ", (now - start) / 1000, "s");
 
@@ -255,13 +259,19 @@ async function logStats() {
     const providerMetrics = metrics.filter({ provider: provider.name });
     for (const peer of provider.peers) {
       const p = peers.find((p) => p.is(peer.owner_sk));
+      const pBlock = p?.getBlock();
+      const pEpoch = p?.getEpoch();
       console.log(
         "\tPeer",
         peer.owner_sk,
         "\tProofs:",
         p!.proofs(),
         "\tBatches:",
-        p!.batches()
+        p!.batches(),
+        "\tEpoch:",
+        pEpoch,
+        "\tBlock:",
+        pBlock
       );
       const peerMetrics = providerMetrics.filter({ peer: peer.owner_sk });
       for (const cu_id of peer.cu_ids) {

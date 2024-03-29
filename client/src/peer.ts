@@ -1,6 +1,9 @@
-import { type BytesLike } from "ethers";
+import { ethers, type BytesLike } from "ethers";
 import PQueue from "p-queue";
-import { type ICapacityInterface as Capacity } from "@fluencelabs/deal-ts-clients";
+import {
+  type ICapacityInterface as Capacity,
+  type ICoreInterface as Core,
+} from "@fluencelabs/deal-ts-clients";
 
 import { type Solution } from "./communicate.js";
 import { type PeerConfig } from "./config.js";
@@ -13,6 +16,11 @@ import { submitProof } from "./submit.js";
 export class Peer {
   private readonly config: PeerConfig;
   private readonly capacity: Capacity;
+  private readonly core: Core;
+  private readonly rpc: ethers.JsonRpcProvider;
+
+  private rpcEpoch = 0;
+  private rpcBlock = 0;
 
   private batch: Solution[] = [];
   // concurrency: 1 so that we don't submit many proofs at the same time
@@ -26,16 +34,20 @@ export class Peer {
   private epoch: number = 0;
 
   private readonly metrics: Metrics;
-  private readonly defaultLabels: { [key: string]: string };
+  private readonly defaultLabels: Labels;
 
   constructor(
     config: PeerConfig,
     capacity: Capacity,
+    core: Core,
+    rpc: ethers.JsonRpcProvider,
     metrics: Metrics,
-    defultLabels: { [key: string]: string } = {}
+    defultLabels: Labels = {}
   ) {
     this.config = config;
     this.capacity = capacity;
+    this.core = core;
+    this.rpc = rpc;
     this.metrics = metrics;
     this.defaultLabels = defultLabels;
   }
@@ -46,7 +58,27 @@ export class Peer {
       // But should not happen mid-epoch, otherwise lower difficulty for CCP
       console.warn("WARNING: Queue for peer", this.config.owner_sk, "is empty");
     });
+    this.rpc.on("block", async (_) => {
+      try {
+        this.rpcBlock = Number(await this.rpc.getBlockNumber());
+      } catch (e) {
+        console.error("WARNING: Failed to get block number:", e);
+      }
+      try {
+        this.rpcEpoch = Number(await this.core.currentEpoch());
+      } catch (e) {
+        console.error("WARNING: Failed to get epoch:", e);
+      }
+    });
     this.epoch = epoch;
+  }
+
+  getBlock(): number {
+    return this.rpcBlock;
+  }
+
+  getEpoch(): number {
+    return this.rpcEpoch;
   }
 
   is(id: string) {
