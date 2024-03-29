@@ -38,6 +38,11 @@ NOTE: To stop local testnet run
 cargo make --profile fluence --makefile ./Makefile.toml testnet-down
 ```
 
+NOTES:
+
+- To modify number of nodes in local testnet, set `TESTNET_NODES_NUMBER` in `ipc/infra/fendermint/Makefile.toml`
+- To modify `Cpuset` property of nodes containers, use `ipc/infra/fendermint/run.sh` and `ipc/infra/fendermint/docker-compose.yml`
+
 ### Obtain a key
 
 To deploy contracts, a key of an account with some ETH is required. A key of a validator created by default can be obtained as follows:
@@ -115,7 +120,9 @@ rm -rf ./ccp_state
 
 ### Run test
 
-Ensure that `PRIVATE_KEY` is still set as an environment variable, then run:
+First of all, review test parameters in `client/src/const.ts`. **Important:** sync `IPC_NODES_COUNT` const with number of testnet nodes.
+
+Then, ensure that `PRIVATE_KEY` is still set as an environment variable, then run:
 
 ```bash
 cd client
@@ -125,10 +132,15 @@ npm run run
 
 This will start script that:
 
-- Creates wallets for providers and peers and adds funds to them
+- Creates wallets for providers and peers and adds funds to them. It is done on the first run, then file `client/providers.json` is created with all the wallets. This file is read again on consequent runs. **Important:** Remove `client/providers.json` if you want to regenerate wallets (e.g. after testnet restart)
 - Registers providers each with one peer and one CU
 - Listens to chain events and updates `globalNonce` in prover through JSON RPC
 - Requests proof solutions from prover through JSON RPC
 - On solution, submits it to the network
-- Prints proof submit statistics
+- Prints proof submit statistics each 30 seconds
 - Collects proof submit statistics and dumps them to `client/metrics.json` file each minute
+
+NOTES:
+
+- By default, script instructs CCP to use `4 + idx`th physical core for provider `idx`. To change that, modify `cu_allocation` variable in `client/src/index.ts`
+- Be default, script uses node `idx + 1` for provider `idx`. Node `0` is used for "utility" purposes (e.g. updating global nonce)
