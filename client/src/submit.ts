@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import assert from "assert";
 
 import { type ICapacityInterface as Capacity } from "@fluencelabs/deal-ts-clients";
 
@@ -14,6 +15,39 @@ function solutionToProof(solution: Solution) {
   };
 }
 
+type RetryTxStatus = "http-err" | "seq-err" | "cache-err";
+
+function isRetryTxStatus(value: any): value is RetryTxStatus {
+  return ["http-err", "seq-err", "cache-err"].includes(value);
+}
+
+type ProofTxStatus = ProofStatus | RetryTxStatus;
+
+function analyzeError(e: any): ProofTxStatus {
+  const error = e.error?.message || e.info?.error?.message;
+  if (error?.includes("HTTP error")) {
+    return "http-err";
+  } else if (error?.includes("sequence")) {
+    return "seq-err";
+  } else if (error?.includes("already exists in cache")) {
+    return "cache-err";
+  }
+
+  const data = e?.info?.error?.data;
+  const msg = data ? Buffer.from(data, "hex").toString() : undefined;
+  if (msg?.includes("already submitted")) {
+    return "success";
+  } else if (msg?.includes("not valid")) {
+    return "invalid";
+  } else if (msg?.includes("not started")) {
+    return "not_started";
+  } else if (msg?.includes("not active")) {
+    return "not_active";
+  }
+
+  return "error";
+}
+
 export type ProofStatus =
   | "success"
   | "invalid"
@@ -27,84 +61,98 @@ export async function submitProof(
   metrics: Metrics,
   labels: Labels
 ): Promise<ProofStatus> {
+  assert(solutions.length == 1, "Submit only one solution at a time");
+
   const proofs = solutions.map(solutionToProof);
+  const proof = proofs[0]!;
+
   const end = metrics.start(labels);
 
-  let receipt: ethers.TransactionResponse | undefined = undefined;
   let status: ProofStatus = "error";
+  let gas: bigint | undefined = undefined;
   for (let at = 0; at < 10; at++) {
     try {
-      receipt = await capacity.submitProofs(proofs);
+      gas = await capacity.submitProof.estimateGas(
+        proof.unitId,
+        proof.localUnitNonce,
+        proof.resultHash
+      );
 
       status = "success";
     } catch (e: any) {
-      const error = e.error?.message || e.info?.error?.message;
-      if (error?.includes("HTTP error")) {
-        console.log("WARNING: Retrying send after HTTP error");
-        continue;
-      } else if (error?.includes("sequence")) {
-        console.log("WARNING: Retrying send after sequence error");
-        continue;
-      } else if (error?.includes("already exists in cache")) {
-        console.log('WARNING: Retrying send after "exists in cache" error');
-        continue;
-      }
-
-      const data = e?.info?.error?.data;
-      const msg = data ? Buffer.from(data, "hex").toString() : undefined;
-      if (msg?.includes("already submitted")) {
-        status = "success";
-      } else if (msg?.includes("not valid")) {
-        status = "invalid";
-      } else if (msg?.includes("not started")) {
-        status = "not_started";
-      } else if (msg?.includes("not active")) {
-        status = "not_active";
-      } else if (data?.startsWith("2c7d30ee")) {
-        status = "invalid";
-        const gnonce = data.slice(4 * 2, 4 * 2 + 32 * 2);
-        const gunitnonce = data.slice(4 * 2 + 32 * 2, 4 * 2 + 32 * 4);
-        const lnonce = data.slice(4 * 2 + 32 * 4, 4 * 2 + 32 * 6);
-        const result = data.slice(4 * 2 + 32 * 6);
-        console.log(
-          `WARNING: Invalid proof result: gnonce = ${gnonce}, gunitnonce = ${gunitnonce}, lnonce = ${lnonce}, result = ${result}`
-        );
-      } else {
-        status = "error";
+      const error_status = analyzeError(e);
+      if (isRetryTxStatus(error_status)) {
         console.error(
-          "WARNING: Error from `submitProof` for",
-          solutions,
-          ":",
+          "WARNING: Retrying estimateGas after status:",
+          error_status,
+          "error:",
           e
         );
+        continue;
       }
-    }
 
-    if (at > 0) {
-      console.log("WARNING: Stop retrying send with status:", status);
+      status = error_status;
     }
 
     break;
   }
 
-  end({ status });
+  end({ status: status, action: "estimate" });
 
-  if (receipt !== undefined) {
+  if (gas === undefined || status !== "success") {
+    return status;
+  }
+
+  status = "error";
+  let receipt: ethers.TransactionResponse | undefined = undefined;
+  for (let at = 0; at < 10; at++) {
     try {
-      await receipt.wait(DEFAULT_CONFIRMATIONS);
+      receipt = await capacity.submitProof(
+        proof.unitId,
+        proof.localUnitNonce,
+        proof.resultHash,
+        { gasLimit: gas }
+      );
 
-      end({ status: "confirmed" });
-    } catch (e) {
-      let message = "unknown";
-      if (e instanceof Error) {
-        message = e.message;
+      status = "success";
+    } catch (e: any) {
+      const error_status = analyzeError(e);
+      if (isRetryTxStatus(error_status)) {
+        console.error(
+          "WARNING: Retrying send after status:",
+          error_status,
+          "error:",
+          e
+        );
+        continue;
       }
 
-      console.error(
-        "WARNING: Error waiting for confirmation after `submitProof`:",
-        message
-      );
+      status = error_status;
     }
+
+    break;
+  }
+
+  end({ status: status, action: "send" });
+
+  if (receipt === undefined || status !== "success") {
+    return status;
+  }
+
+  try {
+    await receipt.wait(DEFAULT_CONFIRMATIONS);
+
+    end({ status: "confirmed" });
+  } catch (e) {
+    let message = "unknown";
+    if (e instanceof Error) {
+      message = e.message;
+    }
+
+    console.error(
+      "WARNING: Error waiting for confirmation after `submitProof`:",
+      message
+    );
   }
 
   return status;

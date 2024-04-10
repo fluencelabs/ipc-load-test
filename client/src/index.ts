@@ -276,14 +276,15 @@ function logStats() {
       const peerMetrics = providerMetrics.filter({ peer: peer.owner_sk });
       for (const cu_id of peer.cu_ids) {
         const cuMetrics = peerMetrics.filter({ cu_id: cu_id.toString() });
-        const count_status_requests = (s: string) =>
-          cuMetrics.filter({ status: s }).count();
-        const success = count_status_requests("success");
-        const confirmed = count_status_requests("confirmed");
-        const error = count_status_requests("error");
-        const invalid = count_status_requests("invalid");
-        const not_started = count_status_requests("not_started");
-        const not_active = count_status_requests("not_active");
+        const count = (s: string) => cuMetrics.filter({ status: s }).count();
+        const count_est = (s: string) =>
+          cuMetrics.filter({ status: s, action: "send" }).count();
+        const success = count_est("success");
+        const confirmed = count("confirmed");
+        const error = count_est("error");
+        const invalid = count_est("invalid");
+        const not_started = count_est("not_started");
+        const not_active = count_est("not_active");
         const total = success + error + invalid + not_started + not_active;
         console.log(
           "\t\tCU",

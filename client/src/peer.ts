@@ -148,19 +148,6 @@ export class Peer {
         if (status === "not_started") {
           this.not_started = true;
         }
-
-        if (status === "invalid") {
-          console.log(
-            "WARNING: invalid proofs:",
-            batch,
-            ", for peer:",
-            this.config.owner_sk,
-            ", for CU:",
-            this.config.cu_ids,
-            ", current gnonce:",
-            gnonce
-          );
-        }
       })
       .catch((e) => {
         console.error(
