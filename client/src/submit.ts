@@ -61,22 +61,16 @@ export async function submitProof(
   metrics: Metrics,
   labels: Labels
 ): Promise<ProofStatus> {
-  assert(solutions.length == 1, "Submit only one solution at a time");
-
   const proofs = solutions.map(solutionToProof);
-  const proof = proofs[0]!;
 
   const end = metrics.start(labels);
 
+  let error: any = undefined;
   let status: ProofStatus = "error";
   let gas: bigint | undefined = undefined;
   for (let at = 0; at < 10; at++) {
     try {
-      gas = await capacity.submitProof.estimateGas(
-        proof.unitId,
-        proof.localUnitNonce,
-        proof.resultHash
-      );
+      gas = await capacity.submitProofs.estimateGas(proofs);
 
       status = "success";
     } catch (e: any) {
@@ -92,6 +86,7 @@ export async function submitProof(
       }
 
       status = error_status;
+      error = e;
     }
 
     break;
@@ -100,19 +95,19 @@ export async function submitProof(
   end({ status: status, action: "estimate" });
 
   if (gas === undefined || status !== "success") {
+    if (status === "error") {
+      console.error("WARNING: Failed to estimate gas:", error);
+    }
+
     return status;
   }
 
+  error = undefined;
   status = "error";
   let receipt: ethers.TransactionResponse | undefined = undefined;
   for (let at = 0; at < 10; at++) {
     try {
-      receipt = await capacity.submitProof(
-        proof.unitId,
-        proof.localUnitNonce,
-        proof.resultHash,
-        { gasLimit: gas }
-      );
+      receipt = await capacity.submitProofs(proofs, { gasLimit: gas });
 
       status = "success";
     } catch (e: any) {
@@ -128,6 +123,7 @@ export async function submitProof(
       }
 
       status = error_status;
+      error = e;
     }
 
     break;
@@ -136,6 +132,10 @@ export async function submitProof(
   end({ status: status, action: "send" });
 
   if (receipt === undefined || status !== "success") {
+    if (status === "error") {
+      console.error("WARNING: Failed to send:", error);
+    }
+
     return status;
   }
 

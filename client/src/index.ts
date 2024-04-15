@@ -23,6 +23,7 @@ import { Communicate, type Solution } from "./communicate.js";
 import { Peer } from "./peer.js";
 import { Metrics } from "./metrics.js";
 import { hexMin } from "./utils.js";
+import type { AddressLike } from "ethers";
 
 process.on("unhandledRejection", (reason, promise) => {
   console.log("ERROR: Unhandled Rejection at:", promise, "reason:", reason);
@@ -50,8 +51,21 @@ const difficulty = hexMin(chainDifficulty, MAX_DIFFICULTY);
 
 let config: Config = { providers: [] };
 
+async function transfer(to: AddressLike, amount: string) {
+  const tx = await signer.sendTransaction({
+    to: to,
+    value: ethers.parseEther(amount),
+  });
+  await tx.wait(DEFAULT_CONFIRMATIONS);
+}
+
 try {
   config = readConfig(PROVIDERS_PATH);
+  if (config.providers.length !== PROVIDERS_NUM) {
+    throw new Error(
+      `Expected ${PROVIDERS_NUM} providers, got ${config.providers.length}`
+    );
+  }
 } catch (e) {
   if (e instanceof Error) {
     console.log(`Failed to read ${PROVIDERS_PATH}:`, e.message);
@@ -67,18 +81,10 @@ try {
     const peerW = ethers.Wallet.createRandom();
 
     console.log("Transfering funds to provider wallet...");
-    const providerTx = await signer.sendTransaction({
-      to: providerW.address,
-      value: ethers.parseEther("40"),
-    });
-    await providerTx.wait(DEFAULT_CONFIRMATIONS);
+    transfer(providerW.address, "40");
 
     console.log("Transfering funds to peer wallet...");
-    const peerTx = await signer.sendTransaction({
-      to: peerW.address,
-      value: ethers.parseEther("40"),
-    });
-    await peerTx.wait(DEFAULT_CONFIRMATIONS);
+    transfer(peerW.address, "40");
 
     const providerConfig: ProviderConfig = {
       name,
@@ -110,11 +116,20 @@ for (const provider of providers) {
   console.log("Provider balance:", ethers.formatEther(provBalance));
   console.log("Peer balance:", ethers.formatEther(peerBalance));
 
-  if (
-    provBalance < ethers.parseEther("20") ||
-    peerBalance < ethers.parseEther("20")
-  ) {
-    throw new Error("Insufficient funds for provider or peer");
+  if (provBalance < ethers.parseEther("30")) {
+    console.log("Not enough funds for provider, trying to add...");
+    await transfer(provW.address, "20");
+
+    const provBalance = await rpc.getBalance(provW.address);
+    console.log("Provider balance:", ethers.formatEther(provBalance));
+  }
+
+  if (peerBalance < ethers.parseEther("30")) {
+    console.log("Not enough funds for peer, trying to add...");
+    await transfer(peerW.address, "20");
+
+    const peerBalance = await rpc.getBalance(peerW.address);
+    console.log("Peer balance:", ethers.formatEther(peerBalance));
   }
 }
 
@@ -127,7 +142,7 @@ await Promise.all(
       try {
         await Promise.race([
           registerProvider(rpc, provider),
-          new Promise<void>((_, reject) => setTimeout(() => reject(), 60000)),
+          new Promise<void>((_, reject) => setTimeout(() => reject(), 180000)),
         ]);
       } catch (e) {
         console.error("Failed to register provider", provider.name, ":", e);
@@ -278,19 +293,22 @@ function logStats() {
         const cuMetrics = peerMetrics.filter({ cu_id: cu_id.toString() });
         const count = (s: string) => cuMetrics.filter({ status: s }).count();
         const count_est = (s: string) =>
+          cuMetrics.filter({ status: s, action: "estimate" }).count();
+        const count_send = (s: string) =>
           cuMetrics.filter({ status: s, action: "send" }).count();
-        const success = count_est("success");
+        const success_est = count_est("success");
+        const success_send = count_send("success");
         const confirmed = count("confirmed");
         const error = count_est("error");
         const invalid = count_est("invalid");
         const not_started = count_est("not_started");
         const not_active = count_est("not_active");
-        const total = success + error + invalid + not_started + not_active;
+        const total = success_est + error + invalid + not_started + not_active;
         console.log(
           "\t\tCU",
           cu_id,
           "\tS",
-          success,
+          `${success_est}|${success_send}`,
           "\tC",
           confirmed,
           "\tI",
