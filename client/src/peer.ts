@@ -58,17 +58,21 @@ export class Peer {
       // But should not happen mid-epoch, otherwise lower difficulty for CCP
       console.warn("WARNING: Queue for peer", this.config.owner_sk, "is empty");
     });
-    this.rpc.on("block", async (_) => {
-      try {
-        this.rpcBlock = Number(await this.rpc.getBlockNumber());
-      } catch (e) {
-        console.error("WARNING: Failed to get block number:", e);
-      }
-      try {
-        this.rpcEpoch = Number(await this.core.currentEpoch());
-      } catch (e) {
-        console.error("WARNING: Failed to get epoch:", e);
-      }
+    await this.rpc.on("block", (_) => {
+      (async () => {
+        try {
+          this.rpcBlock = Number(await this.rpc.getBlockNumber());
+        } catch (e) {
+          console.error("WARNING: Failed to get block number:", e);
+        }
+        try {
+          this.rpcEpoch = Number(await this.core.currentEpoch());
+        } catch (e) {
+          console.error("WARNING: Failed to get epoch:", e);
+        }
+      })().catch((e) => {
+        console.error("WARNING: Failed to process block:", e);
+      });
     });
     this.epoch = epoch;
   }
@@ -100,7 +104,7 @@ export class Peer {
     this.epoch = newEpoch;
   }
 
-  hasCU(cu_id: BytesLike): Boolean {
+  hasCU(cu_id: BytesLike): boolean {
     return this.config.cu_ids.includes(cu_id);
   }
 

@@ -12,12 +12,13 @@
         "p-queue": "^8.0.1"
     },
     "devDependencies": {
+        "@eslint/js": "^9.0.0",
         "@tsconfig/node18-strictest-esm": "^1.0.1",
         "@typechain/ethers-v6": "^0.5.0",
         "@types/node": "^20.5.4",
         "@typescript-eslint/eslint-plugin": "^6.9.0",
         "@typescript-eslint/parser": "^6.9.0",
-        "eslint": "^8.52.0",
+        "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-import": "^2.29.0",
         "eslint-plugin-license-header": "^0.6.0",
@@ -27,7 +28,8 @@
         "prettier": "^3.0.2",
         "shx": "^0.3.4",
         "tsx": "^4.7.0",
-        "typescript": "^5.1.6"
+        "typescript": "^5.4.5",
+        "typescript-eslint": "^7.6.0"
     },
     "eslintConfig": {
         "env": {

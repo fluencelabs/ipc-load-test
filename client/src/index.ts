@@ -34,7 +34,7 @@ process.on("uncaughtException", (err) => {
 });
 
 const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
-rpc.on("error", (e) => {
+await rpc.on("error", (e) => {
   console.log("WARNING: RPC error:", e);
 });
 
@@ -81,10 +81,10 @@ try {
     const peerW = ethers.Wallet.createRandom();
 
     console.log("Transfering funds to provider wallet...");
-    transfer(providerW.address, "40");
+    await transfer(providerW.address, "40");
 
     console.log("Transfering funds to peer wallet...");
-    transfer(peerW.address, "40");
+    await transfer(peerW.address, "40");
 
     const providerConfig: ProviderConfig = {
       name,
@@ -162,7 +162,7 @@ for (const provider of providers) {
   for (const config of provider.peers) {
     const url = ETH_API_URL(peers.length + 1);
     const peerRpc = new ethers.JsonRpcProvider(url);
-    peerRpc.on("error", (e) => {
+    await peerRpc.on("error", (e) => {
       console.log("WARNING: Peer", config.owner_sk, "RPC error:", e);
     });
     const signer = new ethers.Wallet(config.owner_sk, peerRpc);
@@ -198,7 +198,7 @@ console.info("Initial global nonce: ", globalNonce);
 
 console.log("Requesting parameters...");
 
-communicate.request({
+await communicate.request({
   global_nonce: globalNonce,
   difficulty,
   cu_allocation,
@@ -207,7 +207,7 @@ communicate.request({
 console.log("Waiting for solution...");
 
 let proofsCount = 0;
-communicate.on("solution", async (solution: Solution) => {
+communicate.on("solution", (solution: Solution) => {
   const peer = peers.find((p) => p.hasCU(solution.cu_id));
   if (peer) {
     proofsCount += 1;
@@ -217,42 +217,48 @@ communicate.on("solution", async (solution: Solution) => {
   }
 });
 
-rpc.on("block", async (_) => {
-  const curEpoch = await core.currentEpoch();
-  if (curEpoch > epoch) {
-    epoch = curEpoch;
+await rpc.on("block", (_) => {
+  (async () => {
+    const curEpoch = await core.currentEpoch();
+    if (curEpoch > epoch) {
+      epoch = curEpoch;
 
-    const chainGlobalNonce = await capacity.getGlobalNonce();
-    const chainDifficulty = await core.difficulty();
-    const difficulty = hexMin(chainDifficulty, MAX_DIFFICULTY);
+      const chainGlobalNonce = await capacity.getGlobalNonce();
+      const chainDifficulty = await core.difficulty();
+      const difficulty = hexMin(chainDifficulty, MAX_DIFFICULTY);
 
-    console.log("Epoch: ", epoch);
-    console.log("Difficulty: ", difficulty);
-    console.log("Global nonce: ", chainGlobalNonce);
+      console.log("Epoch: ", epoch);
+      console.log("Difficulty: ", difficulty);
+      console.log("Global nonce: ", chainGlobalNonce);
 
-    if (chainGlobalNonce !== globalNonce) {
-      globalNonce = chainGlobalNonce;
-      console.log("Global nonce changed, requesting parameters...");
+      if (chainGlobalNonce !== globalNonce) {
+        globalNonce = chainGlobalNonce;
+        console.log("Global nonce changed, requesting parameters...");
 
-      communicate.request({
-        global_nonce: globalNonce,
-        difficulty,
-        cu_allocation,
-      });
-    } else {
-      console.log("Global nonce did not change");
+        await communicate.request({
+          global_nonce: globalNonce,
+          difficulty,
+          cu_allocation,
+        });
+      } else {
+        console.log("Global nonce did not change");
+      }
+
+      // TODO: Do not clear of gnonce did not change?
+      for (const peer of peers) {
+        peer.clear(Number(epoch));
+      }
     }
-
-    // TODO: Do not clear of gnonce did not change?
-    for (const peer of peers) {
-      peer.clear(Number(epoch));
-    }
-  }
+  })().catch((e) => {
+    console.error("WARNING: Failed to process block:", e);
+  });
 });
 
 // Dump metrics every minute
-setInterval(async () => {
-  await metrics.dump(METRICS_PATH);
+setInterval(() => {
+  metrics.dump(METRICS_PATH).catch((e) => {
+    console.log("WARNING: Failed to dump metrics:", e);
+  });
 }, 60000);
 
 let prevProofsCount = proofsCount;
@@ -299,11 +305,13 @@ function logStats() {
         const success_est = count_est("success");
         const success_send = count_send("success");
         const confirmed = count("confirmed");
-        const error = count_est("error");
+        const error_est = count_est("error");
+        const error_send = count_send("error");
         const invalid = count_est("invalid");
         const not_started = count_est("not_started");
         const not_active = count_est("not_active");
-        const total = success_est + error + invalid + not_started + not_active;
+        const total =
+          success_est + error_est + invalid + not_started + not_active;
         console.log(
           "\t\tCU",
           cu_id,
@@ -318,7 +326,7 @@ function logStats() {
           "\tNA",
           not_active,
           "\tE",
-          error,
+          `${error_est}|${error_send}`,
           "\tT",
           total
         );

@@ -108,31 +108,34 @@ export class Communicate extends EventEmitter {
   }
 
   private poll() {
-    setTimeout(async () => {
-      this.requests.add(
-        async () => {
-          const limit = 50;
-          try {
-            for (let i = 0; i < 2; i++) {
-              const count = await this.update(limit);
-              if (count < limit) {
-                break;
+    setTimeout(() => {
+      (async () =>
+        this.requests.add(
+          async () => {
+            const limit = 50;
+            try {
+              for (let i = 0; i < 2; i++) {
+                const count = await this.update(limit);
+                if (count < limit) {
+                  break;
+                }
+              }
+            } catch (e) {
+              // Ignore code 1 (on_active_commitment in progress)
+              if (e instanceof JSONRPCErrorException && e.code !== 1) {
+                console.error(
+                  "Error from `ccp_get_proofs_after`: ",
+                  JSON.stringify(e)
+                );
               }
             }
-          } catch (e) {
-            // Ignore code 1 (on_active_commitment in progress)
-            if (e instanceof JSONRPCErrorException && e.code !== 1) {
-              console.error(
-                "Error from `ccp_get_proofs_after`: ",
-                JSON.stringify(e)
-              );
-            }
-          }
 
-          this.poll();
-        },
-        { priority: 0 } // Poll has lower priority
-      );
+            this.poll();
+          },
+          { priority: 0 } // Poll has lower priority
+        ))().catch((e) => {
+        console.error("WARNING: Failed to poll: ", e);
+      });
     }, this.interval);
   }
 
