@@ -12,3 +12,5 @@ node_modules
 **/pid.json
 
 ccp_state/
+
+**/.ipynb_checkpoints/
