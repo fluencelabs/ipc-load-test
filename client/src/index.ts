@@ -61,50 +61,46 @@ async function transfer(to: AddressLike, amount: string) {
 
 try {
   config = readConfig(PROVIDERS_PATH);
-  if (config.providers.length !== PROVIDERS_NUM) {
-    throw new Error(
-      `Expected ${PROVIDERS_NUM} providers, got ${config.providers.length}`
-    );
-  }
 } catch (e) {
   if (e instanceof Error) {
     console.log(`Failed to read ${PROVIDERS_PATH}:`, e.message);
   }
-  console.log("Will initialize new providers...");
-
-  for (let i = 0; i < PROVIDERS_NUM; i++) {
-    const name = `PV${i}`;
-
-    console.log(`Preparing ${name}...`);
-
-    const providerW = ethers.Wallet.createRandom();
-    const peerW = ethers.Wallet.createRandom();
-
-    console.log("Transfering funds to provider wallet...");
-    await transfer(providerW.address, "40");
-
-    console.log("Transfering funds to peer wallet...");
-    await transfer(peerW.address, "40");
-
-    const providerConfig: ProviderConfig = {
-      name,
-      sk: providerW.privateKey,
-      peers: [
-        {
-          cu_count: 1,
-          owner_sk: peerW.privateKey,
-          cu_ids: [], // Will be filled on registration
-        },
-      ],
-    };
-
-    config.providers.push(providerConfig);
-  }
-
-  writeConfig(config, PROVIDERS_PATH);
 }
 
-const providers = config.providers;
+console.log("Will initialize new providers...");
+
+for (let i = config.providers.length; i < PROVIDERS_NUM; i++) {
+  const name = `PV${i}`;
+
+  console.log(`Preparing ${name}...`);
+
+  const providerW = ethers.Wallet.createRandom();
+  const peerW = ethers.Wallet.createRandom();
+
+  console.log("Transfering funds to provider wallet...");
+  await transfer(providerW.address, "40");
+
+  console.log("Transfering funds to peer wallet...");
+  await transfer(peerW.address, "400");
+
+  const providerConfig: ProviderConfig = {
+    name,
+    sk: providerW.privateKey,
+    peers: [
+      {
+        cu_count: 1,
+        owner_sk: peerW.privateKey,
+        cu_ids: [], // Will be filled on registration
+      },
+    ],
+  };
+
+  config.providers.push(providerConfig);
+}
+
+writeConfig(config, PROVIDERS_PATH);
+
+const providers = config.providers.slice(0, PROVIDERS_NUM);
 
 for (const provider of providers) {
   const provW = new ethers.Wallet(provider.sk, rpc);
@@ -116,17 +112,17 @@ for (const provider of providers) {
   console.log("Provider balance:", ethers.formatEther(provBalance));
   console.log("Peer balance:", ethers.formatEther(peerBalance));
 
-  if (provBalance < ethers.parseEther("30")) {
+  if (provBalance < ethers.parseEther("10")) {
     console.log("Not enough funds for provider, trying to add...");
-    await transfer(provW.address, "20");
+    await transfer(provW.address, "10");
 
     const provBalance = await rpc.getBalance(provW.address);
     console.log("Provider balance:", ethers.formatEther(provBalance));
   }
 
-  if (peerBalance < ethers.parseEther("30")) {
+  if (peerBalance < ethers.parseEther("200")) {
     console.log("Not enough funds for peer, trying to add...");
-    await transfer(peerW.address, "20");
+    await transfer(peerW.address, "400");
 
     const peerBalance = await rpc.getBalance(peerW.address);
     console.log("Peer balance:", ethers.formatEther(peerBalance));
@@ -269,7 +265,7 @@ function logStats() {
 
   console.log(
     "Success requests:",
-    metrics.filter({ status: "success" }).count()
+    metrics.filter({ status: "success", action: "send" }).count()
   );
 
   console.log("Proofs since last log:", proofsCount - prevProofsCount);
@@ -335,4 +331,4 @@ function logStats() {
   }
 }
 
-setInterval(logStats, 30000);
+setInterval(logStats, 10000);
