@@ -36,6 +36,7 @@ export class Communicate extends EventEmitter {
 
   private proof_id = 0;
   private polling = false;
+  private pollTimeout: NodeJS.Timeout | undefined = undefined;
   private readonly interval: number;
 
   // concurrency: 1 so that we don't poll and request at the same time
@@ -108,13 +109,13 @@ export class Communicate extends EventEmitter {
   }
 
   private poll() {
-    setTimeout(() => {
+    this.pollTimeout = setTimeout(() => {
       (async () =>
         this.requests.add(
           async () => {
             const limit = 50;
             try {
-              for (let i = 0; i < 10; i++) {
+              for (let i = 0; i < 10 && this.polling; i++) {
                 const count = await this.update(limit);
                 if (count < limit) {
                   break;
@@ -130,13 +131,30 @@ export class Communicate extends EventEmitter {
               }
             }
 
-            this.poll();
+            if (this.polling) {
+              this.poll();
+            }
           },
           { priority: 0 } // Poll has lower priority
         ))().catch((e) => {
         console.error("WARNING: Failed to poll: ", e);
       });
     }, this.interval);
+  }
+
+  private async stop() {
+    await this.client.request("ccp_on_no_active_commitment", {});
+  }
+
+  async destroy() {
+    this.removeAllListeners();
+    this.polling = false;
+    if (this.pollTimeout !== undefined) {
+      clearTimeout(this.pollTimeout);
+    }
+    this.requests.clear();
+    await this.requests.onIdle();
+    await this.stop();
   }
 
   override on(event: "solution", listener: (solution: Solution) => void): this {

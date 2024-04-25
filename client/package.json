@@ -3,7 +3,8 @@
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "run": "tsx src/index.ts"
+        "run": "tsx src/index.ts",
+        "lint": "npx eslint ."
     },
     "dependencies": {
         "@fluencelabs/deal-ts-clients": "file:../deal/ts-client",

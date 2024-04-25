@@ -9,7 +9,7 @@ import { type Solution } from "./communicate.js";
 import { type PeerConfig } from "./config.js";
 import { Metrics, type Labels } from "./metrics.js";
 
-import { BATCH_SIZE, BUFFER_BATCHES } from "./const.js";
+import { BUFFER_BATCHES } from "./const.js";
 import { submitProof } from "./submit.js";
 import { count } from "./utils.js";
 
@@ -34,6 +34,7 @@ export class Peer {
   private epoch: number = 0;
   private no_send_epoch: number = 0;
 
+  private readonly batchSize: number;
   private readonly metrics: Metrics;
   private readonly defaultLabels: Labels;
 
@@ -42,6 +43,7 @@ export class Peer {
     capacity: Capacity,
     core: Core,
     rpc: ethers.JsonRpcProvider,
+    batchSize: number,
     metrics: Metrics,
     defultLabels: Labels = {}
   ) {
@@ -49,6 +51,7 @@ export class Peer {
     this.capacity = capacity;
     this.core = core;
     this.rpc = rpc;
+    this.batchSize = batchSize;
     this.metrics = metrics;
     this.defaultLabels = defultLabels;
   }
@@ -95,7 +98,7 @@ export class Peer {
   }
 
   proofs(): number {
-    return this.batches() * BATCH_SIZE + this.batch.length;
+    return this.batches() * this.batchSize + this.batch.length;
   }
 
   clear(newEpoch?: number | undefined) {
@@ -127,7 +130,7 @@ export class Peer {
 
     this.batch.push(solution);
 
-    if (this.batch.length < BATCH_SIZE) {
+    if (this.batch.length < this.batchSize) {
       return;
     }
 
@@ -166,5 +169,14 @@ export class Peer {
           e.message
         );
       });
+  }
+
+  async destroy() {
+    this.queue.clear();
+    if (this.queue.pending > 0) {
+      await this.queue.onIdle();
+    }
+    await this.rpc.removeAllListeners();
+    this.rpc.destroy();
   }
 }
