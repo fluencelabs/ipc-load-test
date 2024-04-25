@@ -26,3 +26,17 @@ export function hexMin(hex1: BytesLike, hex2: BytesLike): BytesLike {
 
   return hex1;
 }
+
+export function count(items: string[]): Record<string, number> {
+  const countRecord: Record<string, number> = {};
+
+  items.forEach((item) => {
+    if (countRecord[item]) {
+      countRecord[item]++;
+    } else {
+      countRecord[item] = 1;
+    }
+  });
+
+  return countRecord;
+}

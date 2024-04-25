@@ -11,6 +11,7 @@ import { Metrics, type Labels } from "./metrics.js";
 
 import { BATCH_SIZE, BUFFER_BATCHES } from "./const.js";
 import { submitProof } from "./submit.js";
+import { count } from "./utils.js";
 
 // Peer sends proofs for CUs
 export class Peer {
@@ -30,8 +31,8 @@ export class Peer {
     throwOnTimeout: true,
   });
 
-  private not_started = false;
   private epoch: number = 0;
+  private no_send_epoch: number = 0;
 
   private readonly metrics: Metrics;
   private readonly defaultLabels: Labels;
@@ -97,24 +98,25 @@ export class Peer {
     return this.batches() * BATCH_SIZE + this.batch.length;
   }
 
-  clear(newEpoch: number) {
-    this.not_started = false;
+  clear(newEpoch?: number | undefined) {
     this.batch = [];
     this.queue.clear();
-    this.epoch = newEpoch;
+    if (newEpoch !== undefined) {
+      this.epoch = newEpoch;
+    }
   }
 
   hasCU(cu_id: BytesLike): boolean {
     return this.config.cu_ids.includes(cu_id);
   }
 
-  submitSolution(solution: Solution, gnonce: BytesLike) {
+  submitSolution(solution: Solution) {
     if (!this.hasCU(solution.cu_id)) {
       throw new Error("Peer does not have CU ID: " + solution.cu_id);
     }
 
     // Don't submit more proofs in this epoch
-    if (this.not_started) {
+    if (this.no_send_epoch === this.epoch) {
       return;
     }
 
@@ -135,13 +137,15 @@ export class Peer {
     const labels = {
       ...this.defaultLabels,
       peer: this.config.owner_sk,
-      cu_id: solution.cu_id.toString(),
+      cus: count(batch.map((s) => s.cu_id.toString())),
       size: batch.length,
       epoch: this.epoch,
     };
 
     this.queue
       .add(async () => {
+        const sendEpoch = this.epoch;
+
         const status = await submitProof(
           this.capacity,
           batch,
@@ -149,8 +153,9 @@ export class Peer {
           labels
         );
 
-        if (status === "not_started") {
-          this.not_started = true;
+        if (status === "not_started" || status === "invalid") {
+          this.no_send_epoch = sendEpoch;
+          this.clear();
         }
       })
       .catch((e) => {

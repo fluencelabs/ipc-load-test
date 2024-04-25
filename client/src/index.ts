@@ -17,11 +17,12 @@ import {
   DEFAULT_CONFIRMATIONS,
   ETH_API_URL,
   PROVIDERS_PATH,
+  CU_PER_PEER,
 } from "./const.js";
 import { registerProvider } from "./register.js";
 import { Communicate, type Solution } from "./communicate.js";
 import { Peer } from "./peer.js";
-import { Metrics } from "./metrics.js";
+import { Metrics, type LabelValue } from "./metrics.js";
 import { hexMin } from "./utils.js";
 import type { AddressLike } from "ethers";
 
@@ -88,7 +89,7 @@ for (let i = config.providers.length; i < PROVIDERS_NUM; i++) {
     sk: providerW.privateKey,
     peers: [
       {
-        cu_count: 1,
+        cu_count: CU_PER_PEER,
         owner_sk: peerW.privateKey,
         cu_ids: [], // Will be filled on registration
       },
@@ -98,9 +99,18 @@ for (let i = config.providers.length; i < PROVIDERS_NUM; i++) {
   config.providers.push(providerConfig);
 }
 
+// Update cu count according to constants
+for (const provider of config.providers) {
+  for (const peer of provider.peers) {
+    peer.cu_count = CU_PER_PEER;
+  }
+}
+
 writeConfig(config, PROVIDERS_PATH);
 
 const providers = config.providers.slice(0, PROVIDERS_NUM);
+
+console.log("Will prepare all providers...");
 
 for (const provider of providers) {
   const provW = new ethers.Wallet(provider.sk, rpc);
@@ -112,15 +122,15 @@ for (const provider of providers) {
   console.log("Provider balance:", ethers.formatEther(provBalance));
   console.log("Peer balance:", ethers.formatEther(peerBalance));
 
-  if (provBalance < ethers.parseEther("10")) {
+  if (provBalance < ethers.parseEther("30")) {
     console.log("Not enough funds for provider, trying to add...");
-    await transfer(provW.address, "10");
+    await transfer(provW.address, "40");
 
     const provBalance = await rpc.getBalance(provW.address);
     console.log("Provider balance:", ethers.formatEther(provBalance));
   }
 
-  if (peerBalance < ethers.parseEther("200")) {
+  if (peerBalance < ethers.parseEther("300")) {
     console.log("Not enough funds for peer, trying to add...");
     await transfer(peerW.address, "400");
 
@@ -130,6 +140,8 @@ for (const provider of providers) {
 }
 
 console.log("Prepared all providers:", JSON.stringify(config));
+
+console.log("Will register all providers...");
 
 await Promise.all(
   providers.map(async (provider) => {
@@ -207,7 +219,7 @@ communicate.on("solution", (solution: Solution) => {
   const peer = peers.find((p) => p.hasCU(solution.cu_id));
   if (peer) {
     proofsCount += 1;
-    peer.submitSolution(solution, globalNonce);
+    peer.submitSolution(solution);
   } else {
     throw new Error("No peer for CU ID: " + solution.cu_id);
   }
@@ -255,7 +267,7 @@ setInterval(() => {
   metrics.dump(METRICS_PATH).catch((e) => {
     console.log("WARNING: Failed to dump metrics:", e);
   });
-}, 60000);
+}, 10000);
 
 let prevProofsCount = proofsCount;
 const start = new Date().getTime();
@@ -265,7 +277,12 @@ function logStats() {
 
   console.log(
     "Success requests:",
-    metrics.filter({ status: "success", action: "send" }).count()
+    metrics
+      .filter({
+        status: (s) => s === "success",
+        action: (a) => a === "send",
+      })
+      .count()
   );
 
   console.log("Proofs since last log:", proofsCount - prevProofsCount);
@@ -273,7 +290,9 @@ function logStats() {
 
   for (const provider of providers) {
     console.log("Provider", provider.name);
-    const providerMetrics = metrics.filter({ provider: provider.name });
+    const providerMetrics = metrics.filter({
+      provider: (p) => p === provider.name,
+    });
     for (const peer of provider.peers) {
       const p = peers.find((p) => p.is(peer.owner_sk));
       const pBlock = p?.getBlock();
@@ -290,14 +309,42 @@ function logStats() {
         "\tBlock:",
         pBlock
       );
-      const peerMetrics = providerMetrics.filter({ peer: peer.owner_sk });
+      const peerMetrics = providerMetrics.filter({
+        peer: (p) => p === peer.owner_sk,
+      });
       for (const cu_id of peer.cu_ids) {
-        const cuMetrics = peerMetrics.filter({ cu_id: cu_id.toString() });
-        const count = (s: string) => cuMetrics.filter({ status: s }).count();
+        const cu_id_str = cu_id.toString();
+        const cu_value = (cus: LabelValue): number | undefined =>
+          typeof cus === "object" &&
+          cus &&
+          cu_id_str in cus &&
+          typeof cus[cu_id_str] === "number"
+            ? (cus[cu_id_str] as number)
+            : undefined;
+        const cuMetrics = peerMetrics.filter({
+          cus: (cus) => cu_value(cus) !== undefined,
+        });
+        const count = (s: string) =>
+          cuMetrics
+            .filter({ status: (ms) => ms === s })
+            .gather("cus", cu_value)
+            .reduce((acc, val) => acc + val, 0);
         const count_est = (s: string) =>
-          cuMetrics.filter({ status: s, action: "estimate" }).count();
+          cuMetrics
+            .filter({
+              status: (ms) => ms === s,
+              action: (a) => a === "estimate",
+            })
+            .gather("cus", cu_value)
+            .reduce((acc, val) => acc + val, 0);
         const count_send = (s: string) =>
-          cuMetrics.filter({ status: s, action: "send" }).count();
+          cuMetrics
+            .filter({
+              status: (ms) => ms === s,
+              action: (a) => a === "send",
+            })
+            .gather("cus", cu_value)
+            .reduce((acc, val) => acc + val, 0);
         const success_est = count_est("success");
         const success_send = count_send("success");
         const confirmed = count("confirmed");
@@ -331,4 +378,4 @@ function logStats() {
   }
 }
 
-setInterval(logStats, 10000);
+setInterval(logStats, 30000);

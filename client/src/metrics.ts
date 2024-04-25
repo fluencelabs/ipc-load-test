@@ -1,8 +1,11 @@
 import { writeFile } from "fs/promises";
 import { performance } from "perf_hooks";
 
-export type LabelValue = string | number;
-export type Labels = Record<string, LabelValue>;
+export type LabelKey = string | number;
+export type LabelValue = string | number | Labels;
+export type Labels = {
+  [key: LabelKey]: LabelValue;
+};
 
 export interface MetricValue {
   labels: Labels;
@@ -17,17 +20,36 @@ export class MetricsValues {
     this.values = values;
   }
 
-  filter(labels: Labels): MetricsValues {
+  filter(predicates: {
+    [k: LabelKey]: (v: LabelValue) => boolean;
+  }): MetricsValues {
     return new MetricsValues(
       this.values.filter((value) => {
-        for (const key in labels) {
-          if (value.labels[key] !== labels[key]) {
+        for (const [k, p] of Object.entries(predicates)) {
+          const v = value.labels[k];
+          if (!v || !p(v)) {
             return false;
           }
         }
         return true;
       })
     );
+  }
+
+  gather<T>(key: LabelKey, f: (v: LabelValue) => T | undefined): T[] {
+    const result: T[] = [];
+
+    this.values.forEach((value) => {
+      const v = value.labels[key];
+      if (v) {
+        const mapped = f(v);
+        if (mapped) {
+          result.push(mapped);
+        }
+      }
+    });
+
+    return result;
   }
 
   count() {
@@ -54,8 +76,14 @@ export class Metrics {
     };
   }
 
-  filter(labels: Labels): MetricsValues {
-    return new MetricsValues(this.storage).filter(labels);
+  filter(predicates: {
+    [k: LabelKey]: (v: LabelValue) => boolean;
+  }): MetricsValues {
+    return new MetricsValues(this.storage).filter(predicates);
+  }
+
+  gather<T>(key: LabelKey, f: (v: LabelValue) => T): T[] {
+    return new MetricsValues(this.storage).gather(key, f);
   }
 
   async dump(file: string) {
