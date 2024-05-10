@@ -186,7 +186,7 @@ export async function bench(
   }
 
   console.log("Will initialize new providers...");
-  await initNewProviders(signer, config, providersNum, cuPerPeer);
+  await initNewProviders(signer, config, cuPerPeer, providersNum);
   console.log("Initialized new providers...");
 
   // Update cu count according to constants
