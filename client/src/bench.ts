@@ -103,9 +103,9 @@ async function prepareFunds(
       console.log("Provider balance:", ethers.formatEther(provBalance));
     }
 
-    if (peerBalance < ethers.parseEther("300")) {
+    if (peerBalance < ethers.parseEther("1000")) {
       console.log("Not enough funds for peer, trying to add...");
-      await transfer(signer, peerW.address, "400");
+      await transfer(signer, peerW.address, "2000");
 
       const peerBalance = await rpc.getBalance(peerW.address);
       console.log("Peer balance:", ethers.formatEther(peerBalance));
@@ -352,6 +352,10 @@ export async function bench(
 
   await stopPromise;
 
+  metrics.dump(metricsPath).catch((e) => {
+    console.log("WARNING: Failed to dump metrics:", e);
+  });
+
   console.log("Cleaning up...");
   clearInterval(metricsInterval);
   clearInterval(logInterval);
@@ -359,7 +363,7 @@ export async function bench(
   await rpc.removeAllListeners();
   rpc.destroy();
   await Promise.all(peers.map((peer) => peer.destroy()));
-  console.log("Done, dumped metrics to", metricsPath);
+  console.log("Done");
 
   metrics.dump(metricsPath).catch((e) => {
     console.log("WARNING: Failed to dump metrics:", e);
