@@ -7,50 +7,89 @@ import {
 
 import type { Solution } from "./communicate.js";
 import { Metrics, type Labels } from "./metrics.js";
-import { submit, type ProofStatus } from "./submit.js";
+import { DEFAULT_CONFIRMATIONS } from "./const.js";
+
+function solutionToProof(solution: Solution) {
+  return {
+    unitId: solution.cu_id,
+    localUnitNonce: solution.local_nonce,
+    resultHash: solution.result_hash,
+  };
+}
 
 export class Sender {
+  private readonly id: number;
+
   private readonly signer: ethers.Signer;
   private nonce: number;
 
   private readonly capacity: Capacity;
 
+  private readonly metrics: Metrics;
+
   private constructor(
+    id: number,
     signer: ethers.Signer,
     nonce: number,
-    capacity: Capacity
+    capacity: Capacity,
+    metrics: Metrics
   ) {
+    this.id = nonce;
     this.signer = signer;
     this.nonce = nonce;
     this.capacity = capacity;
+    this.metrics = metrics;
   }
 
-  public static async create(signer: ethers.Signer) {
+  public static async create(
+    id: number,
+    signer: ethers.Signer,
+    metrics: Metrics
+  ) {
     const capacity = new DealClient(signer, "local").getCapacity();
     const nonce = await signer.getNonce();
 
-    return new Sender(signer, nonce, capacity);
+    return new Sender(id, signer, nonce, capacity, metrics);
   }
 
-  async check(
-    solutions: Solution[],
-    metrics: Metrics,
-    labels: Labels
-  ): Promise<ProofStatus> {
-    const proofs = solutions.map(this.solutionToProof);
+  async check(solutions: Solution[], labels: Labels) {
+    const proofs = solutions.map(solutionToProof);
 
-    const tx = await this.capacity.checkProofs.populateTransaction(proofs);
-    tx.nonce = this.nonce;
+    const nonce = this.nonce;
     this.nonce++;
 
-    return await submit(this.signer, tx, metrics, labels);
-  }
+    const end = this.metrics.start({
+      ...labels,
+      sender: this.id,
+      nonce: nonce,
+    });
 
-  private solutionToProof(solution: Solution) {
-    return {
-      unitId: solution.cu_id,
-      localUnitNonce: solution.local_nonce,
-      resultHash: solution.result_hash,
-    };
+    let receipt: ethers.TransactionResponse | undefined = undefined;
+    while (receipt === undefined) {
+      try {
+        receipt = await this.capacity.checkProofs(proofs, { nonce });
+
+        end({ status: "success" });
+      } catch (e) {
+        console.error("WARNING: Retrying transaction", nonce, "after:", e);
+      }
+    }
+
+    while (receipt !== undefined) {
+      try {
+        await receipt.wait(DEFAULT_CONFIRMATIONS);
+
+        end({ status: "confirmed" });
+
+        break;
+      } catch (e) {
+        let message = "unknown";
+        if (e instanceof Error) {
+          message = e.message;
+        }
+
+        console.error("WARNING: Error waiting for confirmation:", message);
+      }
+    }
   }
 }

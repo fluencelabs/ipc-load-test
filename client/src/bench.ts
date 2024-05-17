@@ -12,8 +12,9 @@ import {
 } from "./const.js";
 import { Communicate, type Solution } from "./communicate.js";
 import { Metrics } from "./metrics.js";
-import { makeSignal } from "./utils.js";
+import { Balancer, makeSignal, count } from "./utils.js";
 import { Sender } from "./sender.js";
+import { readConfig, writeConfig } from "./config.js";
 
 process.on("unhandledRejection", (reason, promise) => {
   console.log("ERROR: Unhandled Rejection at:", promise, "reason:", reason);
@@ -35,21 +36,79 @@ async function transfer(
   await tx.wait(DEFAULT_CONFIRMATIONS);
 }
 
-export async function bench(
-  interval: number,
-  cusNumber: number,
-  batchSize: number,
-  batchesToSend: number,
-  metricsPath: string
-) {
+export type BenchParams = {
+  interval: number;
+  cusNumber: number;
+  nodesNumber: number;
+  batchSize: number;
+  batchesToSend: number;
+  configPath: string;
+  metricsPath: string;
+};
+
+export async function bench({
+  interval,
+  cusNumber,
+  nodesNumber,
+  batchSize,
+  batchesToSend,
+  configPath,
+  metricsPath,
+}: BenchParams) {
+  const config = (() => {
+    try {
+      return readConfig(configPath);
+    } catch (e) {
+      console.log("WARNING: Cannot read config:", (e as Error).message);
+      return {
+        private_keys: [],
+      };
+    }
+  })();
+
+  if (config.private_keys.length < nodesNumber) {
+    console.log("Initializing new private keys...");
+  }
+
+  for (let i = config.private_keys.length; i < nodesNumber; i++) {
+    const wallet = ethers.Wallet.createRandom();
+    config.private_keys.push(wallet.privateKey);
+  }
+
+  writeConfig(configPath, config);
+
+  const pkeys = config.private_keys;
+
   const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
   await rpc.on("error", (e) => {
     console.log("WARNING: RPC error:", e);
   });
   const signer = new ethers.Wallet(PRIVATE_KEY, rpc);
-  const sender = await Sender.create(signer);
 
   const metrics = new Metrics();
+
+  console.log("Initializing senders...");
+
+  const senders: Sender[] = [];
+  for (let i = 0; i < pkeys.length; i++) {
+    const senderRpc = new ethers.JsonRpcProvider(ETH_API_URL(i));
+    await senderRpc.on("error", (e) => {
+      console.log("WARNING: Node", i, "RPC error:", e);
+    });
+    const senderSigner = new ethers.Wallet(pkeys[i]!, senderRpc);
+
+    const balance = await rpc.getBalance(senderSigner.address);
+    if (balance < ethers.parseEther("100")) {
+      console.log("Adding 200 ETH to", senderSigner.address);
+
+      await transfer(signer, senderSigner.address, "200");
+    }
+
+    const sender = await Sender.create(i, senderSigner, metrics);
+    senders.push(sender);
+  }
+
+  const senderBalancer = new Balancer(senders);
 
   const cu_allocation: Record<number, BytesLike> = {};
   for (let i = 0; i < cusNumber; i++) {
@@ -114,14 +173,17 @@ export async function bench(
             batch.length
           );
 
-          const status = await sender.check(batch, metrics, {});
+          const sender = senderBalancer.next();
+          await sender.check(batch, {
+            batch: savedBatchesSent,
+            cus: count(batch.map((s) => s.cu_id.toString())),
+            size: batch.length,
+          });
 
           console.log(
             new Date().toISOString(),
             "Batch sent:",
-            savedBatchesSent,
-            "status:",
-            status
+            savedBatchesSent
           );
 
           if (savedBatchesSent === batchesToSend) {

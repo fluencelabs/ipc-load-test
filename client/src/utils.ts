@@ -49,3 +49,18 @@ export function count(items: string[]): Record<string, number> {
 
   return countRecord;
 }
+
+export class Balancer<T> {
+  private readonly items: T[];
+  private cur = 0;
+
+  constructor(items: T[]) {
+    this.items = items;
+  }
+
+  next(): T {
+    const item = this.items[this.cur]!;
+    this.cur = (this.cur + 1) % this.items.length;
+    return item;
+  }
+}
