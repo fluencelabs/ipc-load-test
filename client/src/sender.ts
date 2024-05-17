@@ -19,10 +19,6 @@ function solutionToProof(solution: Solution) {
 
 type TxStatus = "http-err" | "seq-err" | "cache-err" | "error";
 
-function isRetryTxStatus(status: TxStatus): boolean {
-  return ["http-err", "seq-err", "cache-err"].includes(status);
-}
-
 function analyzeError(e: any): TxStatus {
   const error = e.error?.message || e.info?.error?.message;
   if (error?.includes("HTTP error")) {

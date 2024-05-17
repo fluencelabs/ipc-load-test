@@ -110,9 +110,12 @@ export async function bench({
 
   const senderBalancer = new Balancer(senders);
 
+  const timestamp = Date.now();
   const cu_allocation: Record<number, BytesLike> = {};
   for (let i = 0; i < cusNumber; i++) {
-    cu_allocation[i + 4] = ethers.encodeBytes32String("cu-" + i.toString());
+    cu_allocation[i + 4] = ethers.encodeBytes32String(
+      "cu-" + i.toString() + "-" + timestamp.toString()
+    );
   }
 
   const communicate = new Communicate(CCP_RPC_URL, interval / 2);
@@ -132,7 +135,7 @@ export async function bench({
 
   let batchesSent = 0;
   let batchesPending = 0;
-  let batches: Solution[][] = [];
+  const batches: Solution[][] = [];
   const seen = new ProofSet();
 
   console.log("Buffering solutions...");
@@ -199,7 +202,9 @@ export async function bench({
             stopSignal();
           }
         }
-      })();
+      })().catch((e) => {
+        console.log("WARNING: Failed to send batch:", e);
+      });
     }
   }, interval);
 
