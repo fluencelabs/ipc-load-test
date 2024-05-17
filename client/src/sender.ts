@@ -17,6 +17,25 @@ function solutionToProof(solution: Solution) {
   };
 }
 
+type TxStatus = "http-err" | "seq-err" | "cache-err" | "error";
+
+function isRetryTxStatus(status: TxStatus): boolean {
+  return ["http-err", "seq-err", "cache-err"].includes(status);
+}
+
+function analyzeError(e: any): TxStatus {
+  const error = e.error?.message || e.info?.error?.message;
+  if (error?.includes("HTTP error")) {
+    return "http-err";
+  } else if (error?.includes("sequence")) {
+    return "seq-err";
+  } else if (error?.includes("already exists in cache")) {
+    return "cache-err";
+  }
+
+  return "error";
+}
+
 export class Sender {
   private readonly id: number;
 
@@ -34,7 +53,7 @@ export class Sender {
     capacity: Capacity,
     metrics: Metrics
   ) {
-    this.id = nonce;
+    this.id = id;
     this.signer = signer;
     this.nonce = nonce;
     this.capacity = capacity;
@@ -71,7 +90,22 @@ export class Sender {
 
         end({ status: "success" });
       } catch (e) {
-        console.error("WARNING: Retrying transaction", nonce, "after:", e);
+        const status = analyzeError(e);
+        if (status != "error") {
+          console.error(
+            "WARNING: Retrying transaction",
+            nonce,
+            "after:",
+            status
+          );
+        } else {
+          console.error(
+            "WARNING: Retrying transaction",
+            nonce,
+            "after unknown error:",
+            e
+          );
+        }
       }
     }
 

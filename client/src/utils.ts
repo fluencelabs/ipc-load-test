@@ -64,3 +64,23 @@ export class Balancer<T> {
     return item;
   }
 }
+
+export class ProofSet {
+  private readonly map: Record<string, Set<string>> = {};
+
+  add(cu: string, l: string) {
+    if (this.map[cu] === undefined) {
+      this.map[cu] = new Set();
+    }
+
+    this.map[cu]!.add(l);
+  }
+
+  has(cu: string, l: string) {
+    if (this.map[cu] === undefined) {
+      return false;
+    }
+
+    return this.map[cu]!.has(l);
+  }
+}

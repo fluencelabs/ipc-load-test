@@ -10,7 +10,7 @@ function envGet(key: string): string {
  * Test parameters
  */
 export const PRIVATE_KEY = envGet("PRIVATE_KEY");
-export const BUFFER_BATCHES = 8;
+export const BUFFER_BATCHES = 16;
 export const CCP_DIFFICULTY = "0x08ff" + "ff".repeat(30);
 export const CHAIN_GNONCE_HARDCODED = "0x" + "00".repeat(32);
 export const DEFAULT_CONFIRMATIONS = 1;

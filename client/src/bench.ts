@@ -12,7 +12,7 @@ import {
 } from "./const.js";
 import { Communicate, type Solution } from "./communicate.js";
 import { Metrics } from "./metrics.js";
-import { Balancer, makeSignal, count } from "./utils.js";
+import { Balancer, makeSignal, count, ProofSet } from "./utils.js";
 import { Sender } from "./sender.js";
 import { readConfig, writeConfig } from "./config.js";
 
@@ -115,7 +115,7 @@ export async function bench({
     cu_allocation[i + 4] = ethers.encodeBytes32String("cu-" + i.toString());
   }
 
-  const communicate = new Communicate(CCP_RPC_URL, 5000);
+  const communicate = new Communicate(CCP_RPC_URL, interval / 2);
 
   console.log("Requesting parameters...");
 
@@ -131,11 +131,23 @@ export async function bench({
   const [stopSignal, stopPromise] = makeSignal();
 
   let batchesSent = 0;
+  let batchesPending = 0;
   let batches: Solution[][] = [];
+  const seen = new ProofSet();
 
   console.log("Buffering solutions...");
 
   communicate.on("solution", (solution: Solution) => {
+    const cuStr = solution.cu_id.toString();
+    const lnStr = solution.local_nonce.toString();
+
+    if (seen.has(cuStr, lnStr)) {
+      console.log("WARNING: Already seen solution:", solution);
+      return;
+    }
+
+    seen.add(cuStr, lnStr);
+
     const lastBatch = batches[batches.length - 1];
     if (lastBatch === undefined || lastBatch.length === batchSize) {
       if (batches.length < BUFFER_BATCHES) {
@@ -160,33 +172,30 @@ export async function bench({
       stopSignal();
     } else {
       (async () => {
-        if (batchesSent < batchesToSend) {
-          batchesSent++;
+        if (batchesPending < batchesToSend) {
           // To call stopSignal exactly once
-          const savedBatchesSent = batchesSent;
+          const batchId = batchesPending;
+          batchesPending++;
 
           console.log(
             new Date().toISOString(),
             "Sending batch:",
-            batchesSent,
+            batchId,
             "size:",
             batch.length
           );
 
           const sender = senderBalancer.next();
           await sender.check(batch, {
-            batch: savedBatchesSent,
+            batch: batchId,
             cus: count(batch.map((s) => s.cu_id.toString())),
             size: batch.length,
           });
 
-          console.log(
-            new Date().toISOString(),
-            "Batch sent:",
-            savedBatchesSent
-          );
+          console.log(new Date().toISOString(), "Batch sent:", batchId);
 
-          if (savedBatchesSent === batchesToSend) {
+          batchesSent++;
+          if (batchesSent === batchesToSend) {
             stopSignal();
           }
         }
