@@ -1,5 +1,14 @@
 import { getBytes, type BytesLike } from "ethers";
 
+export function makeSignal(): [() => void, Promise<void>] {
+  let signal: () => void = () => {};
+  const promise = new Promise<void>((resolve) => {
+    signal = resolve;
+  });
+
+  return [signal, promise];
+}
+
 export async function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

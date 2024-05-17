@@ -1,19 +1,7 @@
 import { ethers } from "ethers";
-import assert from "assert";
 
-import { type ICapacityInterface as Capacity } from "@fluencelabs/deal-ts-clients";
-
-import type { Solution } from "./communicate.js";
 import { Metrics, type Labels } from "./metrics.js";
 import { DEFAULT_CONFIRMATIONS } from "./const.js";
-
-function solutionToProof(solution: Solution) {
-  return {
-    unitId: solution.cu_id,
-    localUnitNonce: solution.local_nonce,
-    resultHash: solution.result_hash,
-  };
-}
 
 type RetryTxStatus = "http-err" | "seq-err" | "cache-err";
 
@@ -35,42 +23,28 @@ function analyzeError(e: any): ProofTxStatus {
 
   const data = e?.info?.error?.data;
   const msg = data ? Buffer.from(data, "hex").toString() : undefined;
-  if (msg?.includes("already submitted")) {
-    return "success";
-  } else if (msg?.includes("not valid")) {
+  if (msg?.includes("not valid")) {
     return "invalid";
-  } else if (msg?.includes("not started")) {
-    return "not_started";
-  } else if (msg?.includes("not active")) {
-    return "not_active";
   }
 
   return "error";
 }
 
-export type ProofStatus =
-  | "success"
-  | "invalid"
-  | "not_started"
-  | "not_active"
-  | "error";
+export type ProofStatus = "success" | "invalid" | "error";
 
-export async function submitProof(
-  capacity: Capacity,
-  solutions: Solution[],
+export async function submit(
+  signer: ethers.Signer,
+  tx: ethers.ContractTransaction,
   metrics: Metrics,
   labels: Labels
 ): Promise<ProofStatus> {
-  const proofs = solutions.map(solutionToProof);
-
   const end = metrics.start(labels);
 
   let error: any = undefined;
   let status: ProofStatus = "error";
-  let gas: bigint | undefined = undefined;
   for (let at = 0; at < 10; at++) {
     try {
-      gas = await capacity.submitProofs.estimateGas(proofs);
+      tx.gas = await signer.estimateGas(tx);
 
       status = "success";
     } catch (e: any) {
@@ -94,7 +68,7 @@ export async function submitProof(
 
   end({ status: status, action: "estimate" });
 
-  if (gas === undefined || status !== "success") {
+  if (tx.gas === undefined || status !== "success") {
     if (status === "error") {
       console.error("WARNING: Failed to estimate gas:", error);
     }
@@ -107,7 +81,7 @@ export async function submitProof(
   let receipt: ethers.TransactionResponse | undefined = undefined;
   for (let at = 0; at < 10; at++) {
     try {
-      receipt = await capacity.submitProofs(proofs, { gasLimit: gas });
+      receipt = await signer.sendTransaction(tx);
 
       status = "success";
     } catch (e: any) {
@@ -149,10 +123,7 @@ export async function submitProof(
       message = e.message;
     }
 
-    console.error(
-      "WARNING: Error waiting for confirmation after `submitProof`:",
-      message
-    );
+    console.error("WARNING: Error waiting for confirmation:", message);
   }
 
   return status;
