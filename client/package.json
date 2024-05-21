@@ -14,7 +14,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.0.0",
-        "@tsconfig/node18-strictest-esm": "^1.0.1",
+        "@tsconfig/node20": "^20.1.4",
         "@typechain/ethers-v6": "^0.5.0",
         "@types/node": "^20.5.4",
         "@typescript-eslint/eslint-plugin": "^6.9.0",
@@ -35,7 +35,7 @@
     "eslintConfig": {
         "env": {
             "browser": true,
-            "es2021": true,
+            "es2023": true,
             "node": true
         },
         "extends": [

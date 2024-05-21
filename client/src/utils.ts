@@ -84,3 +84,46 @@ export class ProofSet {
     return this.map[cu]!.has(l);
   }
 }
+
+export function setDiff<T>(set1: Set<T>, set2: Set<T>): Set<T> {
+  const diff = new Set(set1);
+
+  for (const item of set2) {
+    diff.delete(item);
+  }
+
+  return diff;
+}
+
+export function collapseIntervals(numbers: Set<number>): string {
+  if (numbers.size === 0) {
+    return "none";
+  }
+
+  const sortedNumbers = Array.from(numbers).sort((a, b) => a - b);
+  let result: string[] = [];
+  let start = sortedNumbers[0];
+  let end = start;
+
+  for (let i = 1; i < sortedNumbers.length; i++) {
+    if (sortedNumbers[i] === end + 1) {
+      end = sortedNumbers[i];
+    } else {
+      if (start === end) {
+        result.push(`${start}`);
+      } else {
+        result.push(`${start}-${end}`);
+      }
+      start = sortedNumbers[i];
+      end = start;
+    }
+  }
+
+  if (start === end) {
+    result.push(`${start}`);
+  } else {
+    result.push(`${start}-${end}`);
+  }
+
+  return result.join(", ");
+}

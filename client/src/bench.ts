@@ -12,7 +12,14 @@ import {
 } from "./const.js";
 import { Communicate, type Solution } from "./communicate.js";
 import { Metrics } from "./metrics.js";
-import { Balancer, makeSignal, count, ProofSet } from "./utils.js";
+import {
+  Balancer,
+  makeSignal,
+  count,
+  ProofSet,
+  setDiff,
+  collapseIntervals,
+} from "./utils.js";
 import { Sender } from "./sender.js";
 import { readConfig, writeConfig } from "./config.js";
 
@@ -39,7 +46,7 @@ async function transfer(
 export type BenchParams = {
   interval: number;
   cusNumber: number;
-  nodesNumber: number;
+  sendersNumber: number;
   batchSize: number;
   batchesToSend: number;
   configPath: string;
@@ -49,7 +56,7 @@ export type BenchParams = {
 export async function bench({
   interval,
   cusNumber,
-  nodesNumber,
+  sendersNumber,
   batchSize,
   batchesToSend,
   configPath,
@@ -66,18 +73,18 @@ export async function bench({
     }
   })();
 
-  if (config.private_keys.length < nodesNumber) {
+  if (config.private_keys.length < sendersNumber) {
     console.log("Initializing new private keys...");
   }
 
-  for (let i = config.private_keys.length; i < nodesNumber; i++) {
+  for (let i = config.private_keys.length; i < sendersNumber; i++) {
     const wallet = ethers.Wallet.createRandom();
     config.private_keys.push(wallet.privateKey);
   }
 
   writeConfig(configPath, config);
 
-  const pkeys = config.private_keys;
+  const pkeys = config.private_keys.slice(0, sendersNumber);
 
   const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
   await rpc.on("error", (e) => {
@@ -97,11 +104,16 @@ export async function bench({
     });
     const senderSigner = new ethers.Wallet(pkeys[i]!, senderRpc);
 
-    const balance = await rpc.getBalance(senderSigner.address);
-    if (balance < ethers.parseEther("100")) {
-      console.log("Adding 200 ETH to", senderSigner.address);
+    console.log("Getting balance of", senderSigner.address);
 
-      await transfer(signer, senderSigner.address, "200");
+    const balance = await rpc.getBalance(senderSigner.address);
+
+    console.log("Balance:", ethers.formatEther(balance));
+
+    if (balance < ethers.parseEther("100")) {
+      console.log("Adding 100 ETH to", senderSigner.address);
+
+      await transfer(signer, senderSigner.address, "100");
     }
 
     const sender = await Sender.create(i, senderSigner, metrics);
@@ -133,8 +145,8 @@ export async function bench({
 
   const [stopSignal, stopPromise] = makeSignal();
 
-  let batchesSent = 0;
-  let batchesPending = 0;
+  const batchesPending: Set<number> = new Set();
+  const batchesSent: Set<number> = new Set();
   const batches: Solution[][] = [];
   const seen = new ProofSet();
 
@@ -175,10 +187,10 @@ export async function bench({
       stopSignal();
     } else {
       (async () => {
-        if (batchesPending < batchesToSend) {
+        if (batchesPending.size < batchesToSend) {
           // To call stopSignal exactly once
-          const batchId = batchesPending;
-          batchesPending++;
+          const batchId = batchesPending.size;
+          batchesPending.add(batchId);
 
           console.log(
             new Date().toISOString(),
@@ -195,12 +207,20 @@ export async function bench({
             size: batch.length,
           });
 
-          console.log(new Date().toISOString(), "Batch sent:", batchId);
-
-          batchesSent++;
-          if (batchesSent === batchesToSend) {
+          batchesSent.add(batchId);
+          if (batchesSent.size === batchesToSend) {
             stopSignal();
           }
+
+          console.log(new Date().toISOString(), "Batch sent:", batchId);
+          console.log(
+            new Date().toISOString(),
+            "Pending batches:",
+            collapseIntervals(setDiff(batchesPending, batchesSent))
+          );
+        } else {
+          clearInterval(sendInterval);
+          await communicate.destroy();
         }
       })().catch((e) => {
         console.log("WARNING: Failed to send batch:", e);
@@ -223,9 +243,7 @@ export async function bench({
 
   console.log("Cleaning up...");
 
-  clearInterval(sendInterval);
   clearInterval(metricsInterval);
-  await communicate.destroy();
   await rpc.removeAllListeners();
   rpc.destroy();
 

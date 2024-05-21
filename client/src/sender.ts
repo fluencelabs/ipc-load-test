@@ -8,6 +8,7 @@ import {
 import type { Solution } from "./communicate.js";
 import { Metrics, type Labels } from "./metrics.js";
 import { DEFAULT_CONFIRMATIONS } from "./const.js";
+import { delay } from "./utils.js";
 
 function solutionToProof(solution: Solution) {
   return {
@@ -67,7 +68,7 @@ export class Sender {
     return new Sender(id, signer, nonce, capacity, metrics);
   }
 
-  async check(solutions: Solution[], labels: Labels) {
+  async check(solutions: Solution[], labels: Labels, timeout = 120000) {
     const proofs = solutions.map(solutionToProof);
 
     const nonce = this.nonce;
@@ -87,12 +88,19 @@ export class Sender {
         end({ status: "success" });
       } catch (e) {
         const status = analyzeError(e);
+
+        end({ status });
+
         if (status != "error") {
+          await delay(1000);
+
           console.error(
             "WARNING: Retrying transaction",
             nonce,
+            "of sender",
+            this.id,
             "after:",
-            status
+            e
           );
         } else {
           console.error(
@@ -113,6 +121,8 @@ export class Sender {
 
         break;
       } catch (e) {
+        end({ status: "confirm-error" });
+
         let message = "unknown";
         if (e instanceof Error) {
           message = e.message;
