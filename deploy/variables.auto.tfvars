@@ -1,6 +1,10 @@
 instances = [
   {
     type  = "c-8-intel",
-    count = 12
+    count = 1
+  },
+  {
+    type  = "c-4-intel",
+    count = 4
   },
 ]

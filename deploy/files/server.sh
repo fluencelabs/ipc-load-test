@@ -23,7 +23,10 @@ cat <<CONFIG >/opt/nomad/config.d/server.json
     "default_scheduler_config": {
       "memory_oversubscription_enabled": true
     }
-  }
+  },
+  "client": {
+    "node_pool": "servers",
+  },
 }
 CONFIG
 
@@ -38,3 +41,8 @@ CONFIG
 systemctl restart systemd-journald
 systemctl start consul
 systemctl start nomad
+
+cat <<POOL >/tmp/servers.pool
+node_pool "servers" {}
+POOL
+nomad node pool apply /tmp/servers.pool || true
