@@ -9,7 +9,7 @@ jobs:
   create:
     if: contains(github.event.pull_request.labels.*.name, 'dev-create')
 
-    uses: .github/workflows/terraform.yml
+    uses: ./.github/workflows/terraform.yml
     with:
       workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
       matrix: ["dev-env"]
@@ -35,7 +35,7 @@ jobs:
       - create
       - matrix
 
-    uses: .github/workflows/terraform.yml
+    uses: ./.github/workflows/terraform.yml
     with:
       workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
       matrix: "${{ needs.outputs.jobs }}"
