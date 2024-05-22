@@ -70,6 +70,10 @@ job "ipc" {
       }
 
       port "promtail" {}
+
+      port "envoy" {
+        to = 9102
+      }
     }
 
     service {
@@ -89,6 +93,10 @@ job "ipc" {
         path     = "/health"
         interval = "10s"
         timeout  = "1s"
+      }
+
+      meta {
+        envoy = NOMAD_HOST_PORT_envoy
       }
 
       connect {
@@ -157,6 +165,10 @@ job "ipc" {
         FM_SNAPSHOTS_DIR="/data/snapshots"
         FM_VALIDATOR_KEY__PATH="/secrets/validator.sk"
         FM_VALIDATOR_KEY__KIND="ethereum"
+
+        FM_METRICS__ENABLED=true
+        FM_METRICS__LISTEN__HOST=0.0.0.0
+        FM_METRICS__LISTEN__PORT={{ env "NOMAD_PORT_fendermint_metrics" }}
 
         FM_TENDERMINT_RPC_URL='http://127.0.0.1:{{ env "NOMAD_PORT_cometbft_rpc" }}'
         FM_RESOLVER__CONNECTION__LISTEN_ADDR='/ip4/0.0.0.0/tcp/{{ env "NOMAD_PORT_fendermint_p2p" }}'

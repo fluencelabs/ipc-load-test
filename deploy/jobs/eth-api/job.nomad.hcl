@@ -22,6 +22,10 @@ job "eth-api" {
       }
 
       port "eth" {}
+
+      port "envoy" {
+        to = 9102
+      }
     }
 
     service {
@@ -34,6 +38,10 @@ job "eth-api" {
         "traefik.http.routers.eth-api.entrypoints=https",
         "traefik.http.routers.eth-api.rule=Host(`ipc.${var.workspace}.fluence.dev`)"
       ]
+
+      meta {
+        envoy = NOMAD_HOST_PORT_envoy
+      }
 
       connect {
         sidecar_service {

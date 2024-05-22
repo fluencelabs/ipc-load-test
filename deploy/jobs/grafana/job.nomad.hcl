@@ -2,6 +2,10 @@ variable "workspace" {
   type = string
 }
 
+variable "dashboards" {
+  type = string
+}
+
 job "grafana" {
   datacenters = [
     "*",
@@ -112,13 +116,17 @@ job "grafana" {
         destination = "local/provisioning/dashboards/dashboards.yml"
       }
 
-      # template {
-      #   data        = <<-EOH
-      #   {{ key "jobs/grafana/dashboards/ipc.json" }}
-      #   EOH
-      #   destination = "local/dashboards/ipc.json"
-      #   change_mode = "noop"
-      # }
+      dynamic "template" {
+        for_each = split(",", var.dashboards)
+
+        content {
+          data        = <<-EOH
+          {{ key "jobs/grafana/${template.value}" }}
+          EOH
+          destination = "local/${template.value}"
+          change_mode = "noop"
+        }
+      }
     }
   }
 }

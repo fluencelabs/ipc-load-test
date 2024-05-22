@@ -1,5 +1,5 @@
-resource "consul_config_entry" "intentions" {
-  name = "eth-api"
+resource "consul_config_entry" "cometbft" {
+  name = "cometbft"
   kind = "service-intentions"
 
   config_json = jsonencode({
@@ -10,12 +10,18 @@ resource "consul_config_entry" "intentions" {
         Precedence = 9
         Type       = "consul"
       },
+      {
+        Action     = "allow"
+        Name       = "eth-api"
+        Precedence = 9
+        Type       = "consul"
+      },
     ]
   })
 }
 
 resource "consul_config_entry" "sticky-sessions" {
-  name = "eth-api"
+  name = "cometbft"
   kind = "service-resolver"
 
   config_json = jsonencode({

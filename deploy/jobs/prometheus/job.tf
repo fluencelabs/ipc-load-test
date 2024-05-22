@@ -20,10 +20,3 @@ resource "nomad_job" "prometheus" {
     }
   }
 }
-
-resource "cloudflare_record" "prometheus" {
-  zone_id = data.cloudflare_zone.fluence_dev.zone_id
-  name    = "prometheus.${terraform.workspace}"
-  value   = "hashi.${terraform.workspace}.fluence.dev"
-  type    = "CNAME"
-}

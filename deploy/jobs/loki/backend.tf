@@ -2,13 +2,6 @@ terraform {
   backend "consul" {
     path = "jobs/loki/state"
   }
-
-  required_providers {
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 3.0"
-    }
-  }
 }
 
 provider "consul" {
@@ -17,10 +10,4 @@ provider "consul" {
 
 provider "nomad" {
   address = "http://hashi.${terraform.workspace}.fluence.dev:4646"
-}
-
-provider "cloudflare" {}
-
-data "cloudflare_zone" "fluence_dev" {
-  name = "fluence.dev"
 }

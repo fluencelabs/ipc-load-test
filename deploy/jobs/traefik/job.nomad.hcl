@@ -67,24 +67,6 @@ job "traefik" {
       }
     }
 
-    service {
-      name = "promtail"
-      port = "promtail"
-
-      meta {
-        sidecar_to = "traefik"
-        alloc_id   = NOMAD_ALLOC_ID
-      }
-
-      check {
-        type     = "http"
-        path     = "/ready"
-        port     = "promtail"
-        interval = "10s"
-        timeout  = "1s"
-      }
-    }
-
     task "traefik" {
       driver       = "docker"
       kill_timeout = "30s"
@@ -104,7 +86,6 @@ job "traefik" {
           "http",
           "https",
         ]
-
       }
 
       template {

@@ -8,13 +8,6 @@ resource "consul_keys" "configs" {
       delete = true
     }
   }
-
-  # promtail config
-  key {
-    path   = "jobs/traefik/promtail.yml"
-    value  = file("promtail.yml")
-    delete = true
-  }
 }
 
 resource "nomad_job" "traefik" {
@@ -32,16 +25,4 @@ resource "nomad_job" "traefik" {
       workspace = terraform.workspace
     }
   }
-}
-
-data "cloudflare_zone" "fluence_dev" {
-  name = "fluence.dev"
-}
-
-resource "cloudflare_record" "traefik" {
-  zone_id         = data.cloudflare_zone.fluence_dev.zone_id
-  name            = "traefik.${terraform.workspace}"
-  value           = "hashi.${terraform.workspace}.fluence.dev"
-  type            = "CNAME"
-  allow_overwrite = true
 }

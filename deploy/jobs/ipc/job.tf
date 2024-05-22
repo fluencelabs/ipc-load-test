@@ -45,23 +45,3 @@ resource "nomad_job" "ipc" {
     }
   }
 }
-
-data "cloudflare_zone" "fluence_dev" {
-  name = "fluence.dev"
-}
-
-resource "cloudflare_record" "fendermint" {
-  zone_id         = data.cloudflare_zone.fluence_dev.zone_id
-  name            = "fendermint.${terraform.workspace}"
-  value           = "hashi.${terraform.workspace}.fluence.dev"
-  type            = "CNAME"
-  allow_overwrite = true
-}
-
-resource "cloudflare_record" "cometbft" {
-  zone_id         = data.cloudflare_zone.fluence_dev.zone_id
-  name            = "cometbft.${terraform.workspace}"
-  value           = "hashi.${terraform.workspace}.fluence.dev"
-  type            = "CNAME"
-  allow_overwrite = true
-}
