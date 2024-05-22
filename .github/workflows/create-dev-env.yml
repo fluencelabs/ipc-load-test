@@ -18,14 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'dev-create')
     outputs:
-      jobs: "${{ steps.jobs.output.jobs }}"
+      jobs: "${{ steps.jobs.outputs.jobs }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Create matrix with jobs
         id: jobs
-        run:
+        run: |
           # create matrix with jobs
           jobs=$(find dev-env/jobs/* -maxdepth 0 -type d  | jq -R . | jq -s .)
           echo "jobs=${jobs}" >> $GITHUB_OUTPUT
@@ -38,4 +38,4 @@ jobs:
     uses: ./.github/workflows/terraform.yml
     with:
       workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
-      matrix: "${{ needs.outputs.jobs }}"
+      matrix: "${{ needs.matrix.outputs.jobs }}"
