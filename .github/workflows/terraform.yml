@@ -28,7 +28,7 @@ jobs:
     # terraform should be able to update remote state and lock
     # if terraform is ungracefully stopped changed resources
     # will not be updated in remote state which will lead to conflicts
-    if: !failure()
+    if: ! failure()
 
     strategy:
       fail-fast: false
