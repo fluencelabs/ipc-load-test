@@ -1,0 +1,106 @@
+name: terraform
+
+on:
+  workflow_call:
+    inputs:
+      matrix:
+        description: "Json array with directories to run terraform in"
+        type: string
+        default: '[]'
+      destroy:
+        type: bool
+        default: false
+      workspace:
+        type: string
+        required: true
+
+concurrency:
+  group: "${{ inputs.workspace }}"
+
+env:
+  TF_IN_AUTOMATION: true
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    # workaround: continue running even when cancelled
+    # terraform should be able to update remote state and lock
+    # if terraform is ungracefully stopped changed resources
+    # will not be updated in remote state which will lead to conflicts
+    if: !failure()
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: ${{ fromJSON(inputs.matrix) }}
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get vault token
+        uses: hashicorp/vault-action@v3.0.0
+        with:
+          url: "https://vault.fluence.dev"
+          path: jwt/github
+          role: gitops
+          method: jwt
+          jwtGithubAudience: "https://github.com/fluencelabs"
+          jwtTtl: 300
+          exportToken: true
+
+      - name: Setup consul-template
+        uses: nahsi/setup-hashi-tool@v1
+        with:
+          name: consul-template
+
+      - name: Prepare secrets
+        env:
+          VAULT_ADDR: "https://vault.fluence.dev"
+        run: |
+          # prepare secrets
+          if [[ -f env.tmpl ]]; then
+            consul-template -once -template "env.tmpl:env"
+          fi
+
+      - name: Source secrets
+        run: |
+          # source secrets
+          if [[ -f env.tmpl ]]; then
+            while IFS='=' read -r key value; do
+              if [[ ! -z "$key" ]]; then
+                echo "::add-mask::$value"
+                echo "$key=$value" >> $GITHUB_ENV
+              fi
+            done < "env"
+          fi
+
+      - name: Setup terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: terraform init
+        run: terraform init
+
+      - name: Select or create workspace
+        run: |
+          terraform workspace select -or-create=true ${{ inputs.workspace }}
+
+      - name: terraform validate
+        run: terraform validate -no-color
+
+      - name: terraform apply
+        if: !inputs.destroy
+        run: terraform apply -auto-approve
+
+      - name: terraform destroy
+        if: inputs.destroy
+        run: terraform destroy -auto-approve

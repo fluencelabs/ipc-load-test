@@ -1,0 +1,41 @@
+name: dev env
+
+on:
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  create:
+    if: contains(github.event.pull_request.labels.*.name, 'dev-create')
+
+    uses: .github/workflows/terraform.yml
+    with:
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
+      matrix: ["dev-env"]
+
+  matrix:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'dev-create')
+    outputs:
+      jobs: "${{ steps.jobs.output.jobs }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create matrix with jobs
+        id: jobs
+        run:
+          # create matrix with jobs
+          jobs=$(find dev-env/jobs/* -maxdepth 0 -type d  | jq -R . | jq -s .)
+          echo "jobs=${jobs}" >> $GITHUB_OUTPUT
+
+  provision:
+    needs:
+      - create
+      - matrix
+
+    uses: .github/workflows/terraform.yml
+    with:
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
+      matrix: "${{ needs.outputs.jobs }}"

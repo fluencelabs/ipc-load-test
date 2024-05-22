@@ -1,4 +1,0 @@
-tls:
-  certificates:
-    - certFile: "/secrets/certs/fluence.dev/bundle.pem"
-      keyFile: "/secrets/certs/fluence.dev/key.pem"
