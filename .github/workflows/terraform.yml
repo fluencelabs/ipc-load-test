@@ -24,11 +24,11 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
-    # workaround: continue running even when cancelled
-    # terraform should be able to update remote state and lock
-    # if terraform is ungracefully stopped changed resources
-    # will not be updated in remote state which will lead to conflicts
-    if: ! failure()
+    # # workaround: continue running even when cancelled
+    # # terraform should be able to update remote state and lock
+    # # if terraform is ungracefully stopped changed resources
+    # # will not be updated in remote state which will lead to conflicts
+    # if: ! failure()
 
     strategy:
       fail-fast: false
