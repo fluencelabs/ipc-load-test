@@ -12,7 +12,7 @@ jobs:
     uses: ./.github/workflows/terraform.yml
     with:
       workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
-      matrix: ["dev-env"]
+      matrix: '["dev-env"]'
 
   matrix:
     runs-on: ubuntu-latest
