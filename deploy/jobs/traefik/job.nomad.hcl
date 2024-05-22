@@ -35,8 +35,6 @@ job "traefik" {
         to     = 443
         static = 443
       }
-
-      port "promtail" {}
     }
 
     service {
@@ -118,8 +116,6 @@ job "traefik" {
         TRAEFIK_METRICS_PROMETHEUS_ADDENTRYPOINTSLABELS="true"
         TRAEFIK_METRICS_PROMETHEUS_ADDROUTERSLABELS="true"
         TRAEFIK_METRICS_PROMETHEUS_ADDSERVICESLABELS="true"
-        TRAEFIK_ACCESSLOG_FILEPATH="/alloc/data/access.log"
-        TRAEFIK_ACCESSLOG_FORMAT="json"
         TRAEFIK_PILOT_DASHBOARD="false"
         TRAEFIK_API_DASHBOARD="true"
         TRAEFIK_PROVIDERS_FILE_WATCH="true"
@@ -187,47 +183,6 @@ job "traefik" {
         destination = "secrets/certs/fluence.dev/key.pem"
         change_mode = "restart"
         splay       = "10m"
-      }
-    }
-
-    task "promtail" {
-      driver = "docker"
-      user   = "nobody"
-
-      lifecycle {
-        hook    = "poststart"
-        sidecar = true
-      }
-
-      resources {
-        cpu        = 50
-        memory     = 64
-        memory_max = 128
-      }
-
-      env {
-        NOMAD_NODE_NAME = node.unique.name
-      }
-
-      config {
-        image = "grafana/promtail:2.9.8"
-
-        args = [
-          "-config.file=local/promtail.yml",
-          "-config.expand-env=true",
-        ]
-
-        ports = [
-          "promtail",
-        ]
-      }
-
-      template {
-        data        = <<-EOH
-        {{ key "jobs/traefik/promtail.yml" }}
-        EOH
-        destination = "local/promtail.yml"
-        splay       = "1m"
       }
     }
   }

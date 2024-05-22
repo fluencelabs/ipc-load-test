@@ -5,6 +5,6 @@ instances = [
   },
   {
     type  = "c-4-intel",
-    count = 4
+    count = 2
   },
 ]

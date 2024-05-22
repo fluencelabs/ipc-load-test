@@ -1,5 +1,5 @@
-resource "consul_config_entry_service_defaults" "validator-defaults" {
-  name     = "cometbft-validator"
+resource "consul_config_entry_service_defaults" "cometbft-defaults" {
+  name     = "cometbft"
   protocol = "http"
   expose {
     checks = false
@@ -22,8 +22,8 @@ resource "consul_config_entry_service_defaults" "eth-api-defaults" {
   }
 }
 
-resource "consul_config_entry" "validator-sticky-sessions" {
-  name = "cometbft-validator"
+resource "consul_config_entry" "cometbft-sticky-sessions" {
+  name = "cometbft"
   kind = "service-resolver"
 
   config_json = jsonencode({

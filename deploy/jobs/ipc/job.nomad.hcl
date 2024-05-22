@@ -1,5 +1,5 @@
 locals {
-  cometbft = "cometbft/cometbft:v0.37.x"
+  cometbft   = "cometbft/cometbft:v0.37.x"
   fendermint = "fluencelabs/fendermint:fluence-batching-actor"
   network    = "testnet"
 }
@@ -22,15 +22,15 @@ job "ipc" {
       migrate = true
     }
 
-    # volume "cometbft" {
-    #   type   = "host"
-    #   source = "cometbft"
-    # }
-    #
-    # volume "fendermint" {
-    #   type   = "host"
-    #   source = "fendermint"
-    # }
+    volume "cometbft" {
+      type   = "host"
+      source = "cometbft"
+    }
+
+    volume "fendermint" {
+      type   = "host"
+      source = "fendermint"
+    }
 
     network {
       mode = "bridge"
@@ -49,10 +49,7 @@ job "ipc" {
         static = 26656
       }
 
-      port "cometbft-metrics" {
-        to     = 26660
-        static = 26660
-      }
+      port "cometbft-metrics" {}
 
       port "cometbft-health" {}
 
@@ -64,6 +61,15 @@ job "ipc" {
         to     = 26659
         static = 26659
       }
+
+      port "fendermint-metrics" {}
+
+      port "eth-api" {
+        to     = 8545
+        static = 8545
+      }
+
+      port "promtail" {}
     }
 
     service {
@@ -110,14 +116,23 @@ job "ipc" {
     task "fendermint" {
       driver = "docker"
 
-      # volume_mount {
-      #   volume      = "fendermint"
-      #   destination = "/data"
-      # }
+      volume_mount {
+        volume      = "fendermint"
+        destination = "/data"
+      }
 
       service {
         name = "fendermint-p2p-${meta.ipc_node_index}"
         port = "fendermint-p2p"
+      }
+
+      service {
+        name = "fendermint-metrics"
+        port = "fendermint-metrics"
+
+        meta {
+          instance = "fendermnit-${meta.ipc_node_index}"
+        }
       }
 
       resources {
@@ -137,9 +152,9 @@ job "ipc" {
 
       template {
         data        = <<-EOH
-        FM_DATA_DIR="/alloc/fendermint/data"
+        FM_DATA_DIR="/data"
         FM_CONFIG_DIR="/fendermint/config"
-        FM_SNAPSHOTS_DIR="/alloc/fendermint/data/snapshots"
+        FM_SNAPSHOTS_DIR="/data/snapshots"
         FM_VALIDATOR_KEY__PATH="/secrets/validator.sk"
         FM_VALIDATOR_KEY__KIND="ethereum"
 
@@ -214,10 +229,10 @@ job "ipc" {
         sidecar = true
       }
 
-      # volume_mount {
-      #   volume      = "cometbft"
-      #   destination = "/data"
-      # }
+      volume_mount {
+        volume      = "cometbft"
+        destination = "/data"
+      }
 
       service {
         name = "cometbft-p2p-${meta.ipc_node_index}"
@@ -280,8 +295,8 @@ job "ipc" {
         CMT_RPC_MAX_SUBSCRIPTIONS_PER_CLIENT=1000
         CMT_RPC_TIMEOUT_BROADCAST_TX_COMMIT="120s"
 
-        CMT_MEMPOOL_WAL_DIR="/alloc/cometbft/data/mempool"
-        CMT_DB_DIR="/alloc/data/cometbft/db"
+        CMT_MEMPOOL_WAL_DIR="/data/mempool"
+        CMT_DB_DIR="/cometbft/db"
 
         CMT_INSTRUMENTATION_PROMETHEUS=true
         CMT_INSTRUMENTATION_PROMETHEUS_LISTEN_ADDR='0.0.0.0:{{ env "NOMAD_PORT_cometbft_metrics" }}'
@@ -292,16 +307,16 @@ job "ipc" {
         CMT_GENESIS_FILE="/local/genesis.json"
         CMT_NODE_KEY_FILE="/secrets/node_key.json"
         CMT_PRIV_VALIDATOR_KEY_FILE="/secrets/priv_validator_key.json"
-        CMT_PRIV_VALIDATOR_STATE_FILE="/alloc/cometbft/data/priv_validator_key_state.json"
+        CMT_PRIV_VALIDATOR_STATE_FILE="/data/priv_validator_key_state.json"
 
         CMT_P2P_PEX=true
         CMT_P2P_LADDR='tcp://0.0.0.0:{{ env "NOMAD_PORT_cometbft_p2p" }}'
         CMT_P2P_EXTERNAL_ADDRESS='{{ env "NOMAD_ADDR_cometbft_p2p" }}'
         CMT_P2P_SEED_MODE=false
-        CMT_P2P_ADDR_BOOK_FILE="/alloc/cometbft/data/addrbook.json"
+        CMT_P2P_ADDR_BOOK_FILE="/data/addrbook.json"
         CMT_P2P_ADDR_BOOK_STRICT=false
 
-        CMT_CONSENSUS_WAL_FILE="/alloc/cometbft/data/cs/cs.wal"
+        CMT_CONSENSUS_WAL_FILE="/data/cs/cs.wal"
         CMT_CONSENSUS_CREATE_EMPTY_BLOCKS=true
         CMT_CONSENSUS_CREATE_EMPTY_BLOCKS_INTERVAL="10s"
         CMT_CONSENSUS_TIMEOUT_COMMIT="10s"
@@ -342,45 +357,20 @@ job "ipc" {
         memory_max = 3000
       }
     }
-  }
 
-  group "eth-api" {
-    network {
-      mode = "bridge"
-      port "eth" {}
-    }
-
-    service {
-      name = "eth-api"
-      port = "eth"
-
-      tags = [
-        "traefik.enable=true",
-        "traefik.consulcatalog.connect=true",
-        "traefik.http.routers.eth-api.entrypoints=https",
-        "traefik.http.routers.eth-api.rule=Host(`ipc.${var.workspace}.fluence.dev`)"
-      ]
-
-      connect {
-        sidecar_service {
-          proxy {
-            upstreams {
-              destination_name = "cometbft-validator"
-              local_bind_port  = 80
-            }
-          }
-        }
-      }
-    }
-
-    task "fendermint" {
+    task "eth-api" {
       driver = "docker"
 
+      lifecycle {
+        hook    = "poststart"
+        sidecar = true
+      }
+
       env {
-        LOG_LEVEL            = "debug"
-        TENDERMINT_RPC_URL   = "http://127.0.0.1:80"
-        TENDERMINT_WS_URL    = "ws://127.0.0.1:80/websocket"
-        FM_ETH__LISTEN__PORT = NOMAD_PORT_eth
+        LOG_LEVEL            = "info"
+        TENDERMINT_RPC_URL   = "http://127.0.0.1:26657"
+        TENDERMINT_WS_URL    = "ws://127.0.0.1:26657/websocket"
+        FM_ETH__LISTEN__PORT = NOMAD_PORT_eth_api
         FM_ETH__LISTEN__HOST = "0.0.0.0"
         FM_NETWORK           = local.network
       }
@@ -388,7 +378,7 @@ job "ipc" {
       resources {
         cpu        = 300
         memory     = 256
-        memory_max = 1024
+        memory_max = 512
       }
 
       config {
@@ -402,6 +392,46 @@ job "ipc" {
         ports = [
           "eth",
         ]
+      }
+    }
+
+    task "promtail" {
+      driver = "docker"
+      user   = "nobody"
+
+      lifecycle {
+        hook    = "poststart"
+        sidecar = true
+      }
+
+      resources {
+        cpu        = 50
+        memory     = 64
+        memory_max = 128
+      }
+
+      env {
+        INDEX = meta.ipc_node_index
+      }
+
+      config {
+        image = "grafana/promtail:2.9.8"
+
+        args = [
+          "-config.file=local/config.yml",
+          "-config.expand-env=true",
+        ]
+
+        ports = [
+          "promtail",
+        ]
+      }
+
+      template {
+        data        = <<-EOH
+        {{ key "jobs/ipc/promtail/config.yml" }}
+        EOH
+        destination = "local/config.yml"
       }
     }
   }
