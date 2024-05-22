@@ -51,3 +51,21 @@ resource "cloudflare_record" "internal" {
   type            = "A"
   allow_overwrite = true
 }
+
+resource "cloudflare_record" "records" {
+  for_each = toset([
+    "cometbft",
+    "fendermint",
+    "traefik",
+    "prometheus",
+    "grafana",
+    "loki",
+    "ipc",
+  ])
+
+  zone_id         = data.cloudflare_zone.fluence_dev.zone_id
+  name            = "${each.value}.${terraform.workspace}"
+  value           = "hashi.${terraform.workspace}.fluence.dev"
+  type            = "CNAME"
+  allow_overwrite = true
+}
