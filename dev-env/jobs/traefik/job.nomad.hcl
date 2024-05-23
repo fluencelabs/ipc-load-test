@@ -72,9 +72,9 @@ job "traefik" {
       kill_timeout = "30s"
 
       resources {
-        cpu        = 50
-        memory     = 128
-        memory_max = 512
+        cpu        = 100
+        memory     = 64
+        memory_max = 256
       }
 
       config {

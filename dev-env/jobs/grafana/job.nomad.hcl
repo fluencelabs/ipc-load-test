@@ -51,8 +51,8 @@ job "grafana" {
 
       resources {
         cpu        = 100
-        memory     = 100
-        memory_max = 200
+        memory     = 256
+        memory_max = 512
       }
 
       env {

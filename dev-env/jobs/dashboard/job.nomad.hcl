@@ -23,8 +23,9 @@ job "dashboard" {
       }
 
       resources {
-        cpu    = 50
-        memory = 64
+        cpu        = 16
+        memory     = 32
+        memory_max = 64
       }
 
       config {
