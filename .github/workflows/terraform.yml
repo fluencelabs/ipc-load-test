@@ -94,7 +94,8 @@ jobs:
         with:
           commands: terraform init
           working-directory: ${{ matrix.dir }}
-          timeout-minutes: "1"
+          timeout-minutes: "3"
+          retry-codes: "1"
 
       - name: Select or create workspace
         run: |
