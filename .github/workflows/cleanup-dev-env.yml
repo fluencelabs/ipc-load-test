@@ -6,9 +6,6 @@ on:
     branches:
       - "main"
 
-env:
-  WORKSPACE: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -30,7 +27,7 @@ jobs:
 
     uses: ./.github/workflows/terraform.yml
     with:
-      workspace: "${{ env.WORKSPACE }}"
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
       matrix: "${{ needs.prepare.outputs.jobs }}"
       destroy: true
 
@@ -41,5 +38,5 @@ jobs:
     uses: ./.github/workflows/terraform.yml
     with:
       matrix: '["dev-env"]'
-      workspace: "${{ env.WORKSPACE }}"
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
       destroy: true

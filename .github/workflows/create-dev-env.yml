@@ -15,7 +15,7 @@ jobs:
     uses: ./.github/workflows/terraform.yml
     with:
       matrix: '["dev-env"]'
-      workspace: "${{ env.WORKSPACE }}"
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
 
   prepare:
     runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
 
     uses: ./.github/workflows/terraform.yml
     with:
-      workspace: "${{ env.WORKSPACE }}"
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
       matrix: "${{ needs.prepare.outputs.jobs }}"
 
   ready:
