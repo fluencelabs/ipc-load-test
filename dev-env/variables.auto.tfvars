@@ -9,4 +9,4 @@ instances = [
   },
 ]
 
-snapshot="ephemeral-ubuntu-22-04-202405231142"
+snapshot = "156772928"

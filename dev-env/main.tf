@@ -1,5 +1,5 @@
 data "digitalocean_ssh_key" "key" {
-  name       = "default-ssh-key"
+  name = "default-ssh-key"
 }
 
 # data "digitalocean_droplet_snapshot" "snapshot" {
