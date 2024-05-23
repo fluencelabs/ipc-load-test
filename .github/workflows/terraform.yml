@@ -19,6 +19,8 @@ concurrency:
 
 env:
   TF_IN_AUTOMATION: true
+  CONSUL_HTTP_API: "http://hashi.${{ inputs.workspace }}.fluence.dev:8500"
+  NOMAD_ADDR: "http://hashi.${{ inputs.workspace }}.fluence.dev:4646"
 
 jobs:
   terraform:
