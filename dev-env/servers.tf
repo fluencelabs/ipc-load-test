@@ -55,6 +55,8 @@ resource "cloudflare_record" "internal" {
 resource "cloudflare_record" "records" {
   for_each = toset([
     "dash",
+    "nomad",
+    "consul",
     "cometbft",
     "fendermint",
     "traefik",
