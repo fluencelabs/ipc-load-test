@@ -1,4 +1,4 @@
-name: dev env
+name: cleanup dev env
 
 on:
   pull_request:
@@ -24,8 +24,7 @@ jobs:
           jobs=$(find dev-env/jobs/* -maxdepth 0 -type d  | jq -R . | jq -sc .)
           echo "jobs=${jobs}" >> $GITHUB_OUTPUT
 
-  cleanup-jobs:
-    needs: "Destroy jobs"
+  jobs:
     needs:
       - prepare
 
@@ -35,10 +34,9 @@ jobs:
       matrix: "${{ needs.prepare.outputs.jobs }}"
       destroy: true
 
-  cleanup-instances:
-    name: "Destroy instances"
+  instances:
     needs:
-      - cleanup-jobs
+      - jobs
 
     uses: ./.github/workflows/terraform.yml
     with:
