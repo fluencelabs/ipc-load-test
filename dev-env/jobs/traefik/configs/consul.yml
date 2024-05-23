@@ -1,0 +1,13 @@
+http:
+  routers:
+    consul:
+      entryPoints:
+        - "https"
+      service: "consul@file"
+      rule: "HostRegexp(`consul.{host:.*}.fluence.dev`)"
+
+  services:
+    consul:
+      loadbalancer:
+        servers:
+          - url: "http://consul.service.consul:8500"

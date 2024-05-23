@@ -1,0 +1,15 @@
+name: cleanup dev env
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - "main"
+
+jobs:
+  cleanup:
+    uses: ./.github/workflows/terraform.yml
+    with:
+      matrix: '["dev-env"]'
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
+      destroy: true
