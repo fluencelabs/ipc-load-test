@@ -1,0 +1,47 @@
+name: dev env
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - "main"
+
+env:
+  WORKSPACE: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+
+    outputs:
+      jobs: "${{ steps.jobs.outputs.jobs }}"
+
+    steps:
+      - name: Create matrix with jobs
+        id: jobs
+        run: |
+          # create matrix with jobs
+          jobs=$(find dev-env/jobs/* -maxdepth 0 -type d  | jq -R . | jq -sc .)
+          echo "jobs=${jobs}" >> $GITHUB_OUTPUT
+
+  cleanup-jobs:
+    needs: "Destroy jobs"
+    needs:
+      - prepare
+
+    uses: ./.github/workflows/terraform.yml
+    with:
+      workspace: "${{ env.WORKSPACE }}"
+      matrix: "${{ needs.prepare.outputs.jobs }}"
+      destroy: true
+
+  cleanup-instances:
+    name: "Destroy instances"
+    needs:
+      - cleanup-jobs
+
+    uses: ./.github/workflows/terraform.yml
+    with:
+      matrix: '["dev-env"]'
+      workspace: "${{ env.WORKSPACE }}"
+      destroy: true
