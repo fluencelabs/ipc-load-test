@@ -71,7 +71,7 @@ jobs:
         run: |
           # prepare secrets
           if [[ -f env.tmpl ]]; then
-            consul-template -once -template "env.tmpl:env"
+            consul-template -vault-retry-attempts=5 -once -template "env.tmpl:env"
           fi
 
       - name: Source secrets
