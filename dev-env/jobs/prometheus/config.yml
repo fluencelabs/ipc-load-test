@@ -45,11 +45,11 @@ scrape_configs:
       - source_labels: ["__meta_consul_service"]
         action: "drop"
         regex: "(.+)-sidecar-proxy"
-      - source_labels: "[__meta_consul_service_metadata_envoy"]
+      - source_labels: ["__meta_consul_service_metadata_envoy"]
         action: "keep"
         regex: "(.+)"
-      - source_labels: ["__address__, __meta_consul_service_metadata_envoy"]
-        regex: "([^:]+)(?::\d+)?;(\d+)"
+      - source_labels: ["__address__", "__meta_consul_service_metadata_envoy"]
+        regex: '([^:]+)(?::\d+)?;(\d+)'
         replacement: "${1}:${2}"
         target_label: "__address__"
       - source_labels: ["__address__"]
