@@ -2,26 +2,7 @@
 cat <<CONFIG >/opt/consul/config.d/server.json
 {
   "server": true,
-  "bootstrap_expect": 3,
-  "ui_config": {
-    "metrics_provider": "prometheus",
-    "metrics_proxy": {
-      "base_url": "http://prometheus.service.consul:9090"
-    }
-  },
-  "default_intention_policy": "deny",
-  "config_entries": {
-    "bootstrap": [
-      {
-        "kind": "proxy-defaults",
-        "name": "global",
-        "config": {
-          "protocol": "http",
-          "envoy_prometheus_bind_addr": "0.0.0.0:9102"
-        }
-      }
-    ]
-  }
+  "bootstrap_expect": 3
 }
 CONFIG
 

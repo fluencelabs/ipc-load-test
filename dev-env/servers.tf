@@ -9,7 +9,7 @@ resource "digitalocean_droplet" "server" {
 
   name      = "${terraform.workspace}-${each.key}"
   size      = "s-2vcpu-4gb"
-  image     = data.digitalocean_droplet_snapshot.snapshot.id
+  image     = var.snapshot
   region    = var.region
   user_data = templatefile("${path.module}/files/server.sh", { workspace = terraform.workspace })
 

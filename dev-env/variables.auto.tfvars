@@ -8,3 +8,5 @@ instances = [
     count = 2
   },
 ]
+
+snapshot="ephemeral-ubuntu-22-04-202405231142"

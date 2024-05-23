@@ -17,7 +17,7 @@ resource "digitalocean_droplet" "ipc" {
 
   name      = "${terraform.workspace}-ipc-${each.key}"
   size      = each.value.type
-  image     = data.digitalocean_droplet_snapshot.snapshot.id
+  image     = var.snapshot
   region    = var.region
   user_data = templatefile("${path.module}/files/ipc.sh", { workspace = terraform.workspace, index = each.key })
 
