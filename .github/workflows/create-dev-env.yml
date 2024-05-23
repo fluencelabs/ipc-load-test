@@ -97,8 +97,8 @@ jobs:
             Visit dev dashboard at https://dash.${{ env.WORKSPACE }}.fluence.dev
 
             ### IPC
-            eth-api accessible through load-balancers is running at https://ipc.${{ env.WORKSPACE }}.fluence.dev
-            Each ipc host is also running eth-api instance accessible at http://ipc-<index>.${{ env.WORKSPACE }}.fluence.dev:8545
+            eth-api accessible through load-balancers is running at `https://ipc.${{ env.WORKSPACE }}.fluence.dev`
+            Each ipc host is also running eth-api instance accessible at `http://ipc-<index>.${{ env.WORKSPACE }}.fluence.dev:8545`
 
             ### Variables
             ```shell
