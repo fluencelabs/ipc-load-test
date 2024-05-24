@@ -1,0 +1,13 @@
+http:
+  routers:
+    nomad:
+      entryPoints:
+        - "https"
+      service: "nomad@file"
+      rule: "HostRegexp(`nomad.{host:.*}.fluence.dev`)"
+
+  services:
+    nomad:
+      loadbalancer:
+        servers:
+          - url: "http://consul.service.consul:4646"
