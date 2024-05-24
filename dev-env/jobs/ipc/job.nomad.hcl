@@ -65,8 +65,9 @@ job "ipc" {
       port "fendermint-metrics" {}
 
       port "eth-api" {
-        to     = 8545
-        static = 8545
+        to           = 8545
+        static       = 8545
+        host_network = "public"
       }
 
       port "promtail" {}
