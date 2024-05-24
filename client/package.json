@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "run": "tsx src/index.ts",
-        "lint": "npx eslint ."
+        "lint": "npx eslint .",
+        "test": "tsx src/test.ts"
     },
     "dependencies": {
         "@fluencelabs/deal-ts-clients": "file:../deal/ts-client",

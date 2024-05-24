@@ -110,15 +110,19 @@ export async function bench({
 
     console.log("Balance:", ethers.formatEther(balance));
 
-    if (balance < ethers.parseEther("100")) {
-      console.log("Adding 100 ETH to", senderSigner.address);
+    if (balance < ethers.parseEther("300")) {
+      console.log("Adding 400 ETH to", senderSigner.address);
 
-      await transfer(signer, senderSigner.address, "100");
+      await transfer(signer, senderSigner.address, "400");
     }
 
     const sender = await Sender.create(i, senderSigner, metrics);
     senders.push(sender);
   }
+
+  // We don't need it anymore
+  await rpc.removeAllListeners();
+  rpc.destroy();
 
   const senderBalancer = new Balancer(senders);
 
@@ -141,7 +145,7 @@ export async function bench({
   });
 
   const [startSignal, startPromise] = makeSignal();
-  let started = false;
+  let buffered = false;
 
   const [stopSignal, stopPromise] = makeSignal();
 
@@ -167,8 +171,8 @@ export async function bench({
     if (lastBatch === undefined || lastBatch.length === batchSize) {
       if (batches.length < BUFFER_BATCHES) {
         batches.push([solution]);
-      } else if (!started) {
-        started = true;
+      } else if (!buffered) {
+        buffered = true;
         startSignal();
       }
     } else {
@@ -182,13 +186,26 @@ export async function bench({
 
   const sendInterval = setInterval(() => {
     const batch = batches.shift();
-    if (batch === undefined) {
+    if (batch === undefined || batch.length < batchSize) {
       console.error("FATAL: No batch to send, increase CCP_DIFFICULTY");
+
+      metrics.shot({ action: "end-load" });
+      clearInterval(sendInterval);
       stopSignal();
     } else {
       (async () => {
+        // This is the first batch
+        if (batchesPending.size === 0) {
+          metrics.shot({ action: "start-load" });
+        }
+
+        // This is the last batch
+        if (batchesPending.size + 1 === batchesToSend) {
+          metrics.shot({ action: "end-load" });
+          clearInterval(sendInterval);
+        }
+
         if (batchesPending.size < batchesToSend) {
-          // To call stopSignal exactly once
           const batchId = batchesPending.size;
           batchesPending.add(batchId);
 
@@ -218,9 +235,6 @@ export async function bench({
             "Pending batches:",
             collapseIntervals(setDiff(batchesPending, batchesSent))
           );
-        } else {
-          clearInterval(sendInterval);
-          await communicate.destroy();
         }
       })().catch((e) => {
         console.log("WARNING: Failed to send batch:", e);
@@ -230,6 +244,7 @@ export async function bench({
 
   // Dump metrics
   const metricsInterval = setInterval(() => {
+    console.log(new Date().toISOString(), "Dumping metrics...");
     metrics.dump(metricsPath).catch((e) => {
       console.log("WARNING: Failed to dump metrics:", e);
     });
@@ -243,9 +258,8 @@ export async function bench({
 
   console.log("Cleaning up...");
 
+  await communicate.destroy();
   clearInterval(metricsInterval);
-  await rpc.removeAllListeners();
-  rpc.destroy();
 
   console.log("Done");
 }

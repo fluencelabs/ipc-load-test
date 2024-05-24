@@ -7,8 +7,8 @@ import {
 
 import type { Solution } from "./communicate.js";
 import { Metrics, type Labels } from "./metrics.js";
-import { DEFAULT_CONFIRMATIONS } from "./const.js";
-import { delay } from "./utils.js";
+import { DEFAULT_CONFIRMATIONS, idToNodeId } from "./const.js";
+import { delay, timeouted } from "./utils.js";
 
 function solutionToProof(solution: Solution) {
   return {
@@ -68,7 +68,7 @@ export class Sender {
     return new Sender(id, signer, nonce, capacity, metrics);
   }
 
-  async check(solutions: Solution[], labels: Labels, timeout = 120000) {
+  async check(solutions: Solution[], labels: Labels, timeout = 10 * 60 * 1000) {
     const proofs = solutions.map(solutionToProof);
 
     const nonce = this.nonce;
@@ -78,58 +78,73 @@ export class Sender {
       ...labels,
       sender: this.id,
       nonce: nonce,
+      node: idToNodeId(this.id),
     });
 
-    let receipt: ethers.TransactionResponse | undefined = undefined;
-    while (receipt === undefined) {
-      try {
-        receipt = await this.capacity.checkProofs(proofs, { nonce });
+    const result = await timeouted(async () => {
+      let receipt: ethers.TransactionResponse | undefined = undefined;
+      while (receipt === undefined) {
+        try {
+          receipt = await this.capacity.checkProofs(proofs, { nonce });
 
-        end({ status: "success" });
-      } catch (e) {
-        const status = analyzeError(e);
+          end({ status: "success" });
+        } catch (e) {
+          const status = analyzeError(e);
 
-        end({ status });
+          end({ status });
 
-        if (status != "error") {
-          await delay(1000);
-
-          console.error(
-            "WARNING: Retrying transaction",
-            nonce,
-            "of sender",
-            this.id,
-            "after:",
-            e
-          );
-        } else {
-          console.error(
-            "WARNING: Retrying transaction",
-            nonce,
-            "after unknown error:",
-            e
-          );
+          if (status != "error") {
+            console.error(
+              "WARNING: Retrying transaction",
+              nonce,
+              "of sender",
+              this.id,
+              "after:",
+              e
+            );
+          } else {
+            console.error(
+              "WARNING: Retrying transaction",
+              nonce,
+              "after unknown error:",
+              e
+            );
+          }
         }
       }
-    }
 
-    while (receipt !== undefined) {
-      try {
-        await receipt.wait(DEFAULT_CONFIRMATIONS);
+      while (receipt !== undefined) {
+        try {
+          await receipt.wait(DEFAULT_CONFIRMATIONS, timeout);
 
-        end({ status: "confirmed" });
+          end({ status: "confirmed" });
 
-        break;
-      } catch (e) {
-        end({ status: "confirm-error" });
+          break;
+        } catch (e) {
+          end({ status: "confirm-error" });
 
-        let message = "unknown";
-        if (e instanceof Error) {
-          message = e.message;
+          let message = "unknown";
+          if (e instanceof Error) {
+            message = e.message;
+          }
+
+          console.error("WARNING: Error waiting for confirmation:", message);
         }
-
-        console.error("WARNING: Error waiting for confirmation:", message);
       }
+
+      return "success";
+    }, timeout);
+
+    if (result === undefined) {
+      end({ status: "timeout" });
+
+      console.log(
+        "WARNING: Transaction",
+        nonce,
+        "of sender",
+        this.id,
+        "timed out"
+      );
     }
   }
 }

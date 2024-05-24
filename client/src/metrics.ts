@@ -76,6 +76,15 @@ export class Metrics {
     };
   }
 
+  shot(labels: Labels) {
+    const now = performance.now();
+    this.storage.push({
+      labels,
+      start: now,
+      duration: 0,
+    });
+  }
+
   filter(predicates: {
     [k: LabelKey]: (v: LabelValue) => boolean;
   }): MetricsValues {

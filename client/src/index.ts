@@ -1,7 +1,7 @@
 import { bench } from "./bench.js";
 
 const interval = 1420;
-const duration = 10 * 60 * 1000;
+const duration = 5 * 60 * 1000;
 await bench({
   interval: interval,
   cusNumber: 4,

@@ -1,5 +1,17 @@
 import { getBytes, type BytesLike } from "ethers";
 
+export async function timeouted<T>(
+  promise: () => Promise<T>,
+  timeout: number
+): Promise<T | undefined> {
+  return Promise.race([
+    promise(),
+    new Promise<T | undefined>((resolve, _) =>
+      setTimeout(() => resolve(undefined), timeout)
+    ),
+  ]);
+}
+
 export function makeSignal(): [() => void, Promise<void>] {
   let signal: () => void = () => {};
   const promise = new Promise<void>((resolve) => {
