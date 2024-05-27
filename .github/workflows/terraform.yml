@@ -110,7 +110,7 @@ jobs:
         with:
           commands: terraform apply -auto-approve
           working-directory: ${{ matrix.dir }}
-          timeout-minutes: "3"
+          timeout-minutes: "15"
           retry-codes: "1"
 
       - name: terraform destroy
