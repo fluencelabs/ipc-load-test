@@ -8,7 +8,7 @@ resource "digitalocean_droplet" "server" {
   for_each = { for index, name in local.server : name => index }
 
   name      = "${terraform.workspace}-${each.key}"
-  size      = "s-4vcpu-8gb"
+  size      = "s-2vcpu-4gb"
   image     = var.snapshot
   region    = var.region
   user_data = templatefile("${path.module}/files/server.sh", { workspace = terraform.workspace })
