@@ -16,3 +16,7 @@ ccp_state/
 **/.ipynb_checkpoints/
 
 .env
+
+stats.txt
+client/**/*.log
+client/**/*.json
