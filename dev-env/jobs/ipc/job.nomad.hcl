@@ -176,7 +176,7 @@ job "ipc" {
         FM_ABCI__LISTEN__PORT={{ env "NOMAD_PORT_fendermint_abci" }}
         FM_RESOLVER__CONNECTION__EXTERNAL_ADDRESSES='/ip4/{{ env "NOMAD_IP_fendermint_p2p" }}/tcp/{{ env "NOMAD_PORT_fendermint_p2p" }}'
 
-        FM_LOG_LEVEL="info"
+        FM_LOG_LEVEL="debug"
 
         FM_NETWORK="${local.network}"
         FM_CHAIN_NAME="/rdev"
@@ -314,7 +314,7 @@ job "ipc" {
         CMT_INSTRUMENTATION_PROMETHEUS=true
         CMT_INSTRUMENTATION_PROMETHEUS_LISTEN_ADDR='0.0.0.0:{{ env "NOMAD_PORT_cometbft_metrics" }}'
 
-        CMT_LOG_LEVEL="info"
+        CMT_LOG_LEVEL="debug"
         CMT_LOG_FORMAT="plain"
 
         CMT_GENESIS_FILE="/local/genesis.json"
@@ -380,7 +380,7 @@ job "ipc" {
       }
 
       env {
-        LOG_LEVEL            = "info"
+        LOG_LEVEL            = "debug"
         TENDERMINT_RPC_URL   = "http://127.0.0.1:26657"
         TENDERMINT_WS_URL    = "ws://127.0.0.1:26657/websocket"
         FM_ETH__LISTEN__PORT = NOMAD_PORT_eth_api

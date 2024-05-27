@@ -62,7 +62,7 @@ job "eth-api" {
       driver = "docker"
 
       env {
-        LOG_LEVEL            = "info"
+        LOG_LEVEL            = "debug"
         TENDERMINT_RPC_URL   = "http://127.0.0.1:80"
         TENDERMINT_WS_URL    = "ws://127.0.0.1:80/websocket"
         FM_ETH__LISTEN__PORT = NOMAD_PORT_eth
