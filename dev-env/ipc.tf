@@ -23,6 +23,7 @@ resource "digitalocean_droplet" "ipc" {
 
   tags = [
     terraform.workspace,
+    "dev",
   ]
 
   ssh_keys = [

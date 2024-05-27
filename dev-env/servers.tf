@@ -15,6 +15,7 @@ resource "digitalocean_droplet" "server" {
 
   tags = [
     terraform.workspace,
+    "dev",
   ]
 
   ssh_keys = [
