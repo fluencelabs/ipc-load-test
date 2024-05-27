@@ -12,7 +12,6 @@ job "grafana" {
   ]
   node_pool = "servers"
 
-
   group "grafana" {
     ephemeral_disk {
       size    = 500
