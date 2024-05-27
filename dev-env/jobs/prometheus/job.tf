@@ -14,6 +14,7 @@ resource "nomad_job" "prometheus" {
   jobspec          = file("${path.module}/job.nomad.hcl")
   purge_on_destroy = true
   rerun_if_dead    = true
+  detach           = false
 
   hcl2 {
     vars = {
