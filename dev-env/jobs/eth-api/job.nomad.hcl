@@ -21,7 +21,9 @@ job "eth-api" {
         servers = ["172.17.0.1"]
       }
 
-      port "eth" {}
+      port "eth" {
+        to = 8080
+      }
 
       port "envoy" {
         to = 9102
@@ -46,6 +48,7 @@ job "eth-api" {
       connect {
         sidecar_service {
           proxy {
+            local_service_port = 8080
             upstreams {
               destination_name = "cometbft"
               local_bind_port  = 80
