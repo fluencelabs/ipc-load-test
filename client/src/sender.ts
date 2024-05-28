@@ -68,7 +68,7 @@ export class Sender {
     return new Sender(id, signer, nonce, capacity, metrics);
   }
 
-  async check(solutions: Solution[], labels: Labels, timeout = 10 * 60 * 1000) {
+  async check(solutions: Solution[], labels: Labels, timeout = 20 * 60 * 1000) {
     const proofs = solutions.map(solutionToProof);
 
     const nonce = this.nonce;
@@ -100,7 +100,7 @@ export class Sender {
               "of sender",
               this.id,
               "after:",
-              e
+              status
             );
           } else {
             console.error(

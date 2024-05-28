@@ -32,15 +32,43 @@ process.on("uncaughtException", (err) => {
 });
 
 async function transfer(
-  signer: ethers.Wallet,
+  signer: ethers.Signer,
   to: AddressLike,
-  amount: string
+  amount: number
 ) {
+  console.log("Transferring", amount, "ETH to", to);
   const tx = await signer.sendTransaction({
     to: to,
-    value: ethers.parseEther(amount),
+    value: ethers.parseEther(amount.toString()), 
   });
   await tx.wait(DEFAULT_CONFIRMATIONS);
+}
+
+async function genPKeys(n: number, signer: ethers.Signer, balance: number): Promise<string[]> {
+  if (n <= 4) {
+    const pkeys: string[] = [];
+
+    for (let i = 0; i < n; i++) {
+      const wallet = ethers.Wallet.createRandom();
+      await transfer(signer, wallet.address, balance);
+      pkeys.push(wallet.privateKey);
+    }
+
+    return pkeys;
+  }
+
+  const lw = ethers.Wallet.createRandom().connect(signer.provider);
+  const rw = ethers.Wallet.createRandom().connect(signer.provider);
+
+  const ln = Math.floor(n / 2);
+  const rn = n - ln;
+
+  await transfer(signer, lw.address, balance * ln);
+  await transfer(signer, rw.address, balance * rn);
+
+  const [lr, rr] = await Promise.all([genPKeys(ln - 1, lw, balance), genPKeys(rn - 1, rw, balance)]);
+
+  return [lw.privateKey, rw.privateKey, ...lr, ...rr];
 }
 
 export type BenchParams = {
@@ -73,24 +101,21 @@ export async function bench({
     }
   })();
 
-  if (config.private_keys.length < sendersNumber) {
-    console.log("Initializing new private keys...");
-  }
-
-  for (let i = config.private_keys.length; i < sendersNumber; i++) {
-    const wallet = ethers.Wallet.createRandom();
-    config.private_keys.push(wallet.privateKey);
-  }
-
-  writeConfig(configPath, config);
-
-  const pkeys = config.private_keys.slice(0, sendersNumber);
-
   const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
   await rpc.on("error", (e) => {
     console.log("WARNING: RPC error:", e);
   });
   const signer = new ethers.Wallet(PRIVATE_KEY, rpc);
+
+  if (config.private_keys.length < sendersNumber) {
+    console.log("Initializing new private keys...");
+    const newPKeys = await genPKeys(sendersNumber - config.private_keys.length, signer, 400); 
+    config.private_keys.push(...newPKeys);
+  }
+
+  writeConfig(configPath, config);
+
+  const pkeys = config.private_keys.slice(0, sendersNumber);
 
   const metrics = new Metrics();
 
@@ -111,9 +136,7 @@ export async function bench({
     console.log("Balance:", ethers.formatEther(balance));
 
     if (balance < ethers.parseEther("300")) {
-      console.log("Adding 400 ETH to", senderSigner.address);
-
-      await transfer(signer, senderSigner.address, "400");
+      await transfer(signer, senderSigner.address, 400);
     }
 
     const sender = await Sender.create(i, senderSigner, metrics);
