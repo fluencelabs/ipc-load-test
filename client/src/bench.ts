@@ -9,6 +9,7 @@ import {
   CHAIN_GNONCE_HARDCODED,
   CCP_DIFFICULTY,
   BUFFER_BATCHES,
+  idToNodeId,
 } from "./const.js";
 import { Communicate, type Solution } from "./communicate.js";
 import { Metrics } from "./metrics.js";
@@ -119,26 +120,37 @@ export async function bench({
 
   const metrics = new Metrics();
 
-  console.log("Initializing senders...");
+  console.log("Funding senders...");
 
-  const senders: Sender[] = [];
-  for (let i = 0; i < pkeys.length; i++) {
-    const senderRpc = new ethers.JsonRpcProvider(ETH_API_URL(i));
-    await senderRpc.on("error", (e) => {
-      console.log("WARNING: Node", i, "RPC error:", e);
-    });
-    const senderSigner = new ethers.Wallet(pkeys[i]!, senderRpc);
+  await Promise.all(pkeys.map(async (pkey) => {
+    const address = ethers.computeAddress(pkey);
 
-    console.log("Getting balance of", senderSigner.address);
+    console.log("Getting balance of", address);
 
-    const balance = await rpc.getBalance(senderSigner.address);
+    const balance = await rpc.getBalance(address);
 
-    console.log("Balance:", ethers.formatEther(balance));
+    console.log("Balance of", address, ":", ethers.formatEther(balance));
 
     if (balance < ethers.parseEther("300")) {
-      await transfer(signer, senderSigner.address, 400);
+      await transfer(signer, address, 400);
+    }
+  }));
+
+  console.log("Initializing senders...");
+
+  const rpcs: Record<number, ethers.JsonRpcProvider> = {};
+  const senders: Sender[] = [];
+  for (let i = 0; i < pkeys.length; i++) {
+    const nodeId = idToNodeId(i);
+    if (rpcs[nodeId] === undefined) {
+      const nodeRpc = new ethers.JsonRpcProvider(ETH_API_URL(i));
+      await nodeRpc.on("error", (e) => {
+        console.log("WARNING: Node", i, "RPC error:", e);
+      });
+      rpcs[nodeId] = nodeRpc;
     }
 
+    const senderSigner = new ethers.Wallet(pkeys[i]!, rpcs[nodeId]!);
     const sender = await Sender.create(i, senderSigner, metrics);
     senders.push(sender);
   }
