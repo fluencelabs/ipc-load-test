@@ -139,3 +139,22 @@ export function collapseIntervals(numbers: Set<number>): string {
 
   return result.join(", ");
 }
+
+export class ExponentialBackoff {
+  private cap: number;
+  private factor: number;
+  private currentTimeout: number;
+
+  constructor(initialTimeout: number, cap: number = 60 * 1000, factor: number = 1.5) {
+      this.cap = cap;
+      this.factor = factor;
+      this.currentTimeout = initialTimeout;
+  }
+
+  next(): number {
+      const nextTimeout = this.currentTimeout;
+      this.currentTimeout = Math.min(this.currentTimeout * this.factor, this.cap);
+      return nextTimeout;
+  }
+}
+

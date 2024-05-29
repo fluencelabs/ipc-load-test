@@ -8,7 +8,7 @@ import {
 import type { Solution } from "./communicate.js";
 import { Metrics, type Labels } from "./metrics.js";
 import { DEFAULT_CONFIRMATIONS, idToNodeId } from "./const.js";
-import { delay, timeouted } from "./utils.js";
+import { ExponentialBackoff, delay, timeouted } from "./utils.js";
 
 function solutionToProof(solution: Solution) {
   return {
@@ -82,6 +82,7 @@ export class Sender {
     });
 
     const result = await timeouted(async () => {
+      let backoff = new ExponentialBackoff(100);
       let receipt: ethers.TransactionResponse | undefined = undefined;
       while (receipt === undefined) {
         try {
@@ -93,9 +94,13 @@ export class Sender {
 
           end({ status });
 
+          const d = backoff.next();
+
           if (status != "error") {
             console.error(
-              "WARNING: Retrying transaction",
+              "WARNING: Retrying in", 
+              d, 
+              "transaction",
               nonce,
               "of sender",
               this.id,
@@ -104,15 +109,20 @@ export class Sender {
             );
           } else {
             console.error(
-              "WARNING: Retrying transaction",
+              "WARNING: Retrying in", 
+              d, 
+              "transaction",
               nonce,
               "after unknown error:",
               e
             );
           }
+
+          await delay(d);
         }
       }
 
+      backoff = new ExponentialBackoff(100);
       while (receipt !== undefined) {
         try {
           await receipt.wait(DEFAULT_CONFIRMATIONS, timeout);
@@ -129,6 +139,8 @@ export class Sender {
           }
 
           console.error("WARNING: Error waiting for confirmation:", message);
+
+          await delay(backoff.next());
         }
       }
 
