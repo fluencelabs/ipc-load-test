@@ -41,12 +41,12 @@ job "prometheus" {
       }
     }
 
-    env {
-      WORKSPACE = var.workspace
-    }
-
     task "prometheus" {
       driver = "docker"
+
+      env {
+        WORKSPACE = var.workspace
+      }
 
       config {
         image        = "prom/prometheus:v2.52.0"
