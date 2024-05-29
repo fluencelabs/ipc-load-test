@@ -12,6 +12,7 @@ resource "digitalocean_droplet" "server" {
   image     = var.snapshot
   region    = var.region
   user_data = templatefile("${path.module}/files/server.sh", { workspace = terraform.workspace })
+  vpc_uuid  = digitalocean_vpc.dev.id
 
   tags = [
     terraform.workspace,

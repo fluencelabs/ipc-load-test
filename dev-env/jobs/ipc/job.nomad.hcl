@@ -365,9 +365,9 @@ job "ipc" {
       }
 
       resources {
-        cpu        = 500
-        memory     = 512
-        memory_max = 1024
+        cpu        = 2000
+        memory     = 2000
+        memory_max = 3000
       }
     }
 

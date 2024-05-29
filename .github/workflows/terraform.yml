@@ -115,4 +115,9 @@ jobs:
 
       - name: terraform destroy
         if: inputs.destroy
-        run: terraform destroy -auto-approve
+        uses: TSRBerry/unstable-commands@v1
+        with:
+          commands: terraform destroy -auto-approve
+          working-directory: ${{ matrix.dir }}
+          timeout-minutes: "15"
+          retry-codes: "1"
