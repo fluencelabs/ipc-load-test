@@ -8,6 +8,7 @@ CONFIG
 
 cat <<CONFIG >/opt/consul/config.d/consul.json
 {
+  "datacenter": "${workspace}",
   "retry_join": [
     "servers.${workspace}.fluence.dev"
   ]

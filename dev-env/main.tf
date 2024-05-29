@@ -7,3 +7,8 @@ data "digitalocean_ssh_key" "key" {
 #   region      = "fra1"
 #   most_recent = true
 # }
+
+resource "digitalocean_vpc" "dev" {
+  name   = terraform.workspace
+  region = "fra1"
+}

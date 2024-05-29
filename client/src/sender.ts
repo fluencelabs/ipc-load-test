@@ -10,14 +10,6 @@ import { Metrics, type Labels } from "./metrics.js";
 import { DEFAULT_CONFIRMATIONS, idToNodeId } from "./const.js";
 import { ExponentialBackoff, delay, timeouted } from "./utils.js";
 
-function solutionToProof(solution: Solution) {
-  return {
-    unitId: solution.cu_id,
-    localUnitNonce: solution.local_nonce,
-    resultHash: solution.result_hash,
-  };
-}
-
 type TxStatus = "http-err" | "seq-err" | "cache-err" | "error";
 
 function analyzeError(e: any): TxStatus {
@@ -69,7 +61,9 @@ export class Sender {
   }
 
   async check(solutions: Solution[], labels: Labels, timeout = 20 * 60 * 1000) {
-    const proofs = solutions.map(solutionToProof);
+    const unitIds = solutions.map(s => s.cu_id);
+    const localNonces = solutions.map(s => s.local_nonce);
+    const resultHashes = solutions.map(s => s.result_hash);
 
     const nonce = this.nonce;
     this.nonce++;
@@ -86,7 +80,7 @@ export class Sender {
       let receipt: ethers.TransactionResponse | undefined = undefined;
       while (receipt === undefined) {
         try {
-          receipt = await this.capacity.checkProofs(proofs, { nonce });
+          receipt = await this.capacity.checkProofs(unitIds, localNonces, resultHashes, { nonce });
 
           end({ status: "success" });
         } catch (e) {
