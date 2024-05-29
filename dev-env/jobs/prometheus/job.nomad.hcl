@@ -41,6 +41,10 @@ job "prometheus" {
       }
     }
 
+    env {
+      WORKSPACE = var.workspace
+    }
+
     task "prometheus" {
       driver = "docker"
 
