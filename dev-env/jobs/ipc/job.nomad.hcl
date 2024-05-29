@@ -390,8 +390,8 @@ job "ipc" {
 
       resources {
         cpu        = 100
-        memory     = 64
-        memory_max = 128
+        memory     = 512
+        memory_max = 1024
       }
 
       config {
