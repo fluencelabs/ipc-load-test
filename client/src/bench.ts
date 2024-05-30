@@ -38,11 +38,23 @@ async function transfer(
   amount: number
 ) {
   console.log("Transferring", amount, "ETH to", to);
-  const tx = await signer.sendTransaction({
-    to: to,
-    value: ethers.parseEther(amount.toString()), 
-  });
-  await tx.wait(DEFAULT_CONFIRMATIONS);
+  const nonce = await signer.getNonce();
+  while (true) {
+    try {
+      const tx = await signer.sendTransaction({
+        to: to,
+        value: ethers.parseEther(amount.toString()),
+        nonce: nonce,
+      });
+      await tx.wait(DEFAULT_CONFIRMATIONS);
+    } catch (e) {
+      console.log("WARNING: Failed to transfer:", (e as Error).message, ". Retrying...");
+
+      continue;
+    }
+
+    break;
+  }
 }
 
 async function genPKeys(n: number, signer: ethers.Signer, balance: number): Promise<string[]> {
@@ -110,7 +122,7 @@ export async function bench({
 
   if (config.private_keys.length < sendersNumber) {
     console.log("Initializing new private keys...");
-    const newPKeys = await genPKeys(sendersNumber - config.private_keys.length, signer, 400); 
+    const newPKeys = await genPKeys(sendersNumber - config.private_keys.length, signer, 400);
     config.private_keys.push(...newPKeys);
   }
 
@@ -224,19 +236,19 @@ export async function bench({
     if (batch === undefined || batch.length < batchSize) {
       console.error("FATAL: No batch to send, increase CCP_DIFFICULTY");
 
-      metrics.shot({ action: "end-load" });
+      metrics.shot({ action: "end-load", timestamp: Date.now() });
       clearInterval(sendInterval);
       stopSignal();
     } else {
       (async () => {
         // This is the first batch
         if (batchesPending.size === 0) {
-          metrics.shot({ action: "start-load" });
+          metrics.shot({ action: "start-load", timestamp: Date.now() });
         }
 
         // This is the last batch
         if (batchesPending.size + 1 === batchesToSend) {
-          metrics.shot({ action: "end-load" });
+          metrics.shot({ action: "end-load", timestamp: Date.now() });
           clearInterval(sendInterval);
         }
 
