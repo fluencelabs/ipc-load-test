@@ -1,5 +1,8 @@
 auth_enabled: false
 
+server:
+  grpc_server_max_recv_msg_size: 6194304
+
 common:
   ring:
     instance_addr: 127.0.0.1
