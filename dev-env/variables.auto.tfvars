@@ -1,7 +1,7 @@
 instances = [
   {
     type  = "c-8-intel",
-    count = 12
+    count = 1
   }
 ]
 
