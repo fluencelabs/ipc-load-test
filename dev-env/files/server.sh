@@ -38,6 +38,20 @@ cat <<CONFIG >/opt/nomad/config.d/nomad.json
 }
 CONFIG
 
+cat <<CONFIG >/opt/nomad/config.d/kadalu.json
+{
+  "client": {
+    "host_volume": [
+      {
+        "kadalu": {
+          "path": "/var/lib/kadalu"
+        }
+      }
+    ]
+  }
+}
+CONFIG
+
 systemctl restart systemd-journald
 systemctl start consul
 systemctl start nomad
