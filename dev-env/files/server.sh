@@ -46,11 +46,18 @@ cat <<CONFIG >/opt/nomad/config.d/kadalu.json
         "kadalu": {
           "path": "/var/lib/kadalu"
         }
+      },
+      {
+        "postgres": {
+          "path": "/var/lib/postgres"
+        }
       }
     ]
   }
 }
 CONFIG
+
+mkdir -p /var/lib/kadalu /var/lib/postgres
 
 systemctl restart systemd-journald
 systemctl start consul
