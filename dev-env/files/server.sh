@@ -60,3 +60,4 @@ cat <<POOL >/tmp/servers.pool
 node_pool "servers" {}
 POOL
 nomad node pool apply /tmp/servers.pool || true
+nomad namespace apply infra || true

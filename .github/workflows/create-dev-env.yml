@@ -22,8 +22,8 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'dev-create')
 
     outputs:
-      infra_jobs: "${{ steps.infra_jobs.outputs.jobs }}"
-      default_jobs: "${{ steps.infra_jobs.outputs.jobs }}"
+      infra_jobs: "${{ steps.jobs.outputs.infra_jobs }}"
+      default_jobs: "${{ steps.jobs.outputs.default_jobs }}"
 
     steps:
       - name: Checkout
