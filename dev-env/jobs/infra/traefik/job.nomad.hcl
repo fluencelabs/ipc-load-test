@@ -16,7 +16,6 @@ job "traefik" {
   ]
   type      = "system"
   node_pool = "servers"
-  namespace = "infra"
 
   group "traefik" {
     network {

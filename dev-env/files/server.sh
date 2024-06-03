@@ -43,8 +43,13 @@ cat <<CONFIG >/opt/nomad/config.d/kadalu.json
   "client": {
     "host_volume": [
       {
-        "kadalu": {
-          "path": "/var/lib/kadalu"
+        "seaweedfs-master": {
+          "path": "/var/lib/seaweedfs-master"
+        }
+      },
+      {
+        "seaweedfs-volume": {
+          "path": "/var/lib/seaweedfs-volume"
         }
       },
       {
@@ -57,14 +62,13 @@ cat <<CONFIG >/opt/nomad/config.d/kadalu.json
 }
 CONFIG
 
-mkdir -p /var/lib/kadalu /var/lib/postgres
+mkdir -p /var/lib/seaweedfs-master /var/lib/seaweedfs-volume /var/lib/postgres
 
 systemctl restart systemd-journald
 systemctl start consul
 systemctl start nomad
 
-cat <<POOL >/tmp/servers.pool
+cat <<POOL >/tmp/servers.nomad.hcl
 node_pool "servers" {}
 POOL
-nomad node pool apply /tmp/servers.pool || true
-nomad namespace apply infra || true
+nomad node pool apply /tmp/servers.nomad.hcl || true
