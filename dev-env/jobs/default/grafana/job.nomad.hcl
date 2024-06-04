@@ -78,6 +78,19 @@ job "grafana" {
 
       template {
         data        = <<-EOH
+        GF_DATABASE_TYPE=postgres
+        GF_DATABASE_HOST=master.postgres.service.consul:5432
+        GF_DATABASE_NAME=grafana
+        GF_DATABASE_SSL_MODE=disable
+        GF_DATABASE_USER=grafana
+        GF_DATABASE_PASSWORD=grafana
+        EOH
+        destination = "secrets/db.env"
+        env         = true
+      }
+
+      template {
+        data        = <<-EOH
         apiVersion: 1
         datasources:
           - name: "Loki"

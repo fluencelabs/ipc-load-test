@@ -24,3 +24,30 @@ resource "nomad_job" "grafana" {
     }
   }
 }
+
+resource "postgresql_role" "grafana" {
+  name     = "grafana"
+  password = "grafana"
+  login    = true
+}
+
+resource "postgresql_database" "grafana" {
+  name  = "grafana"
+  owner = postgresql_role.grafana.name
+}
+
+resource "postgresql_default_privileges" "grafana" {
+  role     = postgresql_role.grafana.name
+  database = postgresql_database.grafana.name
+  schema   = "public"
+
+  owner       = postgresql_role.grafana.name
+  object_type = "table"
+  privileges = [
+    "SELECT",
+    "INSERT",
+    "UPDATE",
+    "DELETE",
+    "TRUNCATE",
+  ]
+}
