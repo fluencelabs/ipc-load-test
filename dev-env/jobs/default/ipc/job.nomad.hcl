@@ -120,6 +120,7 @@ job "ipc" {
 
     task "fendermint" {
       driver = "docker"
+      kill_timeout = "60s"
 
       volume_mount {
         volume      = "fendermint"
@@ -228,6 +229,7 @@ job "ipc" {
     task "cometbft" {
       driver = "docker"
       user   = "root"
+      kill_timeout = "60s"
 
       env {
         CMT_MONIKER = "cometbft-${meta.ipc_node_index}"
@@ -369,6 +371,7 @@ job "ipc" {
 
     task "eth-api" {
       driver = "docker"
+      kill_timeout = "60s"
 
       lifecycle {
         hook    = "poststart"
@@ -445,7 +448,8 @@ job "ipc" {
     }
 
     task "vector" {
-      driver = "docker"
+      driver       = "docker"
+      kill_timeout = "60s"
 
       lifecycle {
         hook    = "poststart"

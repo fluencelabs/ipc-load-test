@@ -377,6 +377,7 @@ job "seaweedfs" {
         IFS=','
         for bucket in $(echo ${var.buckets}); do
           echo $bucket
+          sleep 5
           echo "s3.bucket.create -name $bucket" | weed shell
         done
         EOH

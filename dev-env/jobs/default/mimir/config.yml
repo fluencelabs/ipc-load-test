@@ -22,6 +22,7 @@ blocks_storage:
     sync_dir: /alloc/data/tsdb-sync
   tsdb:
     dir: /alloc/data/tsdb
+    flush_blocks_on_shutdown: true
 
 compactor:
   data_dir: /alloc/data/compactor

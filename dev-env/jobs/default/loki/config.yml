@@ -30,10 +30,16 @@ storage_config:
 
 table_manager:
   retention_deletes_enabled: true
-  retention_period: 24h
+  retention_period: 100h
 
 compactor:
   working_directory: /alloc/data/compactor
   shared_store: s3
-  compaction_interval: 1h
+  compaction_interval: 10m
   retention_enabled: true
+
+ingester:
+  max_chunk_age: 10m
+  wal:
+    dir: /alloc/data/wal
+    flush_on_shutdown: true
