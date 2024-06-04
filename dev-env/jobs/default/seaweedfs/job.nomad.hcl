@@ -62,6 +62,7 @@ job "seaweedfs" {
           "master",
           "-mdir=/data",
           "-defaultReplication=010",
+          "-volumeSizeLimitMB=1024",
           "-peers=${PEERS}",
 
           "-ip=${NOMAD_IP_http}",

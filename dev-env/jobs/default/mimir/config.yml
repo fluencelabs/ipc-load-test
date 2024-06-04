@@ -1,0 +1,20 @@
+server:
+  log_level: debug
+
+common:
+  storage:
+    backend: s3
+    s3:
+      endpoint: seaweedfs-filer.service.consul:9534
+      region: us-east-2
+      secret_access_key: "admin"
+      access_key_id: "admin"
+      insecure: true
+
+blocks_storage:
+  s3:
+    bucket_name: mimir
+
+ruler_storage:
+  s3:
+    bucket_name: mimir-ruler

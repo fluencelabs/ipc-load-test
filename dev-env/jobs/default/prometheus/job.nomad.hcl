@@ -9,12 +9,6 @@ job "prometheus" {
   node_pool = "servers"
 
   group "prometheus" {
-    ephemeral_disk {
-      size    = 2100
-      sticky  = true
-      migrate = true
-    }
-
     network {
       port "http" {
         to     = 9090
@@ -61,9 +55,8 @@ job "prometheus" {
           "--web.external-url=https://prometheus.${var.workspace}.fluence.dev",
           "--web.page-title=Fluence prometheus instance - dev environment",
           "--config.file=/local/config.yml",
-          "--enable-feature=expand-external-labels",
-          "--storage.tsdb.path=/alloc/data/",
-          "--storage.tsdb.retention.size=2GB",
+          "--enable-feature=agent,expand-external-labels",
+          "--storage.agent.path=/alloc/data/",
         ]
       }
 

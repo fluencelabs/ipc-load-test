@@ -14,13 +14,13 @@ job "seaweedfs-csi" {
       driver = "docker"
 
       config {
-        image = "chrislusf/seaweedfs-csi-driver:latest"
+        image = "chrislusf/seaweedfs-csi-driver:v1.1.8"
 
         args = [
           "--endpoint=unix://csi/csi.sock",
           "--filer=seaweedfs-filer.service.consul:9533",
           "--nodeid=${node.unique.name}",
-          "--cacheCapacityMB=1024",
+          "--cacheCapacityMB=0",
           "--cacheDir=${NOMAD_ALLOC_DIR}/data/cache",
         ]
 
