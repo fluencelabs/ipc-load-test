@@ -35,6 +35,11 @@ job "traefik" {
         to     = 443
         static = 443
       }
+
+      port "postgres" {
+        to     = 5433
+        static = 5433
+      }
     }
 
     service {
@@ -85,6 +90,7 @@ job "traefik" {
           "traefik",
           "http",
           "https",
+          "postgres",
         ]
       }
 

@@ -115,6 +115,12 @@ jobs:
             eth-api accessible through load-balancers is running at `https://ipc.${{ env.WORKSPACE }}.fluence.dev`
             Each ipc host is also running eth-api instance accessible at `http://ipc-<index>.${{ env.WORKSPACE }}.fluence.dev:8545`
 
+            ## Services
+            | name | address |
+            | ---- | ------- |
+            | postgres | postgres.${{ env.WORKSPACE }}.fluence.dev:5433 |
+            | webdav | files.${{ env.workspace }}.fluence.dev:8020 |
+
             ### Variables
             ```shell
             export NOMAD_ADDR=http://hashi.${{ env.WORKSPACE }}.fluence.dev.io:4646

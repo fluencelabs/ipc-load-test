@@ -34,6 +34,14 @@ services:
         logo: "https://fluence-homer-assets.fra1.digitaloceanspaces.com/consul.png"
         url: https://consul.{{ env "WORKSPACE" }}.fluence.dev/ui
 
+      - name: "Seaweedfs"
+        logo: "https://raw.githubusercontent.com/seaweedfs/seaweedfs/master/note/seaweedfs.png"
+        url: https://seaweedfs.{{ env "WORKSPACE" }}.fluence.dev
+
+      - name: "Files"
+        icon: "fa fa-file"
+        url: https://files.{{ env "WORKSPACE" }}.fluence.dev
+
   - name: "Observability"
     icon: "fas fa-heartbeat"
     items:

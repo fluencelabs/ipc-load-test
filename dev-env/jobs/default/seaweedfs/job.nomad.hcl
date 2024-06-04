@@ -3,7 +3,7 @@ variable "workspace" {
 }
 
 variable "buckets" {
-  type    = string
+  type = string
 }
 
 job "seaweedfs" {
@@ -282,11 +282,11 @@ job "seaweedfs" {
       }
 
       template {
-        data        = <<-EOF
+        data          = <<-EOF
         {{- key "jobs/seaweedfs/filer/s3.json" -}}
         EOF
-        destination = "local/s3.json"
-        change_mode = "signal"
+        destination   = "local/s3.json"
+        change_mode   = "signal"
         change_signal = "SIGHUP"
       }
 
