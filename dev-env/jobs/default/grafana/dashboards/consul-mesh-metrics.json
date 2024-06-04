@@ -1,12 +1,12 @@
 {
   "__inputs": [
     {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
+      "name": "DS_Mimir",
+      "label": "Mimir",
       "description": "",
       "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
+      "pluginId": "Mimir",
+      "pluginName": "Mimir"
     }
   ],
   "__elements": {},
@@ -31,8 +31,8 @@
     },
     {
       "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
+      "id": "Mimir",
+      "name": "Mimir",
       "version": "1.0.0"
     },
     {
@@ -94,7 +94,7 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "prometheus",
+        "type": "Mimir",
         "uid": "PBFA97CFB590B2093"
       },
       "gridPos": {
@@ -108,7 +108,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
+            "type": "Mimir",
             "uid": "PBFA97CFB590B2093"
           },
           "refId": "A"
@@ -119,8 +119,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "gridPos": {
         "h": 5,
@@ -142,8 +142,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "refId": "A"
         }
@@ -153,8 +153,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -224,8 +224,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_server_live{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ",
@@ -242,8 +242,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -306,8 +306,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_server_days_until_first_cert_expiring{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ",
@@ -325,7 +325,7 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "prometheus",
+        "type": "Mimir",
         "uid": "PBFA97CFB590B2093"
       },
       "gridPos": {
@@ -339,7 +339,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
+            "type": "Mimir",
             "uid": "PBFA97CFB590B2093"
           },
           "refId": "A"
@@ -350,8 +350,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -417,8 +417,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_listener_manager_lds_update_time{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"} ",
@@ -468,8 +468,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Sum of all listeners ",
       "fieldConfig": {
@@ -521,8 +521,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "sum(envoy_listener_manager_total_listeners_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ) by (consul_source_datacenter) ",
@@ -539,8 +539,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total listeners added (either via static config or LDS).\nTotal listeners modified (via LDS).\nTotal listeners removed (via LDS).\nTotal listeners stopped.\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -629,8 +629,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_added{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} != 0",
@@ -640,8 +640,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_modified{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"}  != 0",
@@ -652,8 +652,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_removed{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"}  != 0",
@@ -664,8 +664,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_stopped{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"}  != 0",
@@ -681,8 +681,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total connections rejected due to configured overload actions\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -772,8 +772,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_cx_overload_reject{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -788,8 +788,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total active connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -891,8 +891,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_cx_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval]) ",
@@ -903,8 +903,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_cx_destroy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval]) ",
@@ -920,8 +920,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total connections that didn’t match any filter chain\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -1011,8 +1011,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_no_filter_chain_match{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -1027,8 +1027,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total connections rejected due to enforcement of global connection limit\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -1118,8 +1118,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_global_cx_overflow{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -1134,8 +1134,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Sockets currently undergoing listener filter processing\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -1225,8 +1225,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "envoy_listener_downstream_pre_cx_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}",
@@ -1241,8 +1241,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Sockets that timed out during listener filter processing\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -1332,8 +1332,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_pre_cx_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -1349,7 +1349,7 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "prometheus",
+        "type": "Mimir",
         "uid": "PBFA97CFB590B2093"
       },
       "gridPos": {
@@ -1363,7 +1363,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
+            "type": "Mimir",
             "uid": "PBFA97CFB590B2093"
           },
           "refId": "A"
@@ -1374,8 +1374,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -1441,8 +1441,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_cluster_manager_cds_update_time{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"} ",
@@ -1492,8 +1492,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Sum of all clusters",
       "fieldConfig": {
@@ -1545,8 +1545,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "sum(envoy_cluster_manager_active_clusters{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ) by (consul_source_datacenter) ",
@@ -1563,8 +1563,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Current healthy/degraded/excluded members\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -1652,8 +1652,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_cluster_membership_degraded{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target=~\"^$consul_destination_target$\"} != 0",
@@ -1664,8 +1664,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_cluster_membership_excluded{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target=~\"^$consul_destination_target$\"} != 0",
@@ -1676,8 +1676,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_cluster_membership_healthy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target=~\"^$consul_destination_target$\"} != 0",
@@ -1693,8 +1693,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Number of currently ejected hosts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats#outlier-detection-statistics",
       "fieldConfig": {
@@ -1783,8 +1783,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_cluster_outlier_detection_ejections_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}",
@@ -1799,8 +1799,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Number of enforced consecutive 5xx ejections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats#outlier-detection-statistics",
       "fieldConfig": {
@@ -1889,8 +1889,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_outlier_detection_ejections_enforced_consecutive_5xx{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}[$__interval])",
@@ -1905,8 +1905,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Number of enforced consecutive  gateway failure ejections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats#outlier-detection-statistics",
       "fieldConfig": {
@@ -1995,8 +1995,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_outlier_detection_ejections_enforced_consecutive_gateway_failure{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}[$__interval])",
@@ -2011,8 +2011,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total active connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2100,8 +2100,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "envoy_cluster_upstream_cx_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\"}",
@@ -2117,8 +2117,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total connections closed via HTTP/1.1 connection close header or HTTP/2 or HTTP/3 GOAWAY\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2208,8 +2208,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_cx_close_notify{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -2225,8 +2225,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total connection failures\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2314,8 +2314,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_connect_fail{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2330,8 +2330,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total connection connect/idle timeouts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2419,8 +2419,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_connect_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2430,8 +2430,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_idle_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2447,8 +2447,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total consecutive connection failures exceeding configured connection attempts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2538,8 +2538,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_cx_connect_attempts_exceeded{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -2555,8 +2555,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total destroyed connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2644,8 +2644,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2660,8 +2660,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total destroyed local connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2749,8 +2749,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_local{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2760,8 +2760,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_local_with_active_rq{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2777,8 +2777,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total destroyed remote connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2866,8 +2866,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_remote{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2877,8 +2877,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_remote_with_active_rq{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2894,8 +2894,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total times connection not established due to no healthy hosts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2983,8 +2983,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_none_healthy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2999,8 +2999,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total connection protocol errors\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3088,8 +3088,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_protocol_error{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -3104,8 +3104,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/outlier#arch-overview-outlier-detection",
       "fieldConfig": {
@@ -3194,8 +3194,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "rate(envoy_cluster_upstream_cx_tx_bytes_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\"} [$__interval:])",
@@ -3211,8 +3211,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/outlier#arch-overview-outlier-detection",
       "fieldConfig": {
@@ -3301,8 +3301,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "rate(envoy_cluster_upstream_cx_rx_bytes_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\"} [$__interval:])",
@@ -3318,8 +3318,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "rate of Total requests\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3408,8 +3408,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_total{consul_destination_target!=\"\",consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3424,8 +3424,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total active requests",
       "fieldConfig": {
@@ -3514,8 +3514,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "sum(envoy_cluster_upstream_rq_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}) by (consul_source_datacenter,consul_source_service,kubernetes_pod_name,envoy_cluster_name)",
@@ -3530,8 +3530,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total requests that timed out waiting for a response\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3620,8 +3620,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3636,8 +3636,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total upstream requests completed\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3726,8 +3726,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_completed{consul_destination_target!=\"\",consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3742,8 +3742,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total requests cancelled before obtaining a connection pool connection\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3832,8 +3832,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_cancelled{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3848,8 +3848,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total requests closed due to max duration reached\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3938,8 +3938,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_max_duration_reached{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3954,8 +3954,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total requests pending a connection pool connection\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -4045,8 +4045,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_rq_pending_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -4062,8 +4062,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total requests that were failed due to a connection pool connection failure or remote connection termination\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -4153,8 +4153,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_rq_pending_failure_eject{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -4170,8 +4170,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "Total requests that overflowed connection pool or requests (mainly for HTTP/2 and above) circuit breaking and were failed\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -4261,8 +4261,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_rq_pending_overflow{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -4278,8 +4278,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -4368,8 +4368,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "rate(envoy_cluster_external_upstream_rq{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[$__interval]) != 0",
@@ -4393,8 +4393,8 @@
       },
       "dataFormat": "tsbuckets",
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -4470,8 +4470,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "sum(rate(envoy_cluster_external_upstream_rq_time_bucket{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_full_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[$__interval])) by (le)",
@@ -4501,7 +4501,7 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "prometheus",
+        "type": "Mimir",
         "uid": "PBFA97CFB590B2093"
       },
       "gridPos": {
@@ -4515,7 +4515,7 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
+            "type": "Mimir",
             "uid": "PBFA97CFB590B2093"
           },
           "refId": "A"
@@ -4526,8 +4526,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4615,8 +4615,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_success\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4631,8 +4631,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4720,8 +4720,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_failure\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4736,8 +4736,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4825,8 +4825,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_request_message_count\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4841,8 +4841,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4930,8 +4930,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_response_message_count\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4953,8 +4953,8 @@
       {
         "current": {},
         "datasource": {
-          "type": "prometheus",
-          "uid": "Prometheus"
+          "type": "Mimir",
+          "uid": "Mimir"
         },
         "definition": "label_values(envoy_cluster_version,consul_source_datacenter)",
         "hide": 0,
@@ -4976,8 +4976,8 @@
         "allValue": ".*",
         "current": {},
         "datasource": {
-          "type": "prometheus",
-          "uid": "Prometheus"
+          "type": "Mimir",
+          "uid": "Mimir"
         },
         "definition": "label_values(envoy_server_live{consul_source_datacenter=\"$consul_source_datacenter\"},local_cluster)",
         "hide": 0,
@@ -4999,8 +4999,8 @@
         "allValue": ".*",
         "current": {},
         "datasource": {
-          "type": "prometheus",
-          "uid": "Prometheus"
+          "type": "Mimir",
+          "uid": "Mimir"
         },
         "definition": "label_values(envoy_cluster_upstream_rq_time_bucket{consul_source_datacenter=\"$consul_source_datacenter\",local_cluster=\"$local_cluster\"},consul_destination_target)",
         "hide": 0,

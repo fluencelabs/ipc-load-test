@@ -459,9 +459,9 @@ job "ipc" {
       }
 
       env {
-        VECTOR_CONFIG          = "local/config.toml"
+        VECTOR_CONFIG          = "local/config.yml"
         VECTOR_REQUIRE_HEALTHY = "true"
-        INDEX = meta.ipc_node_index
+        INDEX                  = meta.ipc_node_index
       }
 
       config {
@@ -474,11 +474,10 @@ job "ipc" {
 
       template {
         data        = <<-EOH
-        {{ key "jobs/ipc/vector/config.toml" }}
+        {{ key "jobs/ipc/vector/config.yml" }}
         EOH
-        destination = "local/config.config"
+        destination = "local/config.yml"
       }
     }
   }
 }
-  }

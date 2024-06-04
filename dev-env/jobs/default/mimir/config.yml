@@ -1,5 +1,9 @@
+multitenancy_enabled: false
+
+target: all
+
 server:
-  log_level: debug
+  log_level: info
 
 common:
   storage:
@@ -14,7 +18,31 @@ common:
 blocks_storage:
   s3:
     bucket_name: mimir
+  bucket_store:
+    sync_dir: /alloc/data/tsdb-sync
+  tsdb:
+    dir: /alloc/data/tsdb
+
+compactor:
+  data_dir: /alloc/data/compactor
+  sharding_ring:
+    kvstore:
+      store: memberlist
+
+distributor:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: memberlist
+
+ingester:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: memberlist
+    replication_factor: 1
 
 ruler_storage:
-  s3:
-    bucket_name: mimir-ruler
+  backend: filesystem
+  filesystem:
+    dir: /alloc/data/rules

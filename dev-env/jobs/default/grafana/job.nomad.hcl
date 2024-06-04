@@ -100,9 +100,9 @@ job "grafana" {
             jsonData:
               maxLines: 1000
 
-          - name: "Prometheus"
+          - name: "Mimir"
             type: "prometheus"
-            url: "http://prometheus.service.consul:9090"
+            url: "http://mimir.service.consul:9898/prometheus"
             isDefault: true
             basicAuth: false
             jsonData:

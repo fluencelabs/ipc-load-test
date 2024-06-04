@@ -25,7 +25,7 @@ resource "nomad_job" "seaweedfs" {
   hcl2 {
     vars = {
       workspace = terraform.workspace
-      buckets = "loki,mimir,mimir-ruler,logs"
+      buckets = "loki,mimir,logs"
     }
   }
 }

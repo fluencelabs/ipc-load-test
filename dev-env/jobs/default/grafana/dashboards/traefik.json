@@ -1,12 +1,12 @@
 {
   "__inputs": [
     {
-      "name": "DS_PROMETHEUS",
-      "label": "Prometheus",
+      "name": "DS_Mimir",
+      "label": "Mimir",
       "description": "",
       "type": "datasource",
-      "pluginId": "prometheus",
-      "pluginName": "Prometheus"
+      "pluginId": "Mimir",
+      "pluginName": "Mimir"
     },
     {
       "name": "DS_LOKI",
@@ -57,8 +57,8 @@
     },
     {
       "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
+      "id": "Mimir",
+      "name": "Mimir",
       "version": "1.0.0"
     },
     {
@@ -108,7 +108,7 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "prometheus",
+        "type": "Mimir",
         "uid": "P4169E866C3094E38"
       },
       "gridPos": {
@@ -124,8 +124,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -207,8 +207,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "editorMode": "code",
           "exemplar": true,
@@ -226,8 +226,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "fieldConfig": {
         "defaults": {
@@ -284,8 +284,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "sum(increase(traefik_service_requests_total{env=\"$env\"}[$__rate_interval])) by (service) ",
@@ -301,8 +301,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -360,8 +360,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "editorMode": "code",
           "exemplar": true,
@@ -379,8 +379,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -438,8 +438,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "sum(increase(traefik_entrypoint_requests_total{env=\"$env\",entrypoint=~\"$entrypoint\"}[$__rate_interval])) by (entrypoint) ",
@@ -455,8 +455,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -514,8 +514,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "sum(traefik_entrypoint_open_connections{env=\"$env\",entrypoint=~\"$entrypoint\"}) by (entrypoint) ",
@@ -531,8 +531,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+        "type": "Mimir",
+        "uid": "Mimir"
       },
       "description": "",
       "fieldConfig": {
@@ -607,8 +607,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "exemplar": true,
           "expr": "traefik_tls_certs_not_after{env=\"$env\"} * 1000",
@@ -653,7 +653,7 @@
     {
       "collapsed": true,
       "datasource": {
-        "type": "prometheus",
+        "type": "Mimir",
         "uid": "P4169E866C3094E38"
       },
       "gridPos": {
@@ -666,8 +666,8 @@
       "panels": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "fieldConfig": {
             "defaults": {
@@ -748,8 +748,8 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "Prometheus"
+                "type": "Mimir",
+                "uid": "Mimir"
               },
               "editorMode": "code",
               "exemplar": true,
@@ -767,8 +767,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "description": "",
           "fieldConfig": {
@@ -827,8 +827,8 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "Prometheus"
+                "type": "Mimir",
+                "uid": "Mimir"
               },
               "editorMode": "code",
               "exemplar": true,
@@ -846,8 +846,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "fieldConfig": {
             "defaults": {
@@ -899,8 +899,8 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "Prometheus"
+                "type": "Mimir",
+                "uid": "Mimir"
               },
               "exemplar": true,
               "expr": "sum(traefik_service_open_connections{env=\"$env\",service=\"$service\"}) by (protocol)",
@@ -924,8 +924,8 @@
           },
           "dataFormat": "timeseries",
           "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
+            "type": "Mimir",
+            "uid": "Mimir"
           },
           "description": "",
           "gridPos": {
@@ -945,8 +945,8 @@
           "targets": [
             {
               "datasource": {
-                "type": "prometheus",
-                "uid": "Prometheus"
+                "type": "Mimir",
+                "uid": "Mimir"
               },
               "exemplar": true,
               "expr": "histogram_quantile(0.95, sum(rate(traefik_service_request_duration_seconds_bucket{env=\"$env\",service=\"$service\"}[$__rate_interval])) by (le))",
@@ -1024,8 +1024,8 @@
       {
         "current": {},
         "datasource": {
-          "type": "prometheus",
-          "uid": "Prometheus"
+          "type": "Mimir",
+          "uid": "Mimir"
         },
         "definition": "label_values(up{job=~\"traefik|ingress\"},env)",
         "hide": 0,
@@ -1046,8 +1046,8 @@
       {
         "current": {},
         "datasource": {
-          "type": "prometheus",
-          "uid": "Prometheus"
+          "type": "Mimir",
+          "uid": "Mimir"
         },
         "definition": "label_values(traefik_service_requests_total{env=\"$env\",service=~\".*@.*\"},service)",
         "hide": 0,
@@ -1071,8 +1071,8 @@
       {
         "current": {},
         "datasource": {
-          "type": "prometheus",
-          "uid": "Prometheus"
+          "type": "Mimir",
+          "uid": "Mimir"
         },
         "definition": "label_values(traefik_entrypoint_requests_total{env=\"$env\"},entrypoint)",
         "hide": 0,

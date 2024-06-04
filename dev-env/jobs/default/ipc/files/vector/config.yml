@@ -17,18 +17,34 @@ sources:
       - "/alloc/logs/fendermint.*"
 
 sinks:
-  s3:
+  s3_cometbft:
     auth:
       access_key_id: "admin"
       secret_access_key: "admin"
     inputs:
       - "cometbft_logs"
-      - "fendermint_logs"
     type: "aws_s3"
     region: "us-east-2"
     bucket: "logs"
     endpoint: "http://seaweedfs-filer.service.consul:9534"
-    key_prefix: "date=%F/hour=%H"
+    key_prefix: "date=%F/instance=${INDEX}/cometbft/hour=%H"
+    compression: "none"
+    framing:
+      method: "newline_delimited"
+    encoding:
+      codec: "text"
+
+  s3_cometbft:
+    auth:
+      access_key_id: "admin"
+      secret_access_key: "admin"
+    inputs:
+      - "fendemint_logs"
+    type: "aws_s3"
+    region: "us-east-2"
+    bucket: "logs"
+    endpoint: "http://seaweedfs-filer.service.consul:9534"
+    key_prefix: "date=%F/instance=${INDEX}/fendermint/hour=%H"
     compression: "none"
     framing:
       method: "newline_delimited"

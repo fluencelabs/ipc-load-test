@@ -4,6 +4,11 @@ resource "consul_keys" "configs" {
     value  = file("files/promtail/config.yml")
     delete = true
   }
+  key {
+    path   = "jobs/ipc/vector/config.yml"
+    value  = file("files/vector/config.yml")
+    delete = true
+  }
 }
 
 resource "consul_keys" "genesis" {
