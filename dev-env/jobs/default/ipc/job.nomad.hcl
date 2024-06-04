@@ -16,12 +16,6 @@ job "ipc" {
   node_pool = "ipc"
 
   group "validators" {
-    ephemeral_disk {
-      size    = 500
-      sticky  = true
-      migrate = true
-    }
-
     volume "cometbft" {
       type   = "host"
       source = "cometbft"
@@ -70,6 +64,9 @@ job "ipc" {
       }
 
       port "promtail" {}
+      port "vector" {
+        to = 2080
+      }
 
       port "envoy" {
         to = 9102
@@ -446,5 +443,42 @@ job "ipc" {
         destination = "local/config.yml"
       }
     }
+
+    task "vector" {
+      driver = "docker"
+
+      lifecycle {
+        hook    = "poststart"
+        sidecar = true
+      }
+
+      resources {
+        cpu        = 50
+        memory     = 64
+        memory_max = 128
+      }
+
+      env {
+        VECTOR_CONFIG          = "local/config.toml"
+        VECTOR_REQUIRE_HEALTHY = "true"
+        INDEX = meta.ipc_node_index
+      }
+
+      config {
+        image = "timberio/vector:0.38.X-alpine"
+
+        ports = [
+          "vector",
+        ]
+      }
+
+      template {
+        data        = <<-EOH
+        {{ key "jobs/ipc/vector/config.toml" }}
+        EOH
+        destination = "local/config.config"
+      }
+    }
   }
 }
+  }

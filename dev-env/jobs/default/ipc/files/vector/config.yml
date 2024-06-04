@@ -1,0 +1,36 @@
+data_dir: '/alloc/data'
+
+api:
+  enabled: false
+  address: '0.0.0.0:2080'
+  playground: true
+
+sources:
+  cometbft_logs:
+    type: "file"
+    include:
+      - "/alloc/logs/cometbft.*"
+
+  fendermint_logs:
+    type: "file"
+    include:
+      - "/alloc/logs/fendermint.*"
+
+sinks:
+  s3:
+    auth:
+      access_key_id: "admin"
+      secret_access_key: "admin"
+    inputs:
+      - "cometbft_logs"
+      - "fendermint_logs"
+    type: "aws_s3"
+    region: "us-east-2"
+    bucket: "logs"
+    endpoint: "http://seaweedfs-filer.service.consul:9534"
+    key_prefix: "date=%F/hour=%H"
+    compression: "none"
+    framing:
+      method: "newline_delimited"
+    encoding:
+      codec: "text"

@@ -10,7 +10,6 @@ scrape_configs:
   - job_name: "traefik"
     consul_sd_configs:
       - server: http://127.0.0.1:8500
-        datacenter: "${WORKSPACE}"
         services:
           - "traefik"
     relabel_configs:
@@ -20,7 +19,6 @@ scrape_configs:
   - job_name: "cometbft"
     consul_sd_configs:
       - server: http://127.0.0.1:8500
-        datacenter: "${WORKSPACE}"
         services:
           - "cometbft-metrics"
     relabel_configs:
@@ -30,7 +28,6 @@ scrape_configs:
   - job_name: "fendermint"
     consul_sd_configs:
       - server: http://127.0.0.1:8500
-        datacenter: "${WORKSPACE}"
         services:
           - "fendermint-metrics"
     relabel_configs:
@@ -40,7 +37,6 @@ scrape_configs:
   - job_name: "consul-connect-envoy"
     consul_sd_configs:
       - server: http://127.0.0.1:8500
-        datacenter: "${WORKSPACE}"
     relabel_configs:
       - source_labels: ["__meta_consul_service"]
         action: "drop"
