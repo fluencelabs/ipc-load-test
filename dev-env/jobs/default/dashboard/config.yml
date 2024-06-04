@@ -23,7 +23,7 @@ defaults:
 #     link-hover: "#E41C5C"
 
 services:
-  - name: "HashiStack"
+  - name: "Services"
     icon: "fas fa-cloud"
     items:
       - name: "Nomad"
