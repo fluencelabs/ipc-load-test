@@ -1,8 +1,8 @@
 instances = [
   {
     type  = "s-2vcpu-4gb",
-    count = 3
+    count = 0
   },
 ]
 
-snapshot = "157483610"
+snapshot = "157624802"
