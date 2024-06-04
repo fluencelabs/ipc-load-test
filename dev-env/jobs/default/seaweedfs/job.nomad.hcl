@@ -2,6 +2,10 @@ variable "workspace" {
   type = string
 }
 
+variable "buckets" {
+  type    = string
+}
+
 job "seaweedfs" {
   datacenters = [
     "*",
@@ -248,7 +252,9 @@ job "seaweedfs" {
           "-master=dnssrv+seaweedfs-master.service.consul",
 
           "-s3=true",
+          "-s3.config=/local/s3.json",
           "-s3.port=${NOMAD_PORT_s3}",
+          "-s3.domainName=seaweedfs-filer.service.consul",
 
           "-webdav=false",
 
@@ -274,6 +280,16 @@ job "seaweedfs" {
         destination = "local/filer.toml"
         change_mode = "noop"
       }
+
+      template {
+        data        = <<-EOF
+        {{- key "jobs/seaweedfs/filer/s3.json" -}}
+        EOF
+        destination = "local/s3.json"
+        change_mode = "signal"
+        change_signal = "SIGHUP"
+      }
+
 
       template {
         data = <<-EOH
@@ -306,6 +322,38 @@ job "seaweedfs" {
           component = "filer"
           metrics   = NOMAD_ADDR_metrics
         }
+      }
+    }
+
+    task "shell" {
+      lifecycle {
+        hook = "poststart"
+      }
+
+      driver = "docker"
+
+      env {
+        WEED_CLUSTER_DEFAULT   = "sw"
+        WEED_CLUSTER_SW_MASTER = "seaweedfs-master.service.consul:9333"
+        WEED_CLUSTER_SW_FILER  = "seaweedfs-filer.service.consul:9533"
+      }
+
+      config {
+        image      = "chrislusf/seaweedfs:3.67"
+        entrypoint = ["/local/buckets.sh"]
+      }
+
+      template {
+        data        = <<-EOH
+        #! /usr/bin/env sh
+        IFS=','
+        for bucket in $(echo ${var.buckets}); do
+          echo $bucket
+          echo "s3.bucket.create -name $bucket" | weed shell
+        done
+        EOH
+        destination = "/local/buckets.sh"
+        perms       = 777
       }
     }
   }

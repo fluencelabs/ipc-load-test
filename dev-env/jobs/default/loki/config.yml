@@ -20,20 +20,20 @@ schema_config:
 
 storage_config:
   tsdb_shipper:
-    active_index_directory: /data/tsdb-index
-    cache_location: /data/tsdb-index-cache
+    active_index_directory: /alloc/data/tsdb-index
+    cache_location: /alloc/data/tsdb-index-cache
     shared_store: s3
 
   aws:
-    endpoint: http://seaweedfs-filer.service.consul:9534
-    bucketnames: loki
+    s3: s3://admin:admin@seaweedfs-filer.service.consul:9534/loki
+    s3forcepathstyle: true
 
 table_manager:
   retention_deletes_enabled: true
   retention_period: 24h
 
 compactor:
-  working_directory: /data/compactor
+  working_directory: /alloc/data/compactor
   shared_store: s3
   compaction_interval: 1h
   retention_enabled: true

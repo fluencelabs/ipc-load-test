@@ -4,6 +4,11 @@ resource "consul_keys" "configs" {
     value  = file("configs/filer.toml")
     delete = true
   }
+  key {
+    path   = "jobs/seaweedfs/filer/s3.json"
+    value  = file("configs/s3.json")
+    delete = true
+  }
 }
 
 resource "nomad_job" "seaweedfs" {
@@ -20,6 +25,7 @@ resource "nomad_job" "seaweedfs" {
   hcl2 {
     vars = {
       workspace = terraform.workspace
+      buckets = "loki,mimir"
     }
   }
 }
