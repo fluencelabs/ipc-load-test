@@ -48,7 +48,8 @@ job "seaweedfs" {
       }
 
       config {
-        image = "chrislusf/seaweedfs:3.67"
+        # image = "chrislusf/seaweedfs:3.67"
+        image = "chrislusf/seaweedfs:3.59"
 
         ports = [
           "http",
@@ -139,7 +140,8 @@ job "seaweedfs" {
       kill_timeout = "90s"
 
       config {
-        image = "chrislusf/seaweedfs:3.67"
+        # image = "chrislusf/seaweedfs:3.67"
+        image = "chrislusf/seaweedfs:3.59"
 
         ports = [
           "http",
@@ -227,6 +229,10 @@ job "seaweedfs" {
         to     = 9534
         static = 9534
       }
+      port "webdav" {
+        to     = 9535
+        static = 9535
+      }
       port "metrics" {}
     }
 
@@ -237,12 +243,14 @@ job "seaweedfs" {
       kill_timeout = "90s"
 
       config {
-        image = "chrislusf/seaweedfs:3.67"
+        # image = "chrislusf/seaweedfs:3.67"
+        image = "chrislusf/seaweedfs:3.59"
 
         ports = [
           "http",
           "grpc",
           "s3",
+          "webdav",
           "metrics",
         ]
 
@@ -256,7 +264,9 @@ job "seaweedfs" {
           "-s3.port=${NOMAD_PORT_s3}",
           "-s3.domainName=seaweedfs-filer.service.consul",
 
-          "-webdav=false",
+          "-webdav=true",
+          "-webdav.port=${NOMAD_PORT_webdav}",
+          "-webdav.cacheCapacityMB=0",
 
           "-dataCenter=${node.datacenter}",
           "-rack=${node.unique.name}",
@@ -323,6 +333,22 @@ job "seaweedfs" {
           metrics   = NOMAD_ADDR_metrics
         }
       }
+
+      service {
+        name = "seaweedfs-webdav"
+        port = "webdav"
+
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.seaweedfs-filer-webdav.entrypoints=https",
+          "traefik.http.routers.seaweedfs-filer-webdav.rule=Host(`webdav.${var.workspace}.fluence.dev`)",
+        ]
+
+        meta {
+          alloc_id  = NOMAD_ALLOC_ID
+          component = "filer"
+        }
+      }
     }
 
     task "shell" {
@@ -339,7 +365,8 @@ job "seaweedfs" {
       }
 
       config {
-        image      = "chrislusf/seaweedfs:3.67"
+        # image      = "chrislusf/seaweedfs:3.67"
+        image      = "chrislusf/seaweedfs:3.59"
         entrypoint = ["/local/buckets.sh"]
       }
 

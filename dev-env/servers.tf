@@ -73,6 +73,7 @@ resource "cloudflare_record" "records" {
     "files",
     "postgres",
     "seaweedfs",
+    "webdav",
   ])
 
   zone_id         = data.cloudflare_zone.fluence_dev.zone_id
