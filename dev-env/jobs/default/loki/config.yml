@@ -10,18 +10,30 @@ common:
 
 schema_config:
   configs:
-  - from: 2024-05-15
-    store: tsdb
-    object_store: filesystem
-    schema: v13
+  - from: 2024-03-10
     index:
-      prefix: index_
       period: 24h
+      prefix: index_
+    object_store: s3
+    schema: v13
+    store: tsdb
 
 storage_config:
-  filesystem:
-    directory: /alloc/data/loki/chunks
+  tsdb_shipper:
+    active_index_directory: /data/tsdb-index
+    cache_location: /data/tsdb-index-cache
+    shared_store: s3
+
+  aws:
+    endpoint: http://seaweedfs-filer.service.consul:9534
+    bucketnames: loki
 
 table_manager:
   retention_deletes_enabled: true
   retention_period: 24h
+
+compactor:
+  working_directory: /data/compactor
+  shared_store: s3
+  compaction_interval: 1h
+  retention_enabled: true

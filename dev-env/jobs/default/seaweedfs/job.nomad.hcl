@@ -219,6 +219,10 @@ job "seaweedfs" {
         to     = 19533
         static = 19533
       }
+      port "s3" {
+        to     = 9534
+        static = 9534
+      }
       port "metrics" {}
     }
 
@@ -234,6 +238,7 @@ job "seaweedfs" {
         ports = [
           "http",
           "grpc",
+          "s3",
           "metrics",
         ]
 
@@ -242,7 +247,9 @@ job "seaweedfs" {
           "filer",
           "-master=dnssrv+seaweedfs-master.service.consul",
 
-          "-s3=false",
+          "-s3=true",
+          "-s3.port=${NOMAD_PORT_s3}",
+
           "-webdav=false",
 
           "-dataCenter=${node.datacenter}",
