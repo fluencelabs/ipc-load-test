@@ -119,7 +119,7 @@ jobs:
             | name | address |
             | ---- | ------- |
             | postgres | postgres.${{ env.WORKSPACE }}.fluence.dev:5433 |
-            | webdav | files.${{ env.workspace }}.fluence.dev:8020 |
+            | webdav | https://webdav.${{ env.workspace }}.fluence.dev |
 
             ### Variables
             ```shell
