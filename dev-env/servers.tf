@@ -72,6 +72,7 @@ resource "cloudflare_record" "records" {
     "ipc",
     "files",
     "postgres",
+    "seaweedfs",
   ])
 
   zone_id         = data.cloudflare_zone.fluence_dev.zone_id
