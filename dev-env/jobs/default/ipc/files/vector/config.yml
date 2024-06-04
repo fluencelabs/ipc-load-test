@@ -35,6 +35,8 @@ sinks:
       codec: "text"
     filename_append_uuid: false
     filename_time_format: "%+"
+    healthcheck:
+      enabled: false
 
   s3_fendermint:
     auth:
@@ -54,3 +56,5 @@ sinks:
       codec: "text"
     filename_append_uuid: false
     filename_time_format: "%+"
+    healthcheck:
+      enabled: false

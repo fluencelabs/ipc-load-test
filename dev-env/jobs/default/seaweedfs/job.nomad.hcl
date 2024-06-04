@@ -247,6 +247,8 @@ job "seaweedfs" {
         # image = "chrislusf/seaweedfs:3.67"
         image = "chrislusf/seaweedfs:3.59"
 
+        network_mode = "host"
+
         ports = [
           "http",
           "grpc",
@@ -362,13 +364,15 @@ job "seaweedfs" {
       env {
         WEED_CLUSTER_DEFAULT   = "sw"
         WEED_CLUSTER_SW_MASTER = "seaweedfs-master.service.consul:9333"
-        WEED_CLUSTER_SW_FILER  = "seaweedfs-filer.service.consul:9533"
+        WEED_CLUSTER_SW_FILER  = "localhost:9533"
       }
 
       config {
         # image      = "chrislusf/seaweedfs:3.67"
-        image      = "chrislusf/seaweedfs:3.59"
-        entrypoint = ["/local/buckets.sh"]
+        image        = "chrislusf/seaweedfs:3.59"
+        entrypoint   = ["/local/buckets.sh"]
+        network_mode = "host"
+
       }
 
       template {

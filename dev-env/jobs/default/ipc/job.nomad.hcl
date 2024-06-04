@@ -307,7 +307,7 @@ job "ipc" {
         CMT_RPC_TIMEOUT_BROADCAST_TX_COMMIT="120s"
 
         CMT_MEMPOOL_WAL_DIR="/data/mempool"
-        CMT_DB_DIR="/dara/cometbft/db"
+        CMT_DB_DIR="/data/db"
 
         CMT_INSTRUMENTATION_PROMETHEUS=true
         CMT_INSTRUMENTATION_PROMETHEUS_LISTEN_ADDR='0.0.0.0:{{ env "NOMAD_PORT_cometbft_metrics" }}'
