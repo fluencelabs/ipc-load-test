@@ -45,9 +45,9 @@ systemctl restart systemd-journald
 systemctl start consul
 systemctl start nomad
 
-cat <<POOL >/tmp/ipc.pool
+cat <<POOL >/tmp/ipc.nomad.hcl
 node_pool "ipc" {
   description = "For running IPC"
 }
 POOL
-nomad node pool apply /tmp/ipc.pool || true
+nomad node pool apply /tmp/ipc.nomad.hcl || true

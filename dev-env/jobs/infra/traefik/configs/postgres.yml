@@ -1,0 +1,13 @@
+tcp:
+  routers:
+    postgres:
+      entryPoints:
+        - postgres
+      service: postgres
+      rule: HostSNI(`*`)
+
+  services:
+    postgres:
+      loadbalancer:
+        servers:
+          - address: master.postgres.service.consul:5432

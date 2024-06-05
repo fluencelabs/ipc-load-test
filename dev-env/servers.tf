@@ -8,7 +8,7 @@ resource "digitalocean_droplet" "server" {
   for_each = { for index, name in local.server : name => index }
 
   name      = "${terraform.workspace}-${each.key}"
-  size      = "s-2vcpu-4gb"
+  size      = "s-4vcpu-8gb"
   image     = var.snapshot
   region    = var.region
   user_data = templatefile("${path.module}/files/server.sh", { workspace = terraform.workspace })
@@ -47,6 +47,10 @@ resource "cloudflare_record" "hashi" {
 resource "cloudflare_record" "internal" {
   for_each = { for index, name in local.server : name => index }
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   zone_id         = data.cloudflare_zone.fluence_dev.zone_id
   name            = "servers.${terraform.workspace}.fluence.dev"
   value           = digitalocean_droplet.server[each.key].ipv4_address_private
@@ -66,6 +70,10 @@ resource "cloudflare_record" "records" {
     "grafana",
     "loki",
     "ipc",
+    "files",
+    "postgres",
+    "seaweedfs",
+    "webdav",
   ])
 
   zone_id         = data.cloudflare_zone.fluence_dev.zone_id

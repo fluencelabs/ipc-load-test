@@ -1,0 +1,72 @@
+positions:
+  filename: "/alloc/data/positions.yml"
+
+clients:
+  - url: "http://loki.service.consul:3100/loki/api/v1/push"
+    external_labels:
+      env: dev
+      job: ipc
+
+scrape_configs:
+  - job_name: "cometbft"
+    static_configs:
+      - labels:
+          instance: "cometbft-${INDEX}"
+          group: validators
+          task: cometbft
+          __path__: "/alloc/logs/cometbft.*"
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\] (?P<message>.*)$'
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02|15:04:05.999'
+      - template:
+          source: level
+          template: |
+            {{- if eq .Value "I" -}}
+            info
+            {{- else if eq .Value "W" -}}
+            warn
+            {{- else if eq .Value "E" -}}
+            error
+            {{- else if eq .Value "D" -}}
+            debug
+            {{- end -}}
+      - labels:
+          level:
+
+  - job_name: "fendemint"
+    static_configs:
+      - labels:
+          instance: "fendermint-${INDEX}"
+          group: validators
+          task: fendermint
+          __path__: "/alloc/logs/fendermint.*"
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+      - timestamp:
+          source: timestamp
+          format: 'RFC3339'
+      - labels:
+          level:
+      - drop:
+          expression: ".* listening for requests"
+          drop_counter_reason: "noise"
+
+  - job_name: "eth-api"
+    static_configs:
+      - labels:
+          instance: "eth-api-${INDEX}"
+          group: validators
+          task: eth-api
+          __path__: "/alloc/logs/eth-api.*"
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+      - timestamp:
+          source: timestamp
+          format: 'RFC3339'
+      - labels:
+          level:
