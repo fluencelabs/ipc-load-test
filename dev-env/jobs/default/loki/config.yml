@@ -1,0 +1,45 @@
+auth_enabled: false
+
+common:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+  replication_factor: 1
+  path_prefix: /alloc/data/loki
+
+schema_config:
+  configs:
+  - from: 2024-03-10
+    index:
+      period: 24h
+      prefix: index_
+    object_store: s3
+    schema: v13
+    store: tsdb
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /alloc/data/tsdb-index
+    cache_location: /alloc/data/tsdb-index-cache
+    shared_store: s3
+
+  aws:
+    s3: s3://admin:admin@seaweedfs-filer.service.consul:9534/loki
+    s3forcepathstyle: true
+
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 100h
+
+compactor:
+  working_directory: /alloc/data/compactor
+  shared_store: s3
+  compaction_interval: 10m
+  retention_enabled: true
+
+ingester:
+  max_chunk_age: 10m
+  wal:
+    dir: /alloc/data/wal
+    flush_on_shutdown: true

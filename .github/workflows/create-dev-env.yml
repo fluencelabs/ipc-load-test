@@ -22,7 +22,8 @@ jobs:
     if: contains(github.event.pull_request.labels.*.name, 'dev-create')
 
     outputs:
-      jobs: "${{ steps.jobs.outputs.jobs }}"
+      infra_jobs: "${{ steps.jobs.outputs.infra_jobs }}"
+      default_jobs: "${{ steps.jobs.outputs.default_jobs }}"
 
     steps:
       - name: Checkout
@@ -58,10 +59,12 @@ jobs:
         id: jobs
         run: |
           # create matrix with jobs
-          jobs=$(find dev-env/jobs/* -maxdepth 0 -type d  | jq -R . | jq -sc .)
-          echo "jobs=${jobs}" >> $GITHUB_OUTPUT
+          infra_jobs=$(find dev-env/jobs/infra/* -maxdepth 0 -type d  | jq -R . | jq -sc .)
+          default_jobs=$(find dev-env/jobs/default/* -maxdepth 0 -type d  | jq -R . | jq -sc .)
+          echo "infra_jobs=${infra_jobs}" >> $GITHUB_OUTPUT
+          echo "default_jobs=${default_jobs}" >> $GITHUB_OUTPUT
 
-  provision:
+  infra:
     needs:
       - create
       - prepare
@@ -69,12 +72,24 @@ jobs:
     uses: ./.github/workflows/terraform.yml
     with:
       workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
-      matrix: "${{ needs.prepare.outputs.jobs }}"
+      matrix: "${{ needs.prepare.outputs.infra_jobs }}"
+
+  default:
+    needs:
+      - create
+      - prepare
+      - infra
+
+    uses: ./.github/workflows/terraform.yml
+    with:
+      workspace: "${{ github.repository_id }}-${{ github.event.pull_request.number }}"
+      matrix: "${{ needs.prepare.outputs.default_jobs }}"
 
   ready:
     runs-on: ubuntu-latest
     needs:
-      - provision
+      - infra
+      - default
 
     steps:
       - name: Find comment
@@ -99,6 +114,12 @@ jobs:
             ### IPC
             eth-api accessible through load-balancers is running at `https://ipc.${{ env.WORKSPACE }}.fluence.dev`
             Each ipc host is also running eth-api instance accessible at `http://ipc-<index>.${{ env.WORKSPACE }}.fluence.dev:8545`
+
+            ## Services
+            | name | address |
+            | ---- | ------- |
+            | postgres | `postgres.${{ env.WORKSPACE }}.fluence.dev:5433` |
+            | webdav | `https://webdav.${{ env.WORKSPACE }}.fluence.dev` |
 
             ### Variables
             ```shell
