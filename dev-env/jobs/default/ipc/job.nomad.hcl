@@ -458,9 +458,9 @@ job "ipc" {
       }
 
       resources {
-        cpu        = 50
-        memory     = 64
-        memory_max = 128
+        cpu        = 100
+        memory     = 256
+        memory_max = 512
       }
 
       env {
