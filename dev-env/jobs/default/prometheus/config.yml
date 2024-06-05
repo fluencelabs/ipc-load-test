@@ -50,6 +50,9 @@ scrape_configs:
         target_label: "__address__"
 
   - job_name: "nomad"
+    metrics_path: "/v1/metrics"
+    params:
+      format: ["prometheus"]
     consul_sd_configs:
       - server: http://127.0.0.1:8500
         services:
@@ -59,6 +62,9 @@ scrape_configs:
         target_label: "instance"
 
   - job_name: "consul"
+    metrics_path: "/v1/agent/metrics"
+    params:
+      format: ["prometheus"]
     consul_sd_configs:
       - server: http://127.0.0.1:8500
         services:
@@ -77,6 +83,7 @@ scrape_configs:
         target_label: "instance"
 
   - job_name: "cadvisor"
+    honor_timestamps: true
     consul_sd_configs:
       - server: http://127.0.0.1:8500
         services:

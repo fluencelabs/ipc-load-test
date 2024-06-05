@@ -1,65 +1,4 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_Mimir",
-      "label": "Mimir",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "Mimir",
-      "pluginName": "Mimir"
-    }
-  ],
-  "__elements": {},
-  "__requires": [
-    {
-      "type": "panel",
-      "id": "bargauge",
-      "name": "Bar gauge",
-      "version": ""
-    },
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "11.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "heatmap",
-      "name": "Heatmap",
-      "version": ""
-    },
-    {
-      "type": "datasource",
-      "id": "Mimir",
-      "name": "Mimir",
-      "version": "1.0.0"
-    },
-    {
-      "type": "panel",
-      "id": "stat",
-      "name": "Stat",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "table",
-      "name": "Table",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "text",
-      "name": "Text",
-      "version": ""
-    },
-    {
-      "type": "panel",
-      "id": "timeseries",
-      "name": "Time series",
-      "version": ""
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -82,20 +21,20 @@
       }
     ]
   },
-  "description": "",
+  "description": "Envoy stats",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "gnetId": 15859,
   "graphTooltip": 1,
-  "id": null,
+  "id": 6,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "collapsed": false,
       "datasource": {
-        "type": "Mimir",
-        "uid": "PBFA97CFB590B2093"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "gridPos": {
         "h": 1,
@@ -108,8 +47,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "PBFA97CFB590B2093"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "refId": "A"
         }
@@ -119,42 +58,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
-      },
-      "gridPos": {
-        "h": 5,
-        "w": 2,
-        "x": 0,
-        "y": 1
-      },
-      "id": 57,
-      "options": {
-        "code": {
-          "language": "plaintext",
-          "showLineNumbers": false,
-          "showMiniMap": false
-        },
-        "content": "<img src=https://cncf-branding.netlify.app/img/projects/envoy/stacked/color/envoy-stacked-color.png />",
-        "mode": "html"
-      },
-      "pluginVersion": "11.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
-          },
-          "refId": "A"
-        }
-      ],
-      "transparent": true,
-      "type": "text"
-    },
-    {
-      "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "",
       "fieldConfig": {
@@ -224,8 +129,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_server_live{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ",
@@ -242,8 +147,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "",
       "fieldConfig": {
@@ -306,8 +211,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_server_days_until_first_cert_expiring{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ",
@@ -325,22 +230,22 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "Mimir",
-        "uid": "PBFA97CFB590B2093"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 6
+        "y": 5
       },
       "id": 36,
       "panels": [],
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "PBFA97CFB590B2093"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "refId": "A"
         }
@@ -350,8 +255,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "",
       "fieldConfig": {
@@ -397,7 +302,7 @@
         "h": 7,
         "w": 9,
         "x": 0,
-        "y": 7
+        "y": 6
       },
       "id": 38,
       "interval": "1m",
@@ -417,8 +322,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_listener_manager_lds_update_time{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"} ",
@@ -468,8 +373,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Sum of all listeners ",
       "fieldConfig": {
@@ -498,7 +403,7 @@
         "h": 7,
         "w": 3,
         "x": 9,
-        "y": 7
+        "y": 6
       },
       "id": 59,
       "options": {
@@ -521,8 +426,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "sum(envoy_listener_manager_total_listeners_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ) by (consul_source_datacenter) ",
@@ -539,8 +444,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total listeners added (either via static config or LDS).\nTotal listeners modified (via LDS).\nTotal listeners removed (via LDS).\nTotal listeners stopped.\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -603,7 +508,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 7
+        "y": 6
       },
       "id": 37,
       "interval": "1m",
@@ -629,8 +534,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_added{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} != 0",
@@ -640,8 +545,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_modified{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"}  != 0",
@@ -652,8 +557,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_removed{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"}  != 0",
@@ -664,8 +569,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "envoy_listener_manager_listener_stopped{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"}  != 0",
@@ -681,8 +586,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total connections rejected due to configured overload actions\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -745,7 +650,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 14
+        "y": 13
       },
       "id": 48,
       "interval": "1m",
@@ -772,8 +677,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_cx_overload_reject{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -788,8 +693,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total active connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -865,7 +770,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 14
+        "y": 13
       },
       "id": 53,
       "interval": "1m",
@@ -891,8 +796,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_cx_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval]) ",
@@ -903,8 +808,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_cx_destroy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval]) ",
@@ -920,8 +825,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total connections that didn’t match any filter chain\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -984,7 +889,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 14
+        "y": 13
       },
       "id": 52,
       "interval": "1m",
@@ -1011,8 +916,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_no_filter_chain_match{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -1027,8 +932,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total connections rejected due to enforcement of global connection limit\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -1037,9 +942,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1051,7 +953,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1074,8 +975,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1091,7 +991,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 21
+        "y": 20
       },
       "id": 49,
       "interval": "1m",
@@ -1109,17 +1009,15 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "repeatDirection": "h",
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_global_cx_overflow{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -1134,8 +1032,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Sockets currently undergoing listener filter processing\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -1144,9 +1042,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1158,7 +1053,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1181,8 +1075,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1198,7 +1091,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 21
+        "y": 20
       },
       "id": 51,
       "interval": "1m",
@@ -1216,17 +1109,15 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "repeatDirection": "h",
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "envoy_listener_downstream_pre_cx_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}",
@@ -1241,8 +1132,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Sockets that timed out during listener filter processing\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/stats",
       "fieldConfig": {
@@ -1251,9 +1142,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1265,7 +1153,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1288,8 +1175,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1305,7 +1191,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 21
+        "y": 20
       },
       "id": 50,
       "interval": "1m",
@@ -1323,17 +1209,15 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "repeatDirection": "h",
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "rate(envoy_listener_downstream_pre_cx_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"}[$__interval])",
@@ -1349,22 +1233,22 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "Mimir",
-        "uid": "PBFA97CFB590B2093"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 27
       },
       "id": 12,
       "panels": [],
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "PBFA97CFB590B2093"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "refId": "A"
         }
@@ -1374,8 +1258,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "",
       "fieldConfig": {
@@ -1387,16 +1271,14 @@
             "align": "auto",
             "cellOptions": {
               "type": "auto"
-            },
-            "inspect": false
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "blue",
-                "value": null
+                "color": "blue"
               }
             ]
           },
@@ -1421,14 +1303,12 @@
         "h": 7,
         "w": 9,
         "x": 0,
-        "y": 29
+        "y": 28
       },
       "id": 54,
       "interval": "1m",
       "options": {
-        "cellHeight": "sm",
         "footer": {
-          "countRows": false,
           "fields": "",
           "reducer": [
             "sum"
@@ -1437,12 +1317,12 @@
         },
         "showHeader": false
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "8.3.2",
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_cluster_manager_cds_update_time{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\"} ",
@@ -1492,8 +1372,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Sum of all clusters",
       "fieldConfig": {
@@ -1506,8 +1386,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1522,7 +1401,7 @@
         "h": 7,
         "w": 3,
         "x": 9,
-        "y": 29
+        "y": 28
       },
       "id": 60,
       "options": {
@@ -1537,16 +1416,14 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "auto"
       },
-      "pluginVersion": "11.0.0",
+      "pluginVersion": "8.3.2",
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "sum(envoy_cluster_manager_active_clusters{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} ) by (consul_source_datacenter) ",
@@ -1563,8 +1440,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Current healthy/degraded/excluded members\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -1573,9 +1450,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1587,7 +1461,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1609,8 +1482,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1626,7 +1498,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 29
+        "y": 28
       },
       "id": 32,
       "interval": "1m",
@@ -1644,16 +1516,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_cluster_membership_degraded{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target=~\"^$consul_destination_target$\"} != 0",
@@ -1664,8 +1534,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_cluster_membership_excluded{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target=~\"^$consul_destination_target$\"} != 0",
@@ -1676,8 +1546,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_cluster_membership_healthy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target=~\"^$consul_destination_target$\"} != 0",
@@ -1693,8 +1563,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Number of currently ejected hosts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats#outlier-detection-statistics",
       "fieldConfig": {
@@ -1703,9 +1573,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1717,7 +1584,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1740,8 +1606,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1757,7 +1622,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 36
+        "y": 35
       },
       "id": 72,
       "interval": "1m",
@@ -1775,16 +1640,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_cluster_outlier_detection_ejections_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}",
@@ -1799,8 +1662,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Number of enforced consecutive 5xx ejections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats#outlier-detection-statistics",
       "fieldConfig": {
@@ -1809,9 +1672,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1823,7 +1683,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1846,8 +1705,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1863,7 +1721,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 36
+        "y": 35
       },
       "id": 73,
       "interval": "1m",
@@ -1881,16 +1739,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_outlier_detection_ejections_enforced_consecutive_5xx{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}[$__interval])",
@@ -1905,8 +1761,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Number of enforced consecutive  gateway failure ejections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats#outlier-detection-statistics",
       "fieldConfig": {
@@ -1915,9 +1771,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -1929,7 +1782,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1952,8 +1804,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1969,7 +1820,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 36
+        "y": 35
       },
       "id": 74,
       "interval": "1m",
@@ -1987,16 +1838,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_outlier_detection_ejections_enforced_consecutive_gateway_failure{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}[$__interval])",
@@ -2011,8 +1860,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total active connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2021,9 +1870,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2035,7 +1881,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2057,8 +1902,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2074,7 +1918,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 44
+        "y": 43
       },
       "id": 28,
       "interval": "1m",
@@ -2092,16 +1936,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "envoy_cluster_upstream_cx_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\"}",
@@ -2117,8 +1959,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total connections closed via HTTP/1.1 connection close header or HTTP/2 or HTTP/3 GOAWAY\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2127,9 +1969,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2141,7 +1980,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2164,8 +2002,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2181,7 +2018,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 44
+        "y": 43
       },
       "id": 65,
       "interval": "30s",
@@ -2200,16 +2037,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_cx_close_notify{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -2225,8 +2060,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total connection failures\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2235,9 +2070,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2249,7 +2081,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2271,8 +2102,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2288,7 +2118,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 53
+        "y": 52
       },
       "id": 61,
       "interval": "1m",
@@ -2306,16 +2136,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_connect_fail{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2330,8 +2158,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total connection connect/idle timeouts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2340,9 +2168,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2354,7 +2179,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2376,8 +2200,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2393,7 +2216,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 53
+        "y": 52
       },
       "id": 66,
       "interval": "1m",
@@ -2411,16 +2234,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_connect_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2430,8 +2251,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_idle_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2447,8 +2268,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total consecutive connection failures exceeding configured connection attempts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2457,9 +2278,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2471,7 +2289,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2494,8 +2311,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2511,7 +2327,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 53
+        "y": 52
       },
       "id": 14,
       "interval": "30s",
@@ -2530,16 +2346,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_cx_connect_attempts_exceeded{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -2555,8 +2369,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total destroyed connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2565,9 +2379,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2579,7 +2390,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2601,8 +2411,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2618,7 +2427,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 60
+        "y": 59
       },
       "id": 67,
       "interval": "1m",
@@ -2636,16 +2445,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2660,8 +2467,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total destroyed local connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2670,9 +2477,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2684,7 +2488,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2706,8 +2509,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2723,7 +2525,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 60
+        "y": 59
       },
       "id": 68,
       "interval": "1m",
@@ -2741,16 +2543,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_local{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2760,8 +2560,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_local_with_active_rq{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2777,8 +2577,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total destroyed remote connections\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2787,9 +2587,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2801,7 +2598,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2823,8 +2619,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2840,7 +2635,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 60
+        "y": 59
       },
       "id": 69,
       "interval": "1m",
@@ -2858,16 +2653,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_remote{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2877,8 +2670,8 @@
         },
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_destroy_remote_with_active_rq{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2894,8 +2687,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total times connection not established due to no healthy hosts\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -2904,9 +2697,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -2918,7 +2708,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -2940,8 +2729,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2957,7 +2745,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 67
+        "y": 66
       },
       "id": 70,
       "interval": "1m",
@@ -2975,16 +2763,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_none_healthy{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -2999,8 +2785,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total connection protocol errors\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3009,9 +2795,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3023,7 +2806,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3045,8 +2827,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3062,7 +2843,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 67
+        "y": 66
       },
       "id": 71,
       "interval": "1m",
@@ -3080,16 +2861,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_cx_protocol_error{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"} [1m]) ",
@@ -3104,8 +2883,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/outlier#arch-overview-outlier-detection",
       "fieldConfig": {
@@ -3114,9 +2893,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3128,7 +2904,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3151,8 +2926,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3168,7 +2942,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 74
+        "y": 73
       },
       "id": 55,
       "interval": "1m",
@@ -3186,16 +2960,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "rate(envoy_cluster_upstream_cx_tx_bytes_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\"} [$__interval:])",
@@ -3211,8 +2983,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/outlier#arch-overview-outlier-detection",
       "fieldConfig": {
@@ -3221,9 +2993,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3235,7 +3004,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3258,8 +3026,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3275,7 +3042,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 74
+        "y": 73
       },
       "id": 64,
       "interval": "1m",
@@ -3293,16 +3060,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "rate(envoy_cluster_upstream_cx_rx_bytes_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"$local_cluster\",consul_destination_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\"} [$__interval:])",
@@ -3318,8 +3083,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "rate of Total requests\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3328,9 +3093,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3342,7 +3104,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3365,8 +3126,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3382,7 +3142,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 83
+        "y": 82
       },
       "id": 13,
       "interval": "1m",
@@ -3400,16 +3160,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_total{consul_destination_target!=\"\",consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3424,8 +3182,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total active requests",
       "fieldConfig": {
@@ -3434,9 +3192,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3448,7 +3203,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3471,8 +3225,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3488,7 +3241,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 83
+        "y": 82
       },
       "id": 10,
       "interval": "1m",
@@ -3506,16 +3259,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "sum(envoy_cluster_upstream_rq_active{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\"}) by (consul_source_datacenter,consul_source_service,kubernetes_pod_name,envoy_cluster_name)",
@@ -3530,8 +3281,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total requests that timed out waiting for a response\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3540,9 +3291,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3554,7 +3302,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3577,8 +3324,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3594,7 +3340,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 83
+        "y": 82
       },
       "id": 80,
       "interval": "1m",
@@ -3612,16 +3358,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_timeout{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3636,8 +3380,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total upstream requests completed\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3646,9 +3390,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3660,7 +3401,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3683,8 +3423,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3700,7 +3439,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 91
+        "y": 90
       },
       "id": 75,
       "interval": "1m",
@@ -3718,16 +3457,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_completed{consul_destination_target!=\"\",consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3742,8 +3479,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total requests cancelled before obtaining a connection pool connection\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3752,9 +3489,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3766,7 +3500,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3789,8 +3522,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3806,7 +3538,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 91
+        "y": 90
       },
       "id": 76,
       "interval": "1m",
@@ -3824,16 +3556,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_cancelled{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3848,8 +3578,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total requests closed due to max duration reached\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3858,9 +3588,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3872,7 +3599,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -3895,8 +3621,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -3912,7 +3637,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 91
+        "y": 90
       },
       "id": 77,
       "interval": "1m",
@@ -3930,16 +3655,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "increase(envoy_cluster_upstream_rq_max_duration_reached{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\"} [$__interval])",
@@ -3954,8 +3677,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total requests pending a connection pool connection\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -3964,9 +3687,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -3978,7 +3698,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4001,8 +3720,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4018,7 +3736,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 99
+        "y": 98
       },
       "id": 63,
       "interval": "30s",
@@ -4037,16 +3755,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_rq_pending_total{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -4062,8 +3778,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total requests that were failed due to a connection pool connection failure or remote connection termination\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -4072,9 +3788,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -4086,7 +3799,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4109,8 +3821,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4126,7 +3837,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 99
+        "y": 98
       },
       "id": 78,
       "interval": "30s",
@@ -4145,16 +3856,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_rq_pending_failure_eject{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -4170,8 +3879,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "Total requests that overflowed connection pool or requests (mainly for HTTP/2 and above) circuit breaking and were failed\nhttps://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
       "fieldConfig": {
@@ -4180,9 +3889,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -4194,7 +3900,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4217,8 +3922,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4234,7 +3938,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 99
+        "y": 98
       },
       "id": 79,
       "interval": "30s",
@@ -4253,16 +3957,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "delta(envoy_cluster_upstream_rq_pending_overflow{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[1m])",
@@ -4278,8 +3980,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "",
       "fieldConfig": {
@@ -4288,9 +3990,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -4302,7 +4001,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4325,8 +4023,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4342,7 +4039,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 107
+        "y": 106
       },
       "id": 47,
       "interval": "1m",
@@ -4360,16 +4057,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "rate(envoy_cluster_external_upstream_rq{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[$__interval]) != 0",
@@ -4393,30 +4088,15 @@
       },
       "dataFormat": "tsbuckets",
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_stats",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "scaleDistribution": {
-              "type": "linear"
-            }
-          }
-        },
-        "overrides": []
-      },
       "gridPos": {
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 107
+        "y": 106
       },
       "heatmap": {},
       "hideZeroBuckets": true,
@@ -4426,52 +4106,12 @@
       "legend": {
         "show": true
       },
-      "options": {
-        "calculate": false,
-        "calculation": {},
-        "cellGap": 2,
-        "cellValues": {},
-        "color": {
-          "exponent": 0.5,
-          "fill": "#b4ff00",
-          "mode": "scheme",
-          "reverse": false,
-          "scale": "exponential",
-          "scheme": "Spectral",
-          "steps": 128
-        },
-        "exemplars": {
-          "color": "rgba(255,0,255,0.7)"
-        },
-        "filterValues": {
-          "le": 1e-9
-        },
-        "legend": {
-          "show": true
-        },
-        "rowsFrame": {
-          "layout": "auto"
-        },
-        "showValue": "never",
-        "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "showColorScale": false,
-          "yHistogram": false
-        },
-        "yAxis": {
-          "axisPlacement": "left",
-          "reverse": false,
-          "unit": "dtdurationms"
-        }
-      },
-      "pluginVersion": "11.0.0",
       "reverseYBuckets": false,
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": true,
           "expr": "sum(rate(envoy_cluster_external_upstream_rq_time_bucket{consul_source_datacenter=~\"^$consul_source_datacenter$\",local_cluster=~\"^$local_cluster$\",consul_full_target!=\"\",consul_destination_target=~\"^$consul_destination_target$\",consul_destination_target!=\"\"}[$__interval])) by (le)",
@@ -4501,22 +4141,22 @@
     {
       "collapsed": false,
       "datasource": {
-        "type": "Mimir",
-        "uid": "PBFA97CFB590B2093"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 114
+        "y": 113
       },
       "id": 16,
       "panels": [],
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "PBFA97CFB590B2093"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "refId": "A"
         }
@@ -4526,8 +4166,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4536,9 +4176,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -4550,7 +4187,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4572,8 +4208,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4589,7 +4224,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 115
+        "y": 114
       },
       "id": 18,
       "interval": "1m",
@@ -4607,16 +4242,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_success\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4631,8 +4264,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4641,9 +4274,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -4655,7 +4285,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4677,8 +4306,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4694,7 +4322,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 115
+        "y": 114
       },
       "id": 23,
       "interval": "1m",
@@ -4712,16 +4340,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_failure\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4736,8 +4362,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4746,9 +4372,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -4760,7 +4383,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4782,8 +4404,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4799,7 +4420,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 123
+        "y": 122
       },
       "id": 24,
       "interval": "1m",
@@ -4817,16 +4438,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_request_message_count\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4841,8 +4460,8 @@
     },
     {
       "datasource": {
-        "type": "Mimir",
-        "uid": "Mimir"
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
       },
       "description": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter",
       "fieldConfig": {
@@ -4851,9 +4470,6 @@
             "mode": "palette-classic"
           },
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -4865,7 +4481,6 @@
               "tooltip": false,
               "viz": false
             },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -4887,8 +4502,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -4904,7 +4518,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 123
+        "y": 122
       },
       "id": 25,
       "interval": "1m",
@@ -4922,16 +4536,14 @@
           "sortDesc": true
         },
         "tooltip": {
-          "maxHeight": 600,
-          "mode": "single",
-          "sort": "none"
+          "mode": "single"
         }
       },
       "targets": [
         {
           "datasource": {
-            "type": "Mimir",
-            "uid": "Mimir"
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
           },
           "exemplar": false,
           "expr": "rate(label_replace({consul_source_datacenter=~\"$consul_source_datacenter\",consul_full_target!=\"\",__name__=~\"envoy_cluster_grpc_.+_response_message_count\"},\"name_label\",\"$1\",\"__name__\", \"(.+)\") [$__interval:])",
@@ -4951,10 +4563,14 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "751268211-17",
+          "value": "751268211-17"
+        },
         "datasource": {
-          "type": "Mimir",
-          "uid": "Mimir"
+          "type": "prometheus",
+          "uid": "PAE45454D0EDB9216"
         },
         "definition": "label_values(envoy_cluster_version,consul_source_datacenter)",
         "hide": 0,
@@ -4974,10 +4590,14 @@
       },
       {
         "allValue": ".*",
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
-          "type": "Mimir",
-          "uid": "Mimir"
+          "type": "prometheus",
+          "uid": "PAE45454D0EDB9216"
         },
         "definition": "label_values(envoy_server_live{consul_source_datacenter=\"$consul_source_datacenter\"},local_cluster)",
         "hide": 0,
@@ -4997,10 +4617,14 @@
       },
       {
         "allValue": ".*",
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
-          "type": "Mimir",
-          "uid": "Mimir"
+          "type": "prometheus",
+          "uid": "PAE45454D0EDB9216"
         },
         "definition": "label_values(envoy_cluster_upstream_rq_time_bucket{consul_source_datacenter=\"$consul_source_datacenter\",local_cluster=\"$local_cluster\"},consul_destination_target)",
         "hide": 0,
@@ -5028,7 +4652,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "Consul Mesh Metrics",
-  "uid": "zUb5Sya7z",
-  "version": 2,
+  "uid": "zUb5Sya7Z",
+  "version": 1,
   "weekStart": ""
 }

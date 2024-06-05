@@ -26,6 +26,6 @@ provider "postgresql" {
   database         = "postgres"
   username         = "postgres"
   password         = "postgres"
-  superuser        = true
+  superuser        = false
   sslmode          = "disable"
 }
