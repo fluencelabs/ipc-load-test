@@ -71,7 +71,7 @@ job "prometheus" {
 
       resources {
         cpu        = 100
-        memory     = 128
+        memory     = 300
         memory_max = 512
       }
     }
