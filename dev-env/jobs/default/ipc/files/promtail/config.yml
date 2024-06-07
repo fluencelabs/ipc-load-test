@@ -83,7 +83,7 @@ scrape_configs:
           __path__: "/alloc/logs/fendermint.stdout.*"
     pipeline_stages:
       - regex:
-          expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)(?P<unit>µs)'
+          expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)'
       - template:
           source: |
             {{ .duration }}{{ .unit }}
