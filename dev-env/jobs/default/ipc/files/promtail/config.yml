@@ -1,3 +1,6 @@
+server:
+  log_level: debug
+
 positions:
   filename: "/alloc/data/positions.yml"
 
@@ -42,7 +45,7 @@ scrape_configs:
           instance: "fendermint-${INDEX}"
           group: validators
           task: fendermint
-          __path__: "/alloc/logs/fendermint_stderr.*"
+          __path__: "/alloc/logs/fendermint.stderr.*"
     pipeline_stages:
       - regex:
           expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
@@ -80,7 +83,7 @@ scrape_configs:
           __path__: "/alloc/logs/fendermint.stdout.*"
     pipeline_stages:
       - regex:
-          expression: 'run_randomx_batched: (?P<operation>\w+) took (?P<duration>[\d\.]+)(?P<unit>µs)'
+          expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)(?P<unit>µs)'
       - template:
           source: |
             {{ .duration }}ms
@@ -91,7 +94,7 @@ scrape_configs:
             type: histogram
             source: fixed_duration
             config:
-              buckets: [0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000]
+              buckets: [1, 10, 100, 1000, 10000, 100000, 1000000]
       - labels:
           operation:
 
