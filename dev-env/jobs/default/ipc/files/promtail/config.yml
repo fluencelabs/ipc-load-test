@@ -17,10 +17,10 @@ scrape_configs:
           __path__: "/alloc/logs/cometbft.*"
     pipeline_stages:
       - regex:
-          expression: '^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\] (?P<message>.*)$'
+          expression: "^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\] (?P<message>.*)$"
       - timestamp:
           source: timestamp
-          format: '2006-01-02|15:04:05.999'
+          format: "2006-01-02|15:04:05.999"
       - template:
           source: level
           template: |
@@ -42,13 +42,13 @@ scrape_configs:
           instance: "fendermint-${INDEX}"
           group: validators
           task: fendermint
-          __path__: "/alloc/logs/fendermint.*"
+          __path__: "/alloc/logs/fendermint_stderr.*"
     pipeline_stages:
       - regex:
-          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+          expression: "^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)"
       - timestamp:
           source: timestamp
-          format: 'RFC3339'
+          format: "RFC3339"
       - labels:
           level:
       - drop:
@@ -64,9 +64,33 @@ scrape_configs:
           __path__: "/alloc/logs/eth-api.*"
     pipeline_stages:
       - regex:
-          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+          expression: "^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)"
       - timestamp:
           source: timestamp
-          format: 'RFC3339'
+          format: "RFC3339"
       - labels:
           level:
+
+  - job_name: "random_logs"
+    static_configs:
+      - labels:
+          instance: "fendermint-${INDEX}"
+          group: validators
+          task: randomx
+          __path__: "/alloc/logs/fendermint.stdout.*"
+
+    pipeline_stages:
+      - regex:
+          expression: "run_randomx_batched: (?P<operation>\w+) (?P<duration>[\d\.]+)(?P<unit>µ?s)"
+      - duration:
+          source: duration
+          unit: µs
+      - metrics:
+          randomx_duration_histogram:
+            description: "Histogram of durations for RandomX operations"
+            type: histogram
+            buckets: [0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000]
+            match: "true"
+            labels:
+              operation: "{{ .operation }}"
+      - drop: {}
