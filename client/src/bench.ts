@@ -151,21 +151,26 @@ export async function bench({
   console.log("Initializing senders...");
 
   const rpcs: Record<number, ethers.JsonRpcProvider> = {};
-  const senders: Sender[] = [];
-  for (let i = 0; i < pkeys.length; i++) {
-    const nodeId = idToNodeId(i);
-    if (rpcs[nodeId] === undefined) {
-      const nodeRpc = new ethers.JsonRpcProvider(ETH_API_URL(i));
-      await nodeRpc.on("error", (e) => {
-        console.log("WARNING: Node", i, "RPC error:", e);
-      });
-      rpcs[nodeId] = nodeRpc;
-    }
+  const senders: Sender[] = await Promise.all(
+    pkeys.map(async (key, idx) => {
+      const nodeId = idToNodeId(idx);
+      if (rpcs[nodeId] === undefined) {
+        console.log("Initializing RPC to node", nodeId);
+        const nodeRpc = new ethers.JsonRpcProvider(ETH_API_URL(idx));
+        rpcs[nodeId] = nodeRpc;
+        await nodeRpc.on("error", (e) => {
+          console.log("WARNING: Node", nodeId, "RPC error:", e);
+        });
+        console.log("RPC to node", nodeId, "initialized");
+      }
 
-    const senderSigner = new ethers.Wallet(pkeys[i]!, rpcs[nodeId]!);
-    const sender = await Sender.create(i, senderSigner, metrics);
-    senders.push(sender);
-  }
+      const senderSigner = new ethers.Wallet(key, rpcs[nodeId]!);
+      console.log("Initializing sender", idx);
+      const sender = await Sender.create(idx, senderSigner, metrics);
+      console.log("Sender", idx, "initialized");
+      return sender;
+    })
+  );
 
   // We don't need it anymore
   await rpc.removeAllListeners();

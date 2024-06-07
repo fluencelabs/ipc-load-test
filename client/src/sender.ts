@@ -60,7 +60,7 @@ export class Sender {
     return new Sender(id, signer, nonce, capacity, metrics);
   }
 
-  async check(solutions: Solution[], labels: Labels, timeout = 20 * 60 * 1000) {
+  async check(solutions: Solution[], labels: Labels, timeout = 5 * 60 * 1000) {
     const unitIds = solutions.map(s => s.cu_id);
     const localNonces = solutions.map(s => s.local_nonce);
     const resultHashes = solutions.map(s => s.result_hash);
@@ -92,8 +92,8 @@ export class Sender {
 
           if (status != "error") {
             console.error(
-              "WARNING: Retrying in", 
-              d, 
+              "WARNING: Retrying in",
+              d,
               "transaction",
               nonce,
               "of sender",
@@ -103,8 +103,8 @@ export class Sender {
             );
           } else {
             console.error(
-              "WARNING: Retrying in", 
-              d, 
+              "WARNING: Retrying in",
+              d,
               "transaction",
               nonce,
               "after unknown error:",
