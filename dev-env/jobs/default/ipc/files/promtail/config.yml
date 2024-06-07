@@ -81,13 +81,9 @@ scrape_configs:
     pipeline_stages:
       - regex:
           expression: 'run_randomx_batched: (?P<operation>\w+) took (?P<duration>[\d\.]+)(?P<unit>µs)'
-      - replace:
-          expression: 'µs'
-          replace: 'us'
-          source: unit
       - template:
           source: |
-            {{ .duration }}{{ .unit }}
+            {{ .duration }}ms
           target: fixed_duration
       - metrics:
           randomx_duration:
