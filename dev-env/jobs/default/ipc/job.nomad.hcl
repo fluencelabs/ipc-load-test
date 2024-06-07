@@ -137,7 +137,7 @@ job "ipc" {
         port = "fendermint-metrics"
 
         meta {
-          instance = "fendermnit-${meta.ipc_node_index}"
+          instance = "fendermint-${meta.ipc_node_index}"
         }
       }
 
@@ -414,6 +414,15 @@ job "ipc" {
       lifecycle {
         hook    = "poststart"
         sidecar = true
+      }
+
+      service {
+        name = "ipc-promtail"
+        port = "promtail"
+
+        meta {
+          instance = "fendermint-${meta.ipc_node_index}"
+        }
       }
 
       resources {

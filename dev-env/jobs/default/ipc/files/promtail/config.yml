@@ -42,7 +42,7 @@ scrape_configs:
           instance: "fendermint-${INDEX}"
           group: validators
           task: fendermint
-          __path__: "/alloc/logs/fendermint.*"
+          __path__: "/alloc/logs/fendermint_stderr.*"
     pipeline_stages:
       - regex:
           expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
@@ -70,3 +70,35 @@ scrape_configs:
           format: 'RFC3339'
       - labels:
           level:
+
+  - job_name: "randomx"
+    static_configs:
+      - labels:
+          instance: "fendermint-${INDEX}"
+          group: validators
+          task: randomx
+          __path__: "/alloc/logs/fendermint.stdout.*"
+    pipeline_stages:
+      - regex:
+          expression: 'run_randomx_batched: (?P<operation>\w+) took (?P<duration>[\d\.]+)(?P<unit>µs)'
+      - replace:
+          expression: 'µs'
+          replace: 'us'
+          source: unit
+      - template:
+          source: |
+            {{ .duration }}{{ .unit }}
+          target: fixed_duration
+      - metrics:
+          randomx_duration:
+            description: "Duration of RandomX operations"
+            type: histogram
+            source: fixed_duration
+            config:
+              buckets: [0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000]
+      - labels:
+          operation:
+
+      - match:
+          selector: '{task="randomx"}'
+          action: drop
