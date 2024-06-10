@@ -1,7 +1,7 @@
 instances = [
   {
     type  = "s-4vcpu-8gb",
-    count = 3
+    count = 6
   },
 ]
 
