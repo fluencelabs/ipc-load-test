@@ -59,7 +59,7 @@ PRIVATE_KEY=0x$(cat ~/.ipc/r0/ipc-node/node0/keys/validator_key.sk | base64 -d |
 
 Just open PR in this repository and add a `dev-create` tag to it.
 
-### Deploy contracts
+## Deploy contracts
 
 First of all: build contracts:
 
@@ -103,7 +103,7 @@ make build-ts-client
 
 NOTE: This will update contracts addresses in ts-client from deployment info.
 
-### Run prover
+## Run prover
 
 Run prover:
 
@@ -118,7 +118,7 @@ NOTE: If you rerun the test, it is better to clean CCP state:
 rm -rf ../ccp_state
 ```
 
-### Run test
+## Run test
 
 First of all, set address of your eth-api in function `ETH_API_URL` in `client/src/const.ts`.
 
