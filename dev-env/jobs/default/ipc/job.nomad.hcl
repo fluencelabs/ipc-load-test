@@ -15,6 +15,13 @@ job "ipc" {
   type      = "system"
   node_pool = "ipc"
 
+  restart {
+    attempts = 5
+    delay    = "5s"
+    interval = "1m"
+    mode     = "delay"
+  }
+
   group "validators" {
     volume "cometbft" {
       type   = "host"
@@ -120,7 +127,7 @@ job "ipc" {
     }
 
     task "fendermint" {
-      driver = "docker"
+      driver       = "docker"
       kill_timeout = "60s"
 
       volume_mount {
@@ -145,7 +152,7 @@ job "ipc" {
       resources {
         cpu        = 3000
         memory     = 4000
-        memory_max = 5000
+        memory_max = 5500
       }
 
       config {
@@ -228,8 +235,8 @@ job "ipc" {
     }
 
     task "cometbft" {
-      driver = "docker"
-      user   = "root"
+      driver       = "docker"
+      user         = "root"
       kill_timeout = "60s"
 
       env {
@@ -371,7 +378,7 @@ job "ipc" {
     }
 
     task "eth-api" {
-      driver = "docker"
+      driver       = "docker"
       kill_timeout = "60s"
 
       lifecycle {
