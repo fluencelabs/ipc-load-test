@@ -60,7 +60,7 @@ export class Sender {
     return new Sender(id, signer, nonce, capacity, metrics);
   }
 
-  async check(solutions: Solution[], labels: Labels, timeout = 5 * 60 * 1000) {
+  async check(solutions: Solution[], labels: Labels, backoff?: number | undefined, timeout = 5 * 60 * 1000) {
     const unitIds = solutions.map(s => s.cu_id);
     const localNonces = solutions.map(s => s.local_nonce);
     const resultHashes = solutions.map(s => s.result_hash);
@@ -76,7 +76,7 @@ export class Sender {
     });
 
     const result = await timeouted(async () => {
-      let backoff = new ExponentialBackoff(100);
+      let back = backoff ? new ExponentialBackoff(backoff) : undefined;
       let receipt: ethers.TransactionResponse | undefined = undefined;
       while (receipt === undefined) {
         try {
@@ -88,12 +88,12 @@ export class Sender {
 
           end({ status });
 
-          const d = backoff.next();
+          const d = back?.next();
 
           if (status != "error") {
             console.error(
-              "WARNING: Retrying in",
-              d,
+              "WARNING:",
+              d ? `Retrying in ${d} seconds` : "Not retrying",
               "transaction",
               nonce,
               "of sender",
@@ -103,20 +103,26 @@ export class Sender {
             );
           } else {
             console.error(
-              "WARNING: Retrying in",
-              d,
+              "WARNING:",
+              d ? `Retrying in ${d} seconds` : "Not retrying",
               "transaction",
               nonce,
+              "of sender",
+              this.id,
               "after unknown error:",
               e
             );
           }
 
-          await delay(d);
+          if (d) {
+            await delay(d);
+          } else {
+            return status;
+          }
         }
       }
 
-      backoff = new ExponentialBackoff(100);
+      back = new ExponentialBackoff(100);
       while (receipt !== undefined) {
         try {
           await receipt.wait(DEFAULT_CONFIRMATIONS, timeout);
@@ -134,7 +140,12 @@ export class Sender {
 
           console.error("WARNING: Error waiting for confirmation:", message);
 
-          await delay(backoff.next());
+          const d = back?.next();
+          if (d) {
+            await delay(d);
+          } else {
+            return "confirm-error";
+          }
         }
       }
 

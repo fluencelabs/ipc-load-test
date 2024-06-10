@@ -1,13 +1,13 @@
 import { bench } from "./bench.js";
 
-const interval = 1900;
+const interval = 3000;
 const duration = 20 * 60 * 1000;
 const batches = Math.floor(duration / interval)
 await bench({
   interval: interval,
-  cusNumber: 8,
+  cusNumber: 4,
   sendersNumber: batches,
-  batchSize: 96,
+  batchSize: 16,
   batchesToSend: batches,
   configPath: "./config.json",
   metricsPath: "./metrics.json",
