@@ -57,7 +57,13 @@ PRIVATE_KEY=0x$(cat ~/.ipc/r0/ipc-node/node0/keys/validator_key.sk | base64 -d |
 
 ## [Option 2]: Deploy ephemeral testnet
 
+### Deploy testnet with a PR
+
 Just open PR in this repository and add a `dev-create` tag to it.
+
+### Obtain a key
+
+A private key of a validator can be found in `dev-env/jobs/default/ipc/keys/0/validator.sk.hex`.
 
 ## Deploy contracts
 
