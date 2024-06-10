@@ -15,14 +15,14 @@ job "ipc" {
   type      = "system"
   node_pool = "ipc"
 
-  restart {
-    attempts = 5
-    delay    = "5s"
-    interval = "1m"
-    mode     = "delay"
-  }
-
   group "validators" {
+    restart {
+      attempts = 5
+      delay    = "5s"
+      interval = "1m"
+      mode     = "delay"
+    }
+
     volume "cometbft" {
       type   = "host"
       source = "cometbft"
