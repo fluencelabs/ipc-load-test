@@ -152,13 +152,21 @@ async function initPeers(
   return peers;
 }
 
-export async function bench(
-  forEpoches: number,
-  providersNum: number,
-  cuPerPeer: number,
-  batchSize: number,
-  metricsPath: string
-) {
+export type BenchParams = {
+  forEpoches: number;
+  providersNum: number;
+  cuPerPeer: number;
+  batchSize: number;
+  metricsPath: string;
+};
+
+export async function bench({
+  forEpoches,
+  providersNum,
+  cuPerPeer,
+  batchSize,
+  metricsPath
+}: BenchParams) {
   const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
   await rpc.on("error", (e) => {
     console.log("WARNING: RPC error:", e);
@@ -284,7 +292,7 @@ export async function bench(
     }
   });
 
-  let stopSignal: () => void = () => {};
+  let stopSignal: () => void = () => { };
   const stopPromise = new Promise<void>((resolve) => {
     stopSignal = resolve;
   });

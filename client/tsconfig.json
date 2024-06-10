@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node18-strictest-esm/tsconfig.json",
+  "extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
@@ -10,11 +10,18 @@
     "resolveJsonModule": true,
     "importsNotUsedAsValues": "remove",
     "verbatimModuleSyntax": true,
-    "lib": ["es2023"]
+    "lib": [
+      "es2023"
+    ],
   },
   "ts-node": {
-    "esm": true
+    "esm": true,
   },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ],
 }
