@@ -86,7 +86,7 @@ scrape_configs:
           expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)'
       - template:
           source: |
-            {{ .duration }}{{ .unit }}
+            {{ .duration }}ms
           target: fixed_duration
       - metrics:
           randomx_duration:
