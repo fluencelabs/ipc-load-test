@@ -19,6 +19,8 @@ scrape_configs:
           task: cometbft
           __path__: "/alloc/logs/cometbft.*"
     pipeline_stages:
+      - multiline:
+          firstline: '^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\].*'
       - regex:
           expression: '^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\] (?P<message>.*)$'
       - timestamp:
@@ -47,11 +49,25 @@ scrape_configs:
           task: fendermint
           __path__: "/alloc/logs/fendermint.stderr.*"
     pipeline_stages:
+      - multiline:
+          firstline: '^(?P<timestamp>[^ ]+).*'
       - regex:
           expression: "^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)"
       - timestamp:
           source: timestamp
           format: "RFC3339"
+      - template:
+          source: level
+          template: |
+            {{- if eq .Value "INFO" -}}
+            info
+            {{- else if eq .Value "WARN" -}}
+            warn
+            {{- else if eq .Value "ERROR" -}}
+            error
+            {{- else if eq .Value "DEBUG" -}}
+            debug
+            {{- end -}}
       - labels:
           level:
       - drop:
