@@ -105,7 +105,7 @@ scrape_configs:
           __path__: "/alloc/logs/fendermint.stdout.*"
     pipeline_stages:
       - regex:
-          expression: 'randomx_batched_log: cache misses (?P<misses>[\d\.]+), cache hits (?P<hits>[\d\.])'
+          expression: 'randomx_batched_log: cache misses (?P<misses>[\d\.]+), cache hits (?P<hits>[\d\.]+)'
       - metrics:
           actor_cache_misses:
             prefix: "randomx_"
