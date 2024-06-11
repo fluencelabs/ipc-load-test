@@ -108,7 +108,7 @@ scrape_configs:
           expression: 'randomx_batched_log: cache misses (?P<misses>[\d\.]+), cache hits (?P<hits>[\d\.])'
       - metrics:
           actor_cache_misses:
-            prefix: "random_"
+            prefix: "randomx_"
             description: "Cache misses"
             type: counter
             source: misses

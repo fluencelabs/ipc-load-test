@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 5,
+  "id": 3,
   "links": [],
   "panels": [
     {
@@ -109,7 +109,7 @@
             "uid": "PAE45454D0EDB9216"
           },
           "editorMode": "code",
-          "expr": "sum(actor_randomx_cache_hits) by (instance)",
+          "expr": "sum(randomx_actor_cache_hits) by (instance)",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -207,7 +207,7 @@
             "uid": "PAE45454D0EDB9216"
           },
           "editorMode": "code",
-          "expr": "sum(actor_randomx_cache_misses) by (instance)",
+          "expr": "sum(randomx_actor_cache_misses) by (instance)",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -301,7 +301,7 @@
                 "uid": "PAE45454D0EDB9216"
               },
               "editorMode": "code",
-              "expr": "sum(rate(actor_randomx_duration_bucket{operation=\"$operation\"}[$__rate_interval])) by (le)",
+              "expr": "sum(rate(randomx_actor_duration_bucket{operation=\"$operation\"}[$__rate_interval])) by (le)",
               "format": "heatmap",
               "instant": false,
               "interval": "4",
@@ -365,6 +365,6 @@
   "timezone": "browser",
   "title": "RandomX",
   "uid": "bdogj4350y4n4d",
-  "version": 11,
+  "version": 2,
   "weekStart": ""
 }
