@@ -1,0 +1,66 @@
+server:
+  log_level: debug
+  http_listen_port: ${NOMAD_PORT_promtail}
+
+positions:
+  filename: "/alloc/data/positions.yml"
+
+clients:
+  - url: "http://loki.service.consul:3100/loki/api/v1/push"
+    external_labels:
+      env: dev
+      job: ipc
+
+scrape_configs:
+  - job_name: "randomx"
+    static_configs:
+      - labels:
+          group: validators
+          task: randomx
+          __path__: "/alloc/logs/test.stdout.*"
+    pipeline_stages:
+      - regex:
+          expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)'
+      - labels:
+          operation:
+      - template:
+          source: duration
+          template: '{{ .Value }}ms'
+      - metrics:
+          actor_duration:
+            prefix: "randomx_"
+            description: "Duration of RandomX operations"
+            type: histogram
+            source: duration
+            config:
+              buckets: [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5]
+
+  - job_name: "randomx-cache"
+    static_configs:
+      - labels:
+          group: validators
+          task: randomx
+          __path__: "/alloc/logs/test.stdout.*"
+    pipeline_stages:
+      - regex:
+          expression: 'randomx_batched_log: cache misses (?P<misses>[\d\.]+), cache hits (?P<hits>[\d\.])'
+      - metrics:
+          actor_cache_misses:
+            prefix: "random_"
+            description: "Cache misses"
+            type: counter
+            source: misses
+            config:
+              action: add
+      - metrics:
+          actor_cache_hits:
+            prefix: "randomx_"
+            description: "Cache hits"
+            type: counter
+            source: hits
+            config:
+              action: add
+
+      - match:
+          selector: '{task="randomx"}'
+          action: drop
