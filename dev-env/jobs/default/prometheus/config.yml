@@ -34,7 +34,7 @@ scrape_configs:
       - source_labels: ["__meta_consul_service_metadata_instance"]
         target_label: "instance"
 
-  - job_name: "actor"
+  - job_name: "randomx"
     consul_sd_configs:
       - server: http://127.0.0.1:8500
         services:
