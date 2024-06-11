@@ -1,3 +1,6 @@
+server:
+  http_listen_port: ${NOMAD_PORT_promtail}
+
 positions:
   filename: "/alloc/data/positions.yml"
 
@@ -42,7 +45,7 @@ scrape_configs:
           instance: "fendermint-${INDEX}"
           group: validators
           task: fendermint
-          __path__: "/alloc/logs/fendermint_stderr.*"
+          __path__: "/alloc/logs/fendermint.stderr.*"
     pipeline_stages:
       - regex:
           expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
@@ -70,34 +73,55 @@ scrape_configs:
           format: 'RFC3339'
       - labels:
           level:
-
+ 
   - job_name: "randomx"
     static_configs:
       - labels:
-          instance: "fendermint-${INDEX}"
           group: validators
           task: randomx
-          __path__: "/alloc/logs/fendermint.stdout.*"
+          __path__: "/alloc/logs/test.stdout.*"
     pipeline_stages:
       - regex:
-          expression: 'run_randomx_batched: (?P<operation>\w+) took (?P<duration>[\d\.]+)(?P<unit>µs)'
-      - replace:
-          expression: 'µs'
-          replace: 'us'
-          source: unit
-      - template:
-          source: |
-            {{ .duration }}{{ .unit }}
-          target: fixed_duration
-      - metrics:
-          randomx_duration:
-            description: "Duration of RandomX operations"
-            type: histogram
-            source: fixed_duration
-            config:
-              buckets: [0.01, 0.1, 1, 10, 100, 1000, 10000, 100000, 1000000]
+          expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)'
       - labels:
           operation:
+      - template:
+          source: duration
+          template: '{{ .Value }}ms'
+      - metrics:
+          actor_duration:
+            prefix: "randomx_"
+            description: "Duration of RandomX operations"
+            type: histogram
+            source: duration
+            config:
+              buckets: [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5]
+
+  - job_name: "randomx-cache"
+    static_configs:
+      - labels:
+          group: validators
+          task: randomx
+          __path__: "/alloc/logs/test.stdout.*"
+    pipeline_stages:
+      - regex:
+          expression: 'randomx_batched_log: cache misses (?P<misses>[\d\.]+), cache hits (?P<hits>[\d\.])'
+      - metrics:
+          actor_cache_misses:
+            prefix: "random_"
+            description: "Cache misses"
+            type: counter
+            source: misses
+            config:
+              action: add
+      - metrics:
+          actor_cache_hits:
+            prefix: "randomx_"
+            description: "Cache hits"
+            type: counter
+            source: hits
+            config:
+              action: add
 
       - match:
           selector: '{task="randomx"}'
