@@ -137,8 +137,8 @@ export class Communicate extends EventEmitter {
           },
           { priority: 0 } // Poll has lower priority
         ))().catch((e) => {
-        console.error("WARNING: Failed to poll: ", e);
-      });
+          console.error("WARNING: Failed to poll: ", e);
+        });
     }, this.interval);
   }
 
