@@ -23,7 +23,7 @@ scrape_configs:
           expression: '^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\] (?P<message>.*)$'
       - timestamp:
           source: timestamp
-          format: '2006-01-02|15:04:05.999'
+          format: "2006-01-02|15:04:05.999"
       - template:
           source: level
           template: |
@@ -48,10 +48,10 @@ scrape_configs:
           __path__: "/alloc/logs/fendermint.stderr.*"
     pipeline_stages:
       - regex:
-          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+          expression: "^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)"
       - timestamp:
           source: timestamp
-          format: 'RFC3339'
+          format: "RFC3339"
       - labels:
           level:
       - drop:
@@ -67,19 +67,19 @@ scrape_configs:
           __path__: "/alloc/logs/eth-api.*"
     pipeline_stages:
       - regex:
-          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+          expression: "^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)"
       - timestamp:
           source: timestamp
-          format: 'RFC3339'
+          format: "RFC3339"
       - labels:
           level:
- 
+
   - job_name: "randomx"
     static_configs:
       - labels:
           group: validators
           task: randomx
-          __path__: "/alloc/logs/test.stdout.*"
+          __path__: "/alloc/logs/fendermint.stdout.*"
     pipeline_stages:
       - regex:
           expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)'
@@ -87,7 +87,7 @@ scrape_configs:
           operation:
       - template:
           source: duration
-          template: '{{ .Value }}ms'
+          template: "{{ .Value }}ms"
       - metrics:
           actor_duration:
             prefix: "randomx_"
@@ -102,7 +102,7 @@ scrape_configs:
       - labels:
           group: validators
           task: randomx
-          __path__: "/alloc/logs/test.stdout.*"
+          __path__: "/alloc/logs/fendermint.stdout.*"
     pipeline_stages:
       - regex:
           expression: 'randomx_batched_log: cache misses (?P<misses>[\d\.]+), cache hits (?P<hits>[\d\.])'
