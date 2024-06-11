@@ -11,92 +11,117 @@ clients:
       job: ipc
 
 scrape_configs:
-  # - job_name: "cometbft"
-  #   static_configs:
-  #     - labels:
-  #         instance: "cometbft-${INDEX}"
-  #         group: validators
-  #         task: cometbft
-  #         __path__: "/alloc/logs/cometbft.*"
-  #   pipeline_stages:
-  #     - regex:
-  #         expression: '^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\] (?P<message>.*)$'
-  #     - timestamp:
-  #         source: timestamp
-  #         format: '2006-01-02|15:04:05.999'
-  #     - template:
-  #         source: level
-  #         template: |
-  #           {{- if eq .Value "I" -}}
-  #           info
-  #           {{- else if eq .Value "W" -}}
-  #           warn
-  #           {{- else if eq .Value "E" -}}
-  #           error
-  #           {{- else if eq .Value "D" -}}
-  #           debug
-  #           {{- end -}}
-  #     - labels:
-  #         level:
-  #
-  # - job_name: "fendemint"
-  #   static_configs:
-  #     - labels:
-  #         instance: "fendermint-${INDEX}"
-  #         group: validators
-  #         task: fendermint
-  #         __path__: "/alloc/logs/fendermint.stderr.*"
-  #   pipeline_stages:
-  #     - regex:
-  #         expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
-  #     - timestamp:
-  #         source: timestamp
-  #         format: 'RFC3339'
-  #     - labels:
-  #         level:
-  #     - drop:
-  #         expression: ".* listening for requests"
-  #         drop_counter_reason: "noise"
-  #
-  # - job_name: "eth-api"
-  #   static_configs:
-  #     - labels:
-  #         instance: "eth-api-${INDEX}"
-  #         group: validators
-  #         task: eth-api
-  #         __path__: "/alloc/logs/eth-api.*"
-  #   pipeline_stages:
-  #     - regex:
-  #         expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
-  #     - timestamp:
-  #         source: timestamp
-  #         format: 'RFC3339'
-  #     - labels:
-  #         level:
+  - job_name: "cometbft"
+    static_configs:
+      - labels:
+          instance: "cometbft-${INDEX}"
+          group: validators
+          task: cometbft
+          __path__: "/alloc/logs/cometbft.*"
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<level>[A-Z])\[(?P<timestamp>[^\]]+)\] (?P<message>.*)$'
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02|15:04:05.999'
+      - template:
+          source: level
+          template: |
+            {{- if eq .Value "I" -}}
+            info
+            {{- else if eq .Value "W" -}}
+            warn
+            {{- else if eq .Value "E" -}}
+            error
+            {{- else if eq .Value "D" -}}
+            debug
+            {{- end -}}
+      - labels:
+          level:
 
-  - job_name: "randomx"
+  - job_name: "fendemint"
     static_configs:
       - labels:
           instance: "fendermint-${INDEX}"
           group: validators
+          task: fendermint
+          __path__: "/alloc/logs/fendermint.stderr.*"
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+      - timestamp:
+          source: timestamp
+          format: 'RFC3339'
+      - labels:
+          level:
+      - drop:
+          expression: ".* listening for requests"
+          drop_counter_reason: "noise"
+
+  - job_name: "eth-api"
+    static_configs:
+      - labels:
+          instance: "eth-api-${INDEX}"
+          group: validators
+          task: eth-api
+          __path__: "/alloc/logs/eth-api.*"
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>[^ ]+) (?P<level>[A-Z]+)'
+      - timestamp:
+          source: timestamp
+          format: 'RFC3339'
+      - labels:
+          level:
+ 
+  - job_name: "randomx"
+    static_configs:
+      - labels:
+          group: validators
           task: randomx
-          __path__: "/alloc/logs/fendermint.stdout.*"
+          __path__: "/alloc/logs/test.stdout.*"
     pipeline_stages:
       - regex:
           expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)'
-      - template:
-          source: |
-            {{ .duration }}ms
-          target: fixed_duration
-      - metrics:
-          randomx_duration:
-            description: "Duration of RandomX operations"
-            type: histogram
-            source: fixed_duration
-            config:
-              buckets: [1, 10, 100, 1000, 10000, 100000, 1000000]
       - labels:
           operation:
+      - template:
+          source: duration
+          template: '{{ .Value }}ms'
+      - metrics:
+          actor_duration:
+            prefix: "randomx_"
+            description: "Duration of RandomX operations"
+            type: histogram
+            source: duration
+            config:
+              buckets: [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5]
+
+  - job_name: "randomx-cache"
+    static_configs:
+      - labels:
+          group: validators
+          task: randomx
+          __path__: "/alloc/logs/test.stdout.*"
+    pipeline_stages:
+      - regex:
+          expression: 'randomx_batched_log: cache misses (?P<misses>[\d\.]+), cache hits (?P<hits>[\d\.])'
+      - metrics:
+          actor_cache_misses:
+            prefix: "random_"
+            description: "Cache misses"
+            type: counter
+            source: misses
+            config:
+              action: add
+      - metrics:
+          actor_cache_hits:
+            prefix: "randomx_"
+            description: "Cache hits"
+            type: counter
+            source: hits
+            config:
+              action: add
 
       - match:
           selector: '{task="randomx"}'
