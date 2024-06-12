@@ -98,7 +98,7 @@ scrape_configs:
           __path__: "/alloc/logs/fendermint.stdout.*"
     pipeline_stages:
       - regex:
-          expression: 'randomx_batched_duration: (?P<operation>\w+) took (?P<duration>[\d\.]+)'
+          expression: 'randomx_batched_duration: (?P<operation>\w+) (took )?(?P<duration>[\d\.]+)'
       - labels:
           operation:
       - template:
@@ -111,7 +111,7 @@ scrape_configs:
             type: histogram
             source: duration
             config:
-              buckets: [0.1, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5]
+              buckets: [0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 1, 1.5, 2, 2.5, 3, 4, 5]
 
   - job_name: "randomx-cache"
     static_configs:
