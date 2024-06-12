@@ -8,7 +8,7 @@ import {
 } from "json-rpc-2.0";
 import PQueue from "p-queue";
 
-import { arrToHex } from "./utils.js";
+import { arrToHex, mapValues } from "./utils.js";
 
 // Request to CCP
 export interface Request {
@@ -34,15 +34,16 @@ export interface Solution {
 export class Communicate extends EventEmitter {
   private readonly client: JSONRPCClient;
 
-  private proof_id = 0;
+  private proofIds: Record<string, number> = {};
   private polling = false;
   private pollTimeout: NodeJS.Timeout | undefined = undefined;
   private readonly interval: number;
+  private readonly cuBatchSize: number;
 
   // concurrency: 1 so that we don't poll and request at the same time
   private readonly requests = new PQueue({ concurrency: 1 });
 
-  constructor(url: string, interval: number = 1000) {
+  constructor(url: string, cuBatchSize: number, interval: number = 1000) {
     super();
 
     const client: JSONRPCClient = new JSONRPCClient(async (jsonRPCRequest) => {
@@ -62,7 +63,17 @@ export class Communicate extends EventEmitter {
     });
 
     this.client = client;
+    this.cuBatchSize = cuBatchSize;
     this.interval = interval;
+  }
+
+  private reset_ids(with_cus?: BytesLike[] | undefined) {
+    const cus = with_cus || Object.keys(this.proofIds);
+
+    this.proofIds = {};
+    for (const cu of cus) {
+      this.proofIds[cu.toString()] = 0;
+    }
   }
 
   request(req: Request): Promise<void> {
@@ -71,7 +82,7 @@ export class Communicate extends EventEmitter {
         try {
           await this.client.request("ccp_on_active_commitment", req);
           // CCP resets id on change of active commitment
-          this.proof_id = 0;
+          this.reset_ids(Object.values(req.cu_allocation));
         } catch (e) {
           console.error("Error from `ccp_on_active_commitment`: ", e);
         }
@@ -81,31 +92,37 @@ export class Communicate extends EventEmitter {
   }
 
   // Returns number of solutions received
-  private async update(limit: number): Promise<number> {
+  private async update() {
     const body = {
-      proof_idx: this.proof_id,
-      limit: limit,
+      reqs: mapValues(this.proofIds, idx => {
+        return {
+          last_seen_proof_idx: idx,
+          proof_batch_size: this.cuBatchSize,
+        }
+      }),
+      min_batch_count: 1,
+      max_batch_count: 1,
     };
-    const response = await this.client.request("ccp_get_proofs_after", body);
+    const response = await this.client.request("get_batch_proofs_after", body);
+
+    console.log("get_proof_batches_after:", response);
 
     // CCP returns byte arrays
-    for (const solution of response) {
-      solution.id.global_nonce = arrToHex(solution.id.global_nonce);
-      solution.id.difficulty = arrToHex(solution.id.difficulty);
-      solution.local_nonce = arrToHex(solution.local_nonce);
-      solution.cu_id = arrToHex(solution.cu_id);
-      solution.result_hash = arrToHex(solution.result_hash);
-    }
+    // for (const batch of response) {
+    //   const solutions = batch.proof_batches.map((solution: any) => {
+    //     solution.id.global_nonce = arrToHex(solution.id.global_nonce);
+    //     solution.id.difficulty = arrToHex(solution.id.difficulty);
+    //     solution.local_nonce = arrToHex(solution.local_nonce);
+    //     solution.cu_id = arrToHex(solution.cu_id);
+    //     solution.result_hash = arrToHex(solution.result_hash);
+    //   });
+    // }
 
-    const solutions = response as Solution[];
-    for (const solution of solutions) {
-      this.emit("solution", solution);
-      // this.proof_id = Math.max(this.proof_id, solution.id.idx);
-    }
-
-    this.proof_id += solutions.length;
-
-    return solutions.length;
+    // const solutions = response as Solution[];
+    // for (const solution of solutions) {
+    //   this.emit("solution", solution);
+    //   // this.proof_id = Math.max(this.proof_id, solution.id.idx);
+    // }
   }
 
   private poll() {
@@ -113,19 +130,13 @@ export class Communicate extends EventEmitter {
       (async () =>
         this.requests.add(
           async () => {
-            const limit = 50;
             try {
-              for (let i = 0; i < 10 && this.polling; i++) {
-                const count = await this.update(limit);
-                if (count < limit) {
-                  break;
-                }
-              }
+              await this.update();
             } catch (e) {
               // Ignore code 1 (on_active_commitment in progress)
               if (e instanceof JSONRPCErrorException && e.code !== 1) {
                 console.error(
-                  "Error from `ccp_get_proofs_after`: ",
+                  "Error from `get_batch_proofs_after`: ",
                   JSON.stringify(e)
                 );
               }
@@ -157,7 +168,7 @@ export class Communicate extends EventEmitter {
     await this.stop();
   }
 
-  override on(event: "solution", listener: (solution: Solution) => void): this {
+  override on(event: "batch", listener: (batch: Solution[]) => void): this {
     if (!this.polling) {
       this.poll();
       this.polling = true;

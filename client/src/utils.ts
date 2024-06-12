@@ -40,3 +40,14 @@ export function count(items: string[]): Record<string, number> {
 
   return countRecord;
 }
+
+export function mapValues<K extends string | number | symbol, T, S>(
+  obj: Record<K, T>,
+  fn: (v: T, k: K) => S
+): Record<K, S> {
+  const result = {} as Record<K, S>;
+  for (const k in obj) {
+    result[k] = fn(obj[k], k);
+  }
+  return result;
+}
