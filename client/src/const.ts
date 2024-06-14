@@ -25,7 +25,7 @@ export function idToNodeId(id: number) {
  * API URLS
  */
 export const ETH_API_URL = (i: number) => {
-  return `http://ipc-${idToNodeId(i)}.751268211-23.fluence.dev:8545`;
+  return `http://ipc-${idToNodeId(i)}.751268211-34.fluence.dev:8545`;
 };
 // export const ETH_API_URL = (i: number) => `http://127.0.0.1:85${45 + (i % 12)}`;
 export const DEFAULT_ETH_API_URL = ETH_API_URL(0);
