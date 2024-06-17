@@ -98,7 +98,10 @@ job "grafana" {
             url: "http://loki.service.consul:3100"
             basicAuth: false
             jsonData:
+              httpHeaderName1: "X-Scope-OrgID"
               maxLines: 1000
+            secureJsonData:
+              httpHeaderName1: "cloudlesslabs|test"
 
           - name: "Mimir"
             type: "prometheus"
@@ -106,8 +109,11 @@ job "grafana" {
             isDefault: true
             basicAuth: false
             jsonData:
+              httpHeaderName1: "X-Scope-OrgID"
               timeInterval: "15s"
               manageAlerts: false
+            secureJsonData:
+              httpHeaderName1: "cloudlesslabs|test"
         EOH
         destination = "local/provisioning/datasources/datasources.yml"
       }
