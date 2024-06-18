@@ -1,7 +1,6 @@
 import { ethers, type BytesLike, type AddressLike } from "ethers";
 
 import {
-  CCP_RPC_URL,
   DEFAULT_ETH_API_URL,
   PRIVATE_KEY,
   DEFAULT_CONFIRMATIONS,
@@ -11,7 +10,7 @@ import {
   BUFFER_BATCHES,
   idToNodeId,
 } from "./const.js";
-import { Communicate, type Solution } from "./communicate.js";
+import { Proofs } from "./proofs.js";
 import { Metrics } from "./metrics.js";
 import {
   Balancer,
@@ -88,7 +87,7 @@ export type BenchParams = {
   interval: number;
   cusNumber: number;
   sendersNumber: number;
-  batchSize: number;
+  proofsPerCu: number;
   batchesToSend: number;
   configPath: string;
   metricsPath: string;
@@ -98,7 +97,7 @@ export async function bench({
   interval,
   cusNumber,
   sendersNumber,
-  batchSize,
+  proofsPerCu,
   batchesToSend,
   configPath,
   metricsPath,
@@ -186,112 +185,65 @@ export async function bench({
     );
   }
 
-  const communicate = new Communicate(CCP_RPC_URL, interval / 2);
-
-  console.log("Requesting parameters...");
-
-  await communicate.request({
-    global_nonce: CHAIN_GNONCE_HARDCODED,
-    difficulty: CCP_DIFFICULTY,
-    cu_allocation,
-  });
-
-  const [startSignal, startPromise] = makeSignal();
-  let buffered = false;
+  const proofs = new Proofs(cusNumber, proofsPerCu);
 
   const [stopSignal, stopPromise] = makeSignal();
 
   const batchesPending: Set<number> = new Set();
   const batchesSent: Set<number> = new Set();
-  const batches: Solution[][] = [];
-  const seen = new ProofSet();
-
-  console.log("Buffering solutions...");
-
-  communicate.on("solution", (solution: Solution) => {
-    const cuStr = solution.cu_id.toString();
-    const lnStr = solution.local_nonce.toString();
-
-    if (seen.has(cuStr, lnStr)) {
-      console.log("WARNING: Already seen solution:", solution);
-      return;
-    }
-
-    seen.add(cuStr, lnStr);
-
-    const lastBatch = batches[batches.length - 1];
-    if (lastBatch === undefined || lastBatch.length === batchSize) {
-      if (batches.length < BUFFER_BATCHES) {
-        batches.push([solution]);
-      } else if (!buffered) {
-        buffered = true;
-        startSignal();
-      }
-    } else {
-      lastBatch.push(solution);
-    }
-  });
-
-  await startPromise;
 
   console.log("Starting benchmark...");
 
   const sendInterval = setInterval(() => {
-    const batch = batches.shift();
-    if (batch === undefined || batch.length < batchSize) {
-      console.error("FATAL: No batch to send, increase CCP_DIFFICULTY");
+    const batch = proofs.batch();
+    (async () => {
+      // This is the first batch
+      if (batchesPending.size === 0) {
+        metrics.shot({ action: "start-load", timestamp: Date.now() });
+      }
 
-      metrics.shot({ action: "end-load", timestamp: Date.now() });
-      clearInterval(sendInterval);
-      stopSignal();
-    } else {
-      (async () => {
-        // This is the first batch
-        if (batchesPending.size === 0) {
-          metrics.shot({ action: "start-load", timestamp: Date.now() });
+      // This is the last batch
+      if (batchesPending.size + 1 === batchesToSend) {
+        metrics.shot({ action: "end-load", timestamp: Date.now() });
+        clearInterval(sendInterval);
+      }
+
+      if (batchesPending.size < batchesToSend) {
+        const batchId = batchesPending.size;
+        batchesPending.add(batchId);
+
+        console.log(
+          new Date().toISOString(),
+          "Sending batch:",
+          batchId,
+          "size:",
+          batch.length,
+          "distribution:",
+          count(batch.map((s) => s.cu_id.toString()))
+        );
+
+        const sender = senderBalancer.next();
+        await sender.check(batch, {
+          batch: batchId,
+          cus: count(batch.map((s) => s.cu_id.toString())),
+          size: batch.length,
+        });
+
+        batchesSent.add(batchId);
+        if (batchesSent.size === batchesToSend) {
+          stopSignal();
         }
 
-        // This is the last batch
-        if (batchesPending.size + 1 === batchesToSend) {
-          metrics.shot({ action: "end-load", timestamp: Date.now() });
-          clearInterval(sendInterval);
-        }
-
-        if (batchesPending.size < batchesToSend) {
-          const batchId = batchesPending.size;
-          batchesPending.add(batchId);
-
-          console.log(
-            new Date().toISOString(),
-            "Sending batch:",
-            batchId,
-            "size:",
-            batch.length
-          );
-
-          const sender = senderBalancer.next();
-          await sender.check(batch, {
-            batch: batchId,
-            cus: count(batch.map((s) => s.cu_id.toString())),
-            size: batch.length,
-          });
-
-          batchesSent.add(batchId);
-          if (batchesSent.size === batchesToSend) {
-            stopSignal();
-          }
-
-          console.log(new Date().toISOString(), "Batch sent:", batchId);
-          console.log(
-            new Date().toISOString(),
-            "Pending batches:",
-            collapseIntervals(setDiff(batchesPending, batchesSent))
-          );
-        }
-      })().catch((e) => {
-        console.log("WARNING: Failed to send batch:", e);
-      });
-    }
+        console.log(new Date().toISOString(), "Batch sent:", batchId);
+        console.log(
+          new Date().toISOString(),
+          "Pending batches:",
+          collapseIntervals(setDiff(batchesPending, batchesSent))
+        );
+      }
+    })().catch((e) => {
+      console.log("WARNING: Failed to send batch:", e);
+    });
   }, interval);
 
   // Dump metrics
@@ -309,8 +261,6 @@ export async function bench({
   });
 
   console.log("Cleaning up...");
-
-  await communicate.destroy();
   clearInterval(metricsInterval);
 
   console.log("Done");

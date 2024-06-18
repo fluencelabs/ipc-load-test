@@ -5,7 +5,7 @@ import {
   type ICapacity as Capacity,
 } from "@fluencelabs/deal-ts-clients";
 
-import type { Solution } from "./communicate.js";
+import type { Solution } from "./proofs.js";
 import { Metrics, type Labels } from "./metrics.js";
 import { DEFAULT_CONFIRMATIONS, idToNodeId } from "./const.js";
 import { ExponentialBackoff, delay, timeouted } from "./utils.js";
