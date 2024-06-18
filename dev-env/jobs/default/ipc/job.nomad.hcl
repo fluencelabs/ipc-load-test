@@ -201,6 +201,9 @@ job "ipc" {
         # ABCI
         FM_ABCI__LISTEN__HOST="127.0.0.1"
 
+        # FVM
+        FM_FVM__EXEC_IN_CHECK=false
+
         # Peer discovery
         FM_RESOLVER__NETWORK__LOCAL_KEY="/local/fendermint.sk"
         {{ $port := env "NOMAD_PORT_fendermint_p2p" -}}
