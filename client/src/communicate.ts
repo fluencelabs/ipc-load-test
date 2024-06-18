@@ -100,10 +100,10 @@ export class Communicate extends EventEmitter {
     const solutions = response as Solution[];
     for (const solution of solutions) {
       this.emit("solution", solution);
-      // this.proof_id = Math.max(this.proof_id, solution.id.idx);
+      this.proof_id = Math.max(this.proof_id, solution.id.idx);
     }
 
-    this.proof_id += solutions.length;
+    // this.proof_id += solutions.length;
 
     return solutions.length;
   }

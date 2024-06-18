@@ -16,6 +16,13 @@ job "ipc" {
   node_pool = "ipc"
 
   group "validators" {
+    restart {
+      attempts = 5
+      delay    = "5s"
+      interval = "1m"
+      mode     = "delay"
+    }
+
     volume "cometbft" {
       type   = "host"
       source = "cometbft"
@@ -59,8 +66,9 @@ job "ipc" {
       port "fendermint-metrics" {}
 
       port "eth-api" {
-        to     = 8545
-        static = 8545
+        to           = 8545
+        static       = 8545
+        host_network = "public"
       }
 
       port "promtail" {}
@@ -119,7 +127,7 @@ job "ipc" {
     }
 
     task "fendermint" {
-      driver = "docker"
+      driver       = "docker"
       kill_timeout = "60s"
 
       volume_mount {
@@ -144,7 +152,7 @@ job "ipc" {
       resources {
         cpu        = 3000
         memory     = 4000
-        memory_max = 5000
+        memory_max = 5500
       }
 
       config {
@@ -193,6 +201,9 @@ job "ipc" {
         # ABCI
         FM_ABCI__LISTEN__HOST="127.0.0.1"
 
+        # FVM
+        FM_FVM__EXEC_IN_CHECK=false
+
         # Peer discovery
         FM_RESOLVER__NETWORK__LOCAL_KEY="/local/fendermint.sk"
         {{ $port := env "NOMAD_PORT_fendermint_p2p" -}}
@@ -227,8 +238,8 @@ job "ipc" {
     }
 
     task "cometbft" {
-      driver = "docker"
-      user   = "root"
+      driver       = "docker"
+      user         = "root"
       kill_timeout = "60s"
 
       env {
@@ -370,7 +381,7 @@ job "ipc" {
     }
 
     task "eth-api" {
-      driver = "docker"
+      driver       = "docker"
       kill_timeout = "60s"
 
       lifecycle {
@@ -379,7 +390,7 @@ job "ipc" {
       }
 
       env {
-        LOG_LEVEL            = "info"
+        LOG_LEVEL            = "debug"
         TENDERMINT_RPC_URL   = "http://127.0.0.1:26657"
         TENDERMINT_WS_URL    = "ws://127.0.0.1:26657/websocket"
         FM_ETH__LISTEN__PORT = NOMAD_PORT_eth_api
@@ -389,8 +400,8 @@ job "ipc" {
 
       resources {
         cpu        = 100
-        memory     = 64
-        memory_max = 128
+        memory     = 512
+        memory_max = 1024
       }
 
       config {
@@ -466,9 +477,9 @@ job "ipc" {
       }
 
       resources {
-        cpu        = 50
-        memory     = 64
-        memory_max = 128
+        cpu        = 100
+        memory     = 256
+        memory_max = 512
       }
 
       env {

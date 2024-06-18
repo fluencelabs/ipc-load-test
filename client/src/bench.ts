@@ -1,28 +1,28 @@
-import { ethers, type BytesLike } from "ethers";
-import { DealClient } from "@fluencelabs/deal-ts-clients";
-import type { AddressLike } from "ethers";
+import { ethers, type BytesLike, type AddressLike } from "ethers";
 
 import {
-  type ProviderConfig,
-  type Config,
-  readConfig,
-  writeConfig,
-} from "./config.js";
-import {
   CCP_RPC_URL,
-  MAX_DIFFICULTY,
   DEFAULT_ETH_API_URL,
   PRIVATE_KEY,
   DEFAULT_CONFIRMATIONS,
   ETH_API_URL,
-  PROVIDERS_PATH,
+  CHAIN_GNONCE_HARDCODED,
+  CCP_DIFFICULTY,
+  BUFFER_BATCHES,
+  idToNodeId,
 } from "./const.js";
-import { registerProvider } from "./register.js";
 import { Communicate, type Solution } from "./communicate.js";
-import { Peer } from "./peer.js";
 import { Metrics } from "./metrics.js";
-import { hexMin } from "./utils.js";
-import { logStats } from "./log.js";
+import {
+  Balancer,
+  makeSignal,
+  count,
+  ProofSet,
+  setDiff,
+  collapseIntervals,
+} from "./utils.js";
+import { Sender } from "./sender.js";
+import { readConfig, writeConfig } from "./config.js";
 
 process.on("unhandledRejection", (reason, promise) => {
   console.log("ERROR: Unhandled Rejection at:", promise, "reason:", reason);
@@ -33,322 +33,274 @@ process.on("uncaughtException", (err) => {
 });
 
 async function transfer(
-  signer: ethers.Wallet,
+  signer: ethers.Signer,
   to: AddressLike,
-  amount: string
+  amount: number
 ) {
-  const tx = await signer.sendTransaction({
-    to: to,
-    value: ethers.parseEther(amount),
-  });
-  await tx.wait(DEFAULT_CONFIRMATIONS);
-}
-
-async function initNewProviders(
-  signer: ethers.Wallet,
-  config: Config,
-  cuPerPeer: number,
-  total: number
-) {
-  for (let i = config.providers.length; i < total; i++) {
-    const name = `PV${i}`;
-
-    console.log(`Preparing ${name}...`);
-
-    const providerW = ethers.Wallet.createRandom();
-    const peerW = ethers.Wallet.createRandom();
-
-    console.log("Transfering funds to provider wallet...");
-    await transfer(signer, providerW.address, "40");
-
-    console.log("Transfering funds to peer wallet...");
-    await transfer(signer, peerW.address, "400");
-
-    const providerConfig: ProviderConfig = {
-      name,
-      sk: providerW.privateKey,
-      peers: [
-        {
-          cu_count: cuPerPeer,
-          owner_sk: peerW.privateKey,
-          cu_ids: [], // Will be filled on registration
-        },
-      ],
-    };
-
-    config.providers.push(providerConfig);
-  }
-}
-
-async function prepareFunds(
-  signer: ethers.Wallet,
-  rpc: ethers.JsonRpcProvider,
-  providers: ProviderConfig[]
-) {
-  for (const provider of providers) {
-    const provW = new ethers.Wallet(provider.sk, rpc);
-    const peerW = new ethers.Wallet(provider.peers[0]!.owner_sk, rpc);
-
-    const provBalance = await rpc.getBalance(provW.address);
-    const peerBalance = await rpc.getBalance(peerW.address);
-    console.log("Provider:", provider.name);
-    console.log("Provider balance:", ethers.formatEther(provBalance));
-    console.log("Peer balance:", ethers.formatEther(peerBalance));
-
-    if (provBalance < ethers.parseEther("30")) {
-      console.log("Not enough funds for provider, trying to add...");
-      await transfer(signer, provW.address, "40");
-
-      const provBalance = await rpc.getBalance(provW.address);
-      console.log("Provider balance:", ethers.formatEther(provBalance));
-    }
-
-    if (peerBalance < ethers.parseEther("1000")) {
-      console.log("Not enough funds for peer, trying to add...");
-      await transfer(signer, peerW.address, "2000");
-
-      const peerBalance = await rpc.getBalance(peerW.address);
-      console.log("Peer balance:", ethers.formatEther(peerBalance));
-    }
-  }
-}
-
-async function initPeers(
-  providers: ProviderConfig[],
-  batchSize: number,
-  metrics: Metrics,
-  epoch: number
-): Promise<Peer[]> {
-  const peers: Peer[] = [];
-  for (const provider of providers) {
-    for (const config of provider.peers) {
-      const url = ETH_API_URL(peers.length + 1);
-      const peerRpc = new ethers.JsonRpcProvider(url);
-      await peerRpc.on("error", (e) => {
-        console.log("WARNING: Peer", config.owner_sk, "RPC error:", e);
+  console.log("Transferring", amount, "ETH to", to);
+  const nonce = await signer.getNonce();
+  while (true) {
+    try {
+      const tx = await signer.sendTransaction({
+        to: to,
+        value: ethers.parseEther(amount.toString()),
+        nonce: nonce,
       });
-      const signer = new ethers.Wallet(config.owner_sk, peerRpc);
-      const client = new DealClient(signer, "local");
-      const capacity = client.getCapacity();
-      const core = client.getCore();
-      const defLabels = {
-        provider: provider.name,
-        peer: config.owner_sk,
-      };
-      const peer = new Peer(
-        config,
-        capacity,
-        core,
-        peerRpc,
-        batchSize,
-        metrics,
-        defLabels
-      );
-      await peer.init(epoch);
-      peers.push(peer);
-    }
-  }
+      await tx.wait(DEFAULT_CONFIRMATIONS);
+    } catch (e) {
+      console.log("WARNING: Failed to transfer:", (e as Error).message, ". Retrying...");
 
-  return peers;
+      continue;
+    }
+
+    break;
+  }
 }
 
-export async function bench(
-  forEpoches: number,
-  providersNum: number,
-  cuPerPeer: number,
-  batchSize: number,
-  metricsPath: string
-) {
+async function genPKeys(n: number, signer: ethers.Signer, balance: number): Promise<string[]> {
+  if (n <= 4) {
+    const pkeys: string[] = [];
+
+    for (let i = 0; i < n; i++) {
+      const wallet = ethers.Wallet.createRandom();
+      await transfer(signer, wallet.address, balance);
+      pkeys.push(wallet.privateKey);
+    }
+
+    return pkeys;
+  }
+
+  const lw = ethers.Wallet.createRandom().connect(signer.provider);
+  const rw = ethers.Wallet.createRandom().connect(signer.provider);
+
+  const ln = Math.floor(n / 2);
+  const rn = n - ln;
+
+  await transfer(signer, lw.address, balance * ln);
+  await transfer(signer, rw.address, balance * rn);
+
+  const [lr, rr] = await Promise.all([genPKeys(ln - 1, lw, balance), genPKeys(rn - 1, rw, balance)]);
+
+  return [lw.privateKey, rw.privateKey, ...lr, ...rr];
+}
+
+export type BenchParams = {
+  interval: number;
+  cusNumber: number;
+  sendersNumber: number;
+  batchSize: number;
+  batchesToSend: number;
+  configPath: string;
+  metricsPath: string;
+};
+
+export async function bench({
+  interval,
+  cusNumber,
+  sendersNumber,
+  batchSize,
+  batchesToSend,
+  configPath,
+  metricsPath,
+}: BenchParams) {
+  const config = (() => {
+    try {
+      return readConfig(configPath);
+    } catch (e) {
+      console.log("WARNING: Cannot read config:", (e as Error).message);
+      return {
+        private_keys: [],
+      };
+    }
+  })();
+
   const rpc = new ethers.JsonRpcProvider(DEFAULT_ETH_API_URL);
   await rpc.on("error", (e) => {
     console.log("WARNING: RPC error:", e);
   });
-
   const signer = new ethers.Wallet(PRIVATE_KEY, rpc);
 
-  const client = new DealClient(rpc, "local");
-  const core = client.getCore();
-  let epoch = await core.currentEpoch();
-  const chainDifficulty = await core.difficulty();
-  const capacity = client.getCapacity();
-
-  let globalNonce = await capacity.getGlobalNonce();
-  const difficulty = hexMin(chainDifficulty, MAX_DIFFICULTY);
-
-  let config: Config = { providers: [] };
-
-  try {
-    config = readConfig(PROVIDERS_PATH);
-  } catch (e) {
-    if (e instanceof Error) {
-      console.log(`Failed to read ${PROVIDERS_PATH}:`, e.message);
-    }
+  if (config.private_keys.length < sendersNumber) {
+    console.log("Initializing new private keys...");
+    const newPKeys = await genPKeys(sendersNumber - config.private_keys.length, signer, 400);
+    config.private_keys.push(...newPKeys);
   }
 
-  console.log("Will initialize new providers...");
-  await initNewProviders(signer, config, cuPerPeer, providersNum);
-  console.log("Initialized new providers...");
+  writeConfig(configPath, config);
 
-  // Update cu count according to constants
-  for (const provider of config.providers) {
-    for (const peer of provider.peers) {
-      peer.cu_count = cuPerPeer;
-    }
-  }
-
-  console.log("Will update config...");
-  writeConfig(config, PROVIDERS_PATH);
-  console.log("Updated config...");
-
-  const providers = config.providers.slice(0, providersNum);
-
-  console.log("Will prepare all providers...");
-  await prepareFunds(signer, rpc, providers);
-  console.log("Prepared all providers:", JSON.stringify(config));
-
-  console.log("Will register all providers...");
-
-  await Promise.all(
-    providers.map(async (provider) => {
-      for (let attempt = 0; attempt < 10; attempt++) {
-        console.log(
-          "Attempt to register provider",
-          provider.name,
-          ":",
-          attempt
-        );
-        try {
-          await Promise.race([
-            registerProvider(rpc, provider),
-            new Promise<void>((_, reject) =>
-              setTimeout(() => reject(), 180000)
-            ),
-          ]);
-        } catch (e) {
-          console.error("Failed to register provider", provider.name, ":", e);
-          continue;
-        }
-        break;
-      }
-    })
-  );
-
-  console.log("Registered all providers...");
+  const pkeys = config.private_keys.slice(0, sendersNumber);
 
   const metrics = new Metrics();
 
-  console.log("Will initialize all peers...");
-  const peers: Peer[] = await initPeers(
-    providers,
-    batchSize,
-    metrics,
-    Number(epoch)
+  console.log("Funding senders...");
+
+  await Promise.all(pkeys.map(async (pkey) => {
+    const address = ethers.computeAddress(pkey);
+
+    console.log("Getting balance of", address);
+
+    const balance = await rpc.getBalance(address);
+
+    console.log("Balance of", address, ":", ethers.formatEther(balance));
+
+    if (balance < ethers.parseEther("300")) {
+      await transfer(signer, address, 400);
+    }
+  }));
+
+  console.log("Initializing senders...");
+
+  const rpcs: Record<number, ethers.JsonRpcProvider> = {};
+  const senders: Sender[] = await Promise.all(
+    pkeys.map(async (key, idx) => {
+      const nodeId = idToNodeId(idx);
+      if (rpcs[nodeId] === undefined) {
+        console.log("Initializing RPC to node", nodeId);
+        const nodeRpc = new ethers.JsonRpcProvider(ETH_API_URL(idx));
+        rpcs[nodeId] = nodeRpc;
+        await nodeRpc.on("error", (e) => {
+          console.log("WARNING: Node", nodeId, "RPC error:", e);
+        });
+        console.log("RPC to node", nodeId, "initialized");
+      }
+
+      const senderSigner = new ethers.Wallet(key, rpcs[nodeId]!);
+      console.log("Initializing sender", idx);
+      const sender = await Sender.create(idx, senderSigner, metrics);
+      console.log("Sender", idx, "initialized");
+      return sender;
+    })
   );
-  console.log("Initialized all peers...");
 
-  const allCUIds = providers.flatMap((provider) =>
-    provider.peers.flatMap((peer) => peer.cu_ids)
-  );
+  // We don't need it anymore
+  await rpc.removeAllListeners();
+  rpc.destroy();
 
-  const cu_allocation = allCUIds.reduce(
-    (acc, cu_id, idx) => {
-      acc[4 + idx] = cu_id;
-      return acc;
-    },
-    {} as Record<number, BytesLike>
-  );
+  const senderBalancer = new Balancer(senders);
 
-  const communicate = new Communicate(CCP_RPC_URL, 5000);
+  const timestamp = Date.now();
+  const cu_allocation: Record<number, BytesLike> = {};
+  for (let i = 0; i < cusNumber; i++) {
+    cu_allocation[i + 4] = ethers.encodeBytes32String(
+      "cu-" + i.toString() + "-" + timestamp.toString()
+    );
+  }
 
-  console.info("Initial difficulty: ", difficulty);
-  console.info("Initial global nonce: ", globalNonce);
+  const communicate = new Communicate(CCP_RPC_URL, interval / 2);
 
   console.log("Requesting parameters...");
 
   await communicate.request({
-    global_nonce: globalNonce,
-    difficulty,
+    global_nonce: CHAIN_GNONCE_HARDCODED,
+    difficulty: CCP_DIFFICULTY,
     cu_allocation,
   });
 
-  console.log("Waiting for solution...");
+  const [startSignal, startPromise] = makeSignal();
+  let buffered = false;
 
-  let proofsCount = 0;
+  const [stopSignal, stopPromise] = makeSignal();
+
+  const batchesPending: Set<number> = new Set();
+  const batchesSent: Set<number> = new Set();
+  const batches: Solution[][] = [];
+  const seen = new ProofSet();
+
+  console.log("Buffering solutions...");
+
   communicate.on("solution", (solution: Solution) => {
-    const peer = peers.find((p) => p.hasCU(solution.cu_id));
-    if (peer) {
-      proofsCount += 1;
-      peer.submitSolution(solution);
+    const cuStr = solution.cu_id.toString();
+    const lnStr = solution.local_nonce.toString();
+
+    if (seen.has(cuStr, lnStr)) {
+      console.log("WARNING: Already seen solution:", solution);
+      return;
+    }
+
+    seen.add(cuStr, lnStr);
+
+    const lastBatch = batches[batches.length - 1];
+    if (lastBatch === undefined || lastBatch.length === batchSize) {
+      if (batches.length < BUFFER_BATCHES) {
+        batches.push([solution]);
+      } else if (!buffered) {
+        buffered = true;
+        startSignal();
+      }
     } else {
-      throw new Error("No peer for CU ID: " + solution.cu_id);
+      lastBatch.push(solution);
     }
   });
 
-  let stopSignal: () => void = () => {};
-  const stopPromise = new Promise<void>((resolve) => {
-    stopSignal = resolve;
-  });
-  let passedEpoches = 0;
-  await rpc.on("block", (_) => {
-    (async () => {
-      const curEpoch = await core.currentEpoch();
-      if (curEpoch <= epoch) {
-        return;
-      }
+  await startPromise;
 
-      epoch = curEpoch;
-      passedEpoches += 1;
+  console.log("Starting benchmark...");
 
-      if (passedEpoches > forEpoches) {
-        stopSignal();
-        return;
-      }
+  const sendInterval = setInterval(() => {
+    const batch = batches.shift();
+    if (batch === undefined || batch.length < batchSize) {
+      console.error("FATAL: No batch to send, increase CCP_DIFFICULTY");
 
-      const chainGlobalNonce = await capacity.getGlobalNonce();
-      const chainDifficulty = await core.difficulty();
-      const difficulty = hexMin(chainDifficulty, MAX_DIFFICULTY);
+      metrics.shot({ action: "end-load", timestamp: Date.now() });
+      clearInterval(sendInterval);
+      stopSignal();
+    } else {
+      (async () => {
+        // This is the first batch
+        if (batchesPending.size === 0) {
+          metrics.shot({ action: "start-load", timestamp: Date.now() });
+        }
 
-      console.log("Epoch: ", epoch);
-      console.log("Difficulty: ", difficulty);
-      console.log("Global nonce: ", chainGlobalNonce);
+        // This is the last batch
+        if (batchesPending.size + 1 === batchesToSend) {
+          metrics.shot({ action: "end-load", timestamp: Date.now() });
+          clearInterval(sendInterval);
+        }
 
-      if (chainGlobalNonce !== globalNonce) {
-        globalNonce = chainGlobalNonce;
-        console.log("Global nonce changed, requesting parameters...");
+        if (batchesPending.size < batchesToSend) {
+          const batchId = batchesPending.size;
+          batchesPending.add(batchId);
 
-        await communicate.request({
-          global_nonce: globalNonce,
-          difficulty,
-          cu_allocation,
-        });
-      } else {
-        console.log("Global nonce did not change");
-      }
+          console.log(
+            new Date().toISOString(),
+            "Sending batch:",
+            batchId,
+            "size:",
+            batch.length
+          );
 
-      // TODO: Do not clear of gnonce did not change?
-      for (const peer of peers) {
-        peer.clear(Number(epoch));
-      }
-    })().catch((e) => {
-      console.error("WARNING: Failed to process block:", e);
-    });
-  });
+          const sender = senderBalancer.next();
+          await sender.check(batch, {
+            batch: batchId,
+            cus: count(batch.map((s) => s.cu_id.toString())),
+            size: batch.length,
+          });
+
+          batchesSent.add(batchId);
+          if (batchesSent.size === batchesToSend) {
+            stopSignal();
+          }
+
+          console.log(new Date().toISOString(), "Batch sent:", batchId);
+          console.log(
+            new Date().toISOString(),
+            "Pending batches:",
+            collapseIntervals(setDiff(batchesPending, batchesSent))
+          );
+        }
+      })().catch((e) => {
+        console.log("WARNING: Failed to send batch:", e);
+      });
+    }
+  }, interval);
 
   // Dump metrics
   const metricsInterval = setInterval(() => {
+    console.log(new Date().toISOString(), "Dumping metrics...");
     metrics.dump(metricsPath).catch((e) => {
       console.log("WARNING: Failed to dump metrics:", e);
     });
   }, 10000);
-
-  let prevProofsCount = proofsCount;
-  const start = new Date().getTime();
-  const logInterval = setInterval(() => {
-    const elapsed = new Date().getTime() - start;
-    const newProofs = proofsCount - prevProofsCount;
-    prevProofsCount = proofsCount;
-    logStats(metrics, providers, peers, elapsed, passedEpoches, newProofs);
-  }, 30000);
 
   await stopPromise;
 
@@ -357,15 +309,9 @@ export async function bench(
   });
 
   console.log("Cleaning up...");
-  clearInterval(metricsInterval);
-  clearInterval(logInterval);
-  await communicate.destroy();
-  await rpc.removeAllListeners();
-  rpc.destroy();
-  await Promise.all(peers.map((peer) => peer.destroy()));
-  console.log("Done");
 
-  metrics.dump(metricsPath).catch((e) => {
-    console.log("WARNING: Failed to dump metrics:", e);
-  });
+  await communicate.destroy();
+  clearInterval(metricsInterval);
+
+  console.log("Done");
 }
