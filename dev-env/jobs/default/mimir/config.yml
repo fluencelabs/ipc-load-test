@@ -2,6 +2,9 @@ multitenancy_enabled: true
 
 target: all
 
+tenant_federation:
+  enabled: true
+
 server:
   log_level: info
 
