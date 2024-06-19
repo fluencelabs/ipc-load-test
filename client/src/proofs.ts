@@ -1,8 +1,4 @@
-import { EventEmitter } from "events";
-
 import { ethers, type BytesLike } from "ethers";
-
-import { arrToHex } from "./utils.js";
 
 // Solution from CCP
 export interface Solution {

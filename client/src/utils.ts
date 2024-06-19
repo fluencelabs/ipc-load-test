@@ -13,7 +13,7 @@ export async function timeouted<T>(
 }
 
 export function makeSignal(): [() => void, Promise<void>] {
-  let signal: () => void = () => {};
+  let signal: () => void = () => { };
   const promise = new Promise<void>((resolve) => {
     signal = resolve;
   });
@@ -113,7 +113,7 @@ export function collapseIntervals(numbers: Set<number>): string {
   }
 
   const sortedNumbers = Array.from(numbers).sort((a, b) => a - b);
-  let result: string[] = [];
+  const result: string[] = [];
   let start = sortedNumbers[0];
   let end = start;
 
@@ -146,15 +146,15 @@ export class ExponentialBackoff {
   private currentTimeout: number;
 
   constructor(initialTimeout: number, cap: number = 60 * 1000, factor: number = 1.5) {
-      this.cap = cap;
-      this.factor = factor;
-      this.currentTimeout = initialTimeout;
+    this.cap = cap;
+    this.factor = factor;
+    this.currentTimeout = initialTimeout;
   }
 
   next(): number {
-      const nextTimeout = this.currentTimeout;
-      this.currentTimeout = Math.min(this.currentTimeout * this.factor, this.cap);
-      return nextTimeout;
+    const nextTimeout = this.currentTimeout;
+    this.currentTimeout = Math.min(this.currentTimeout * this.factor, this.cap);
+    return nextTimeout;
   }
 }
 

@@ -1,16 +1,18 @@
 import { bench } from "./bench.js";
 
-const interval = 3200;
-const duration = 60 * 60 * 1000;
+const interval = 4800;
+const cus = 12;
+const proofs = 16;
+const duration = 20 * 1000;
 const batches = Math.floor(duration / interval)
 await bench({
   interval: interval,
-  cusNumber: 8,
+  cusNumber: cus,
   sendersNumber: batches,
-  proofsPerCu: 16,
+  proofsPerCu: proofs,
   batchesToSend: batches,
-  configPath: "./config.json",
-  metricsPath: "./metrics.json",
+  configPath: `./config-${cus}-${proofs}.json`,
+  metricsPath: `./metrics-${cus}-${proofs}.json`,
 });
 
 process.exit(0);

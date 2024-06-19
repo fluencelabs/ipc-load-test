@@ -5,9 +5,6 @@ import {
   PRIVATE_KEY,
   DEFAULT_CONFIRMATIONS,
   ETH_API_URL,
-  CHAIN_GNONCE_HARDCODED,
-  CCP_DIFFICULTY,
-  BUFFER_BATCHES,
   idToNodeId,
 } from "./const.js";
 import { Proofs } from "./proofs.js";
@@ -16,7 +13,6 @@ import {
   Balancer,
   makeSignal,
   count,
-  ProofSet,
   setDiff,
   collapseIntervals,
 } from "./utils.js";
@@ -218,8 +214,6 @@ export async function bench({
           batchId,
           "size:",
           batch.length,
-          "distribution:",
-          count(batch.map((s) => s.cu_id.toString()))
         );
 
         const sender = senderBalancer.next();
@@ -248,20 +242,22 @@ export async function bench({
 
   // Dump metrics
   const metricsInterval = setInterval(() => {
-    console.log(new Date().toISOString(), "Dumping metrics...");
-    metrics.dump(metricsPath).catch((e) => {
+    (async () => {
+      console.log(new Date().toISOString(), "Dumping metrics...");
+      await metrics.dump(metricsPath)
+    })().catch((e) => {
       console.log("WARNING: Failed to dump metrics:", e);
     });
   }, 10000);
 
   await stopPromise;
 
-  metrics.dump(metricsPath).catch((e) => {
+  clearInterval(metricsInterval);
+
+  console.log(new Date().toISOString(), "Dumping metrics...");
+  await metrics.dump(metricsPath).catch((e) => {
     console.log("WARNING: Failed to dump metrics:", e);
   });
-
-  console.log("Cleaning up...");
-  clearInterval(metricsInterval);
 
   console.log("Done");
 }
