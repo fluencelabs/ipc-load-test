@@ -98,8 +98,8 @@ job "grafana" {
             url: "http://loki.service.consul:3100"
             basicAuth: false
             jsonData:
-              httpHeaderName1: "X-Scope-OrgID"
               maxLines: 1000
+              httpHeaderName1: "X-Scope-OrgID"
             secureJsonData:
               httpHeaderName1: "cloudlesslabs|test"
 
