@@ -1,11 +1,11 @@
 import { bench } from "./bench.js";
 
-const interval = 3200;
+const interval = 6400;
 const duration = 60 * 60 * 1000;
 const batches = Math.floor(duration / interval)
 await bench({
   interval: interval,
-  cusNumber: 8,
+  cusNumber: 16,
   sendersNumber: batches,
   proofsPerCu: 16,
   batchesToSend: batches,
