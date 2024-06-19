@@ -5,9 +5,6 @@ target: all
 tenant_federation:
   enabled: true
 
-server:
-  log_level: info
-
 common:
   storage:
     backend: s3

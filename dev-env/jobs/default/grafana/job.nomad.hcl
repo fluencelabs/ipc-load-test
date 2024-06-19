@@ -101,7 +101,7 @@ job "grafana" {
               maxLines: 1000
               httpHeaderName1: "X-Scope-OrgID"
             secureJsonData:
-              httpHeaderName1: "cloudlesslabs|test"
+              httpHeaderValue1: 'cloudlesslabs|test'
 
           - name: "Mimir"
             type: "prometheus"
@@ -113,7 +113,7 @@ job "grafana" {
               timeInterval: "15s"
               manageAlerts: false
             secureJsonData:
-              httpHeaderName1: "cloudlesslabs|test"
+              httpHeaderValue1: 'cloudlesslabs|test'
         EOH
         destination = "local/provisioning/datasources/datasources.yml"
       }
