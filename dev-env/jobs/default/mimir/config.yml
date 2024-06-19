@@ -1,9 +1,9 @@
-multitenancy_enabled: false
+multitenancy_enabled: true
 
 target: all
 
-server:
-  log_level: info
+tenant_federation:
+  enabled: true
 
 common:
   storage:

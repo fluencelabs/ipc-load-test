@@ -99,6 +99,9 @@ job "grafana" {
             basicAuth: false
             jsonData:
               maxLines: 1000
+              httpHeaderName1: "X-Scope-OrgID"
+            secureJsonData:
+              httpHeaderValue1: 'cloudlesslabs|test'
 
           - name: "Mimir"
             type: "prometheus"
@@ -106,8 +109,11 @@ job "grafana" {
             isDefault: true
             basicAuth: false
             jsonData:
+              httpHeaderName1: "X-Scope-OrgID"
               timeInterval: "15s"
               manageAlerts: false
+            secureJsonData:
+              httpHeaderValue1: 'cloudlesslabs|test'
         EOH
         destination = "local/provisioning/datasources/datasources.yml"
       }

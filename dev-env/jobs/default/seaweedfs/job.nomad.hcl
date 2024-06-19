@@ -379,6 +379,7 @@ job "seaweedfs" {
         data        = <<-EOH
         #! /usr/bin/env sh
         IFS=','
+        sleep 10
         for bucket in $(echo ${var.buckets}); do
           echo $bucket
           sleep 5
