@@ -137,3 +137,6 @@ This will start script that:
 - Creates wallets for senders adds funds to them. It is done on the first run, then file `client/config.json` is created with all the wallets. This file is read again on consequent runs. **Important:** Remove `client/config.json` if you want to regenerate wallets (e.g. after testnet restart)
 - Sends batches using next sender in turn each `interval` milliseconds
 - Collects proof submit statistics and dumps them to `client/metrics.json` file
+
+NOTES:
+- if `eth-api` returns `EOF` error during a test, it probably is bc fendermint dies
