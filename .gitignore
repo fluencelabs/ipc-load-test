@@ -16,3 +16,6 @@ ccp_state/
 **/.ipynb_checkpoints/
 
 .env
+client/metrics*.json
+client/config*.json
+client/*.log
